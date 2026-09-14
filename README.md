@@ -67,7 +67,6 @@ A missing program is named in the one line the command prints before it exits 1.
   `Render.py`, `Word.py`, `PowerPoint.py` and `Latex.py`, the four pipelines. `scripts/Tools/` is the
   Python behind all six, vendored here so the folder runs without the repository it is built in.
 - `requirements.txt` — the third-party packages the pipelines import; the validator needs none of them.
-- `evals/` — the prompts this skill is scored against.
 
 ## Licence
 
