@@ -1159,7 +1159,7 @@ Gr
 		{
 			Bg {}
 			Sb (st='bold') {s{"F"}}
-			Sb (ro='oper') {s{"⋅"}}
+			Sb (ro='oper') {s{"·"}}
 			Sb (st='uprt') {s{"d"}}
 			Sb (st='bold') {s{"r"}}
 		}
@@ -2567,7 +2567,7 @@ Gr
 			}
 		}
 	}
-	Sb (ro='oper') {s{"⋅"}}
+	Sb (ro='oper') {s{"·"}}
 	Fr
 	{
 		Gr (t='numr')

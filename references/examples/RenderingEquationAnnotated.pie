@@ -264,7 +264,7 @@ Gr $main
 						{
 							Bg {}
 							Sb (st='bold') {s{"n"}}
-							Sb (ro='oper') {s{"⋅"}}
+							Sb (ro='oper') {s{"·"}}
 							Sb (st='itgk') {s{"ω"}}
 							Sc
 							{

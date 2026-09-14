@@ -5,7 +5,7 @@ in the editor's own `.pie` format. It covers the format's OpenDDL structure and 
 carrier Radical Pie and InkRadix pass equations through, and the recipes that turn a LaTeX construct
 into the Radical Pie structure it becomes.
 
-Version 0.9.0. Checked against Radical Pie 1.15 on Windows.
+Version 0.9.1. Checked against Radical Pie 1.15 on Windows.
 
 ## What you need
 

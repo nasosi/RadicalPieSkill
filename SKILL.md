@@ -99,7 +99,7 @@ typeset. Radical Pie assigns these itself while a user types; writing the file, 
 | --- | --- | --- |
 | Variables, letters, anything with no better role | `'math'` | The default, italic. |
 | Digits and numbers | `'nmbr'` | |
-| Binary operators, `+ − × ⋅ ±` | `'oper'` | Every minus sign, a leading one included. |
+| Binary operators, `+ − × · ±` | `'oper'` | Every minus sign, a leading one included. |
 | Relations, `= < ≤ ≈ ∈` | `'rltn'` | |
 | `∂`, `∇` | `'unry'` | Tighter than `'oper'`. |
 | Function names, `sin`, `log`, `det`, `lim` | `'func'` | Upright, with space either side. |

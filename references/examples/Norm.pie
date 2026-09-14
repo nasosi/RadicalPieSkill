@@ -22,7 +22,7 @@ Gr
 		{
 			Bg {}
 			Sb (st='bold') {s{"v"}}
-			Sb (ro='oper') {s{"⋅"}}
+			Sb (ro='oper') {s{"·"}}
 			Sb (st='bold') {s{"v"}}
 		}
 	}

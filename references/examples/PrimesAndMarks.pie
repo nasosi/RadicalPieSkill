@@ -22,7 +22,7 @@ Gr
 	Sb (ro='pnct') {s{","}}
 	Sp (s=18.0) {}
 	Sb {s{"a"} Mk {u32{0x302}}}
-	Sb (ro='oper') {s{"⋅"}}
+	Sb (ro='oper') {s{"·"}}
 	Sb {s{"b"} Mk {u32{0x303}}}
 	Sb (ro='rltn') {s{"∈"}}
 	Sb (st='doub') {s{"ℝ"}}

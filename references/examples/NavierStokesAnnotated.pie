@@ -113,7 +113,7 @@ Gr $_8
 						{
 							Bg {}
 							Sb (st='bold') {s{"u"}}
-							Sb (ro='oper') {s{"⋅"}}
+							Sb (ro='oper') {s{"·"}}
 							Sb (ro='unry',st='sym1') {s{"∇"}}
 						}
 					}

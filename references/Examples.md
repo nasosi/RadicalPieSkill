@@ -437,7 +437,7 @@ Gr
 		{
 			Bg {}
 			Sb (st='bold') {s{"v"}}
-			Sb (ro='oper') {s{"⋅"}}
+			Sb (ro='oper') {s{"·"}}
 			Sb (st='bold') {s{"v"}}
 		}
 	}
@@ -514,7 +514,7 @@ Gr
 		{
 			Bg {}
 			Sb (st='bold') {s{"v"}}
-			Sb (ro='oper') {s{"⋅"}}
+			Sb (ro='oper') {s{"·"}}
 			Sb (st='bold') {s{"v"}}
 			Ph
 			{
@@ -1165,7 +1165,7 @@ Gr
 		{
 			Bg {}
 			Sb (st='bold') {s{"v"}}
-			Sb (ro='oper') {s{"⋅"}}
+			Sb (ro='oper') {s{"·"}}
 			Sb (st='bold') {s{"v"}}
 		}
 	}
@@ -1206,7 +1206,7 @@ Gr
 	Sb (ro='pnct') {s{","}}
 	Sp (s=18.0) {}
 	Sb {s{"a"} Mk {u32{0x302}}}
-	Sb (ro='oper') {s{"⋅"}}
+	Sb (ro='oper') {s{"·"}}
 	Sb {s{"b"} Mk {u32{0x303}}}
 	Sb (ro='rltn') {s{"∈"}}
 	Sb (st='doub') {s{"ℝ"}}
@@ -1620,7 +1620,7 @@ Gr $_8
 						{
 							Bg {}
 							Sb (st='bold') {s{"u"}}
-							Sb (ro='oper') {s{"⋅"}}
+							Sb (ro='oper') {s{"·"}}
 							Sb (ro='unry',st='sym1') {s{"∇"}}
 						}
 					}
@@ -2050,7 +2050,7 @@ Gr $main
 						{
 							Bg {}
 							Sb (st='bold') {s{"n"}}
-							Sb (ro='oper') {s{"⋅"}}
+							Sb (ro='oper') {s{"·"}}
 							Sb (st='itgk') {s{"ω"}}
 							Sc
 							{

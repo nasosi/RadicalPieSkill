@@ -54,9 +54,11 @@ Every group starts with `Bg {}`, including every subgroup. No file Radical Pie w
 type 0 directly inside another group, so reach for the structure that owns the subgroup you want rather
 than a bare group.
 
-Use the mathematical characters, not the typewriter ones: U+2212 for a minus sign, U+22C5 for a dot
-operator, U+2032 for a prime, U+2026 and U+22EF for ellipses. `references/TexSymbols.md` gives the
-value for each TeX name.
+Use the mathematical characters, not the typewriter ones: U+2212 for a minus sign, U+00B7 for a centred
+dot, U+2032 for a prime, U+2026 and U+22EF for ellipses. `references/TexSymbols.md` gives the value for
+each TeX name. Radical Pie 1.15's own editor writes U+00B7 for a centred dot; files from earlier
+versions carry U+22C5 instead, and the editor draws both with the same glyph, so either validates and
+renders the same.
 
 `\mathbb{1}` and any double-struck letter or digit outside ℕℤℚℝℂ needs its own Mathematical
 Alphanumeric code point written with `st='doub'`, since that same code point with `st='uprt'` renders
