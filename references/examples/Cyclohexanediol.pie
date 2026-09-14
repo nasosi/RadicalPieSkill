@@ -1,0 +1,75 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr (al='cent',ba='frst')
+{
+	Bg {}
+	Bd
+	{
+		u32[2]{{'uplf','sing'},{'uprt','Sing'},{'lwrt','Sing'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"C"}}
+		}
+		Gr (t='uplf',al='rght')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"HO"}}
+		}
+		Gr (t='uprt')
+		{
+			Bg {}
+			Bd
+			{
+				u32[2]{{'uppr','sing'},{0,'Sing'}}
+				Gr
+				{
+					Bg {}
+					Sb (ro='chem') {s{"C"}}
+				}
+				Gr (t='uppr')
+				{
+					Bg {}
+					Sb (ro='chem') {s{"OH"}}
+				}
+			}
+		}
+		Gr (t='lwrt')
+		{
+			Bg {}
+			Bd
+			{
+				u32[2]{{0,'Sing'}}
+				Gr
+				{
+					Bg {}
+					Sb (ro='chem') {s{"C"}}
+				}
+			}
+		}
+	}
+	Bd
+	{
+		u32[2]{{'uplf','Sing'},{'lwlf','Sing'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"C"}}
+		}
+		Gr (t='uplf')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"C"}}
+		}
+		Gr (t='lwlf')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"C"}}
+		}
+	}
+	Bg (lg=30.0) {}
+	Sb (ro='text') {s{"Cyclohexane-1,2-diol"}}
+}

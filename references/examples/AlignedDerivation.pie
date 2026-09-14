@@ -1,0 +1,100 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Br
+	{
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sb {s{"a"}}
+			Sb (ro='oper') {s{"+"}}
+			Sb {s{"b"}}
+		}
+	}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Al (al='rght') {}
+	Sb (ro='rltn') {s{"="}}
+	Br
+	{
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sb {s{"a"}}
+			Sb (ro='oper') {s{"+"}}
+			Sb {s{"b"}}
+		}
+	}
+	Br
+	{
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sb {s{"a"}}
+			Sb (ro='oper') {s{"+"}}
+			Sb {s{"b"}}
+		}
+	}
+	Bg {}
+	Al (al='rght') {}
+	Sb (ro='rltn') {s{"="}}
+	Sb {s{"a"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Sb {s{"ab"}}
+	Sb (ro='oper') {s{"+"}}
+	Sb {s{"ba"}}
+	Sb (ro='oper') {s{"+"}}
+	Sb {s{"b"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Bg {}
+	Al (al='rght') {}
+	Sb (ro='rltn') {s{"="}}
+	Sb {s{"a"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"2"}}
+	Sb {s{"ab"}}
+	Sb (ro='oper') {s{"+"}}
+	Sb {s{"b"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+}

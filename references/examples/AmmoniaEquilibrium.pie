@@ -1,0 +1,56 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb (ro='chem') {s{"N"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"3"}}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Ar
+	{
+		u32{'long','long'}
+		u32{'ruhp'}
+		u32{'left','ldhp'}
+		Gr (t='uppr',al='cent')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"Fe"}}
+		}
+		Gr (t='lowr',al='cent')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"450"}}
+			Sb (ro='unit') {s{"°C"}}
+		}
+	}
+	Sb (ro='nmbr') {s{"2"}}
+	Sb (ro='chem') {s{"NH"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"3"}}
+		}
+	}
+}

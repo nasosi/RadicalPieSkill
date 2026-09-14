@@ -1,0 +1,47 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb {s{"n"}}
+	Sp (t,s=36.0) {}
+	Sb {s{"n"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sp (t,s=36.0) {}
+	Sb {s{"n"}}
+	Sb (ro='pnct') {s{"!"}}
+	Bg {}
+	Sb (ro='nmbr') {s{"1"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"1"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"1"}}
+	Bg {}
+	Sb (ro='nmbr') {s{"2"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"4"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"2"}}
+	Bg {}
+	Sb (ro='nmbr') {s{"3"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"9"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"6"}}
+	Bg {}
+	Sb (ro='nmbr') {s{"4"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"16"}}
+	Sp (t,s=36.0) {}
+	Sb (ro='nmbr') {s{"24"}}
+}

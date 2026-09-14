@@ -1,0 +1,58 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Fr
+	{
+		Gr (t='numr')
+		{
+			Bg {}
+			Sb (ro='unry',st='sym1') {s{"∂"}}
+			Sc
+			{
+				Gr (t='sups')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
+				}
+			}
+			Sb {s{"u"}}
+			Sc
+			{
+				Gr (t='sups')
+				{
+					Bg {}
+					Sb (st='itgk') {s{"α"}}
+				}
+			}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb (ro='unry',st='sym1') {s{"∂"}}
+			Sb {s{"x"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"i"}}
+				}
+			}
+			Sb (ro='unry',st='sym1') {s{"∂"}}
+			Sb {s{"x"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"j"}}
+				}
+			}
+		}
+	}
+}

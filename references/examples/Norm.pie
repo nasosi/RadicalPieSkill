@@ -1,0 +1,31 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Br
+	{
+		u32{0x2016,0x2016}
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sb (st='bold') {s{"v"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Rd
+	{
+		Gr
+		{
+			Bg {}
+			Sb (st='bold') {s{"v"}}
+			Sb (ro='oper') {s{"⋅"}}
+			Sb (st='bold') {s{"v"}}
+		}
+	}
+	Sb (ro='rltn') {s{"≥"}}
+	Sb (ro='nmbr') {s{"0"}}
+}

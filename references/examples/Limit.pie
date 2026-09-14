@@ -1,0 +1,40 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	St
+	{
+		Gr
+		{
+			Bg {}
+			Sb (ro='func') {s{"lim"}}
+		}
+		Gr (t='lowr')
+		{
+			Bg {}
+			Sb {s{"x"}}
+			Sb (ro='arrw') {s{"→"}}
+			Sb (ro='nmbr') {s{"0"}}
+		}
+	}
+	Fr
+	{
+		Gr (t='numr')
+		{
+			Bg {}
+			Sb (ro='func') {s{"sin"}}
+			Sb {s{"x"}}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb {s{"x"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Sb (ro='nmbr') {s{"1"}}
+}

@@ -1,0 +1,45 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Bd
+	{
+		u32[2]{{0,'sing'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"CH"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"3"}}
+				}
+			}
+		}
+	}
+	Bd
+	{
+		u32[2]{{'uprt','doub'},{'lwrt','sing'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"C"}}
+		}
+		Gr (t='uprt')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"O"}}
+		}
+		Gr (t='lwrt')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"OH"}}
+		}
+	}
+}

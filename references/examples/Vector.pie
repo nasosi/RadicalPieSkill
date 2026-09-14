@@ -1,0 +1,28 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Wm (t='rarw')
+	{
+		Gr
+		{
+			Bg {}
+			Sb {s{"AB"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Wm (t='line')
+	{
+		Gr
+		{
+			Bg {}
+			Sb {s{"z"}}
+			Sb (ro='oper') {s{"+"}}
+			Sb {s{"w"}}
+		}
+	}
+}

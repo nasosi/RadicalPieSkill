@@ -1,0 +1,55 @@
+// Radical Pie Equation
+
+D
+{
+	F (i=1) {s{"Cambria"}}
+	M (t='uprt') {u8{1}}
+	M (t='ital') {u8{1}}
+	M (t='bold') {u8{1}}
+	M (t='bitl') {u8{1}}
+	P {u32{0xFF000000, 0xFF505050, 0xFF808080, 0xFFC0C0C0, 0xFF5858BA, 0xFF669933, 0xFFCC6600, 0xFFE55B90, 0xFF7085FF, 0xFFA0D89E, 0xFFE8D797, 0xFFDDA6C2, 0xFF00C0FF, 0xFF00FCFC, 0xFFA0D0E0, 0xFF4488CC}}
+	V (n='fsiz') {f{12.0}}
+}
+Gr
+{
+	Bg {}
+	Sb (st='bold') {s{"p"}}
+	Sb (ro='rltn') {s{"="}}
+	Sb {s{"m"}}
+	Sb (st='bold') {s{"v"}}
+	Sb (ro='pnct') {s{","}}
+	Sb (ro='text') {s{" so the kinetic energy "}}
+	Sb (pi=6) {s{"E"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='text') {s{"k"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Fr
+	{
+		Gr (t='numr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"1"}}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb {s{"m"}}
+	Sb {s{"v"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+}

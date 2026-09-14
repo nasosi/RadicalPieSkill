@@ -1,0 +1,375 @@
+// Radical Pie Equation
+
+D
+{
+}
+Rr $boxOut (f,fpi=9,r=1)
+{
+	X
+	{
+		ref{$bgOut,$brOut}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Rr $boxEmit (f,fpi=9,r=1)
+{
+	X
+	{
+		ref{$bgEmit,$brEmit}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Rr $boxBrdf (f,fpi=10,r=1)
+{
+	X
+	{
+		ref{$bgInt,$brBrdf}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Rr $boxIn (f,fpi=9,r=1)
+{
+	X
+	{
+		ref{$bgIn,$brIn}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Rr $boxCos (f,fpi=11,r=1)
+{
+	X
+	{
+		ref{$bgCos,$brCos}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Ln $arOut (s,spi=5,es='arr2')
+{
+	X
+	{
+		ref{$boxOut,$main}
+		u32{'edge','xxx!'}
+		i32{3,1}
+	}
+}
+Ln $arEmit (s,spi=5,es='arr2')
+{
+	X
+	{
+		ref{$boxEmit,$main}
+		u32{'edge','xxx!'}
+		i32{3,1}
+	}
+}
+Ln $arIn (s,spi=5,es='arr2')
+{
+	X
+	{
+		ref{$boxIn,$main}
+		u32{'edge','xxx!'}
+		i32{3,1}
+	}
+}
+Ln $arBrdf (s,spi=6,es='arr2')
+{
+	X
+	{
+		ref{$boxBrdf,$main}
+		u32{'edge','xxx!'}
+		i32{2,0}
+	}
+}
+Ln $arCos (s,spi=7,es='arr2')
+{
+	X
+	{
+		ref{$boxCos,$main}
+		u32{'edge','xxx!'}
+		i32{2,0}
+	}
+}
+Ln $arHemi (s,spi=4,es='arr2')
+{
+	X
+	{
+		ref{$symHemi,$main}
+		u32{'cent','xxx!'}
+		i32{0,0}
+	}
+}
+Gr $main
+{
+	Bg {}
+	St
+	{
+		Gr
+		{
+			Bg $bgOut {}
+			Sb {s{"L"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"o"}}
+				}
+			}
+			Br $brOut
+			{
+				Gr
+				{
+					Bg {}
+					Sb (st='bold') {s{"x"}}
+					Sb (ro='pnct') {s{","}}
+					Sb (st='itgk') {s{"ω"}}
+					Sc
+					{
+						Gr (t='subs')
+						{
+							Bg {}
+							Sb {s{"o"}}
+						}
+					}
+				}
+			}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	St
+	{
+		Gr
+		{
+			Bg $bgEmit {}
+			Sb {s{"L"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"e"}}
+				}
+			}
+			Br $brEmit
+			{
+				Gr
+				{
+					Bg {}
+					Sb (st='bold') {s{"x"}}
+					Sb (ro='pnct') {s{","}}
+					Sb (st='itgk') {s{"ω"}}
+					Sc
+					{
+						Gr (t='subs')
+						{
+							Bg {}
+							Sb {s{"o"}}
+						}
+					}
+				}
+			}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	In (il)
+	{
+		Gr
+		{
+			Bg $bgInt {}
+			Sb {s{"f"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"r"}}
+				}
+			}
+			Br $brBrdf
+			{
+				Gr
+				{
+					Bg {}
+					Sb (st='bold') {s{"x"}}
+					Sb (ro='pnct') {s{","}}
+					Sb (st='itgk') {s{"ω"}}
+					Sc
+					{
+						Gr (t='subs')
+						{
+							Bg {}
+							Sb {s{"i"}}
+						}
+					}
+					Sb (ro='pnct') {s{","}}
+					Sb (st='itgk') {s{"ω"}}
+					Sc
+					{
+						Gr (t='subs')
+						{
+							Bg {}
+							Sb {s{"o"}}
+						}
+					}
+				}
+			}
+			Sp (s=3.0) {}
+			St
+			{
+				Gr
+				{
+					Bg $bgIn {}
+					Sb {s{"L"}}
+					Sc
+					{
+						Gr (t='subs')
+						{
+							Bg {}
+							Sb {s{"i"}}
+						}
+					}
+					Br $brIn
+					{
+						Gr
+						{
+							Bg {}
+							Sb (st='bold') {s{"x"}}
+							Sb (ro='pnct') {s{","}}
+							Sb (st='itgk') {s{"ω"}}
+							Sc
+							{
+								Gr (t='subs')
+								{
+									Bg {}
+									Sb {s{"i"}}
+								}
+							}
+						}
+					}
+				}
+			}
+			Sp (s=3.0) {}
+			St
+			{
+				Gr
+				{
+					Bg $bgCos {}
+					Br $brCos
+					{
+						Gr
+						{
+							Bg {}
+							Sb (st='bold') {s{"n"}}
+							Sb (ro='oper') {s{"⋅"}}
+							Sb (st='itgk') {s{"ω"}}
+							Sc
+							{
+								Gr (t='subs')
+								{
+									Bg {}
+									Sb {s{"i"}}
+								}
+							}
+						}
+					}
+				}
+			}
+			Sp (s=3.0) {}
+			Sb {s{"d"}}
+			Sb (st='itgk') {s{"ω"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"i"}}
+				}
+			}
+		}
+		Gr (t='lowr')
+		{
+			Bg {}
+			Sb $symHemi (st='grek') {s{"Ω"}}
+		}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (pi=5,ro='text') {s{"outgoing"}}
+	Bg {}
+	Sb (pi=5,ro='text') {s{"radiance"}}
+	X
+	{
+		ref{$arOut}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (pi=5,ro='text') {s{"emitted"}}
+	Bg {}
+	Sb (pi=5,ro='text') {s{"radiance"}}
+	X
+	{
+		ref{$arEmit}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (pi=5,ro='text') {s{"incoming"}}
+	Bg {}
+	Sb (pi=5,ro='text') {s{"radiance"}}
+	X
+	{
+		ref{$arIn}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (pi=6,ro='text') {s{"BRDF"}}
+	X
+	{
+		ref{$arBrdf}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (pi=7,ro='text') {s{"cosine"}}
+	Bg {}
+	Sb (pi=7,ro='text') {s{"factor"}}
+	X
+	{
+		ref{$arCos}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (pi=4,ro='text') {s{"over the"}}
+	Bg {}
+	Sb (pi=4,ro='text') {s{"hemisphere"}}
+	X
+	{
+		ref{$arHemi}
+		u32{'anno'}
+		i32{1}
+	}
+}

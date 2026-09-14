@@ -1,0 +1,40 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb (ro='text') {s{"The kinetic energy is "}}
+	Sb {s{"E"}}
+	Sb (ro='rltn') {s{"="}}
+	Fr (sm)
+	{
+		Gr (t='numr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"1"}}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb {s{"mv"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='text') {s{", with "}}
+	Sb {s{"m"}}
+	Sb (ro='rltn') {s{"="}}
+	Sb (ro='nmbr') {s{"3"}}
+	Sb (ro='unit') {s{"kg"}}
+	Sb (st='uprt') {s{"."}}
+}

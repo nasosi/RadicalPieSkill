@@ -1,0 +1,131 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Bd
+	{
+		u32[2]{{'uppr','sing'},{'lwlf','sing'},{'lwrt','doub'}}
+		u32[2]{{'lwlf','shal'},{'lwrt','shal'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"C"}}
+		}
+		Gr (t='uppr')
+		{
+			Bg {}
+			Bd
+			{
+				u32[2]{{'uplf','sing'},{'uprt','doub'}}
+				u32[2]{{'uplf','shal'},{'uprt','shal'}}
+				Gr
+				{
+					Bg {}
+					Sb (ro='chem') {s{"C"}}
+				}
+				Gr (t='uprt')
+				{
+					Bg {}
+					Bd
+					{
+						u32[2]{{'uppr','sing'},{'lwrt','sing'}}
+						u32[2]{{'lwrt','shal'}}
+						Gr
+						{
+							Bg {}
+							Sb (ro='chem') {s{"C"}}
+						}
+						Gr (t='lwrt')
+						{
+							Bg {}
+							Bd
+							{
+								u32[2]{{'uprt','sing'}}
+								u32[2]{{'uprt','shal'}}
+								Gr
+								{
+									Bg {}
+									Sb (ro='chem') {s{"C"}}
+								}
+								Gr (t='uprt')
+								{
+									Bg {}
+									Sb (ro='chem') {s{"H"}}
+								}
+							}
+						}
+						Gr (t='uppr')
+						{
+							Bg {}
+							Sb (ro='chem') {s{"CH"}}
+							Sc
+							{
+								Gr (t='subs')
+								{
+									Bg {}
+									Sb (ro='nmbr') {s{"3"}}
+								}
+							}
+						}
+					}
+				}
+				Gr (t='uplf')
+				{
+					Bg {}
+					Sb (ro='chem') {s{"H"}}
+				}
+			}
+		}
+		Gr (t='lwrt')
+		{
+			Bg {}
+			Bd
+			{
+				u32[2]{{'uprt','sing'},{'lowr','sing'}}
+				u32[2]{{'uprt','shal'}}
+				Gr
+				{
+					Bg {}
+					Sb (ro='chem') {s{"C"}}
+				}
+				Gr (t='uprt')
+				{
+					Bg {}
+					Bd
+					{
+						u32[2]{{'uppr','doub'},{'lwrt','sing'}}
+						u32[2]{{'lwrt','shal'}}
+						Gr
+						{
+							Bg {}
+							Sb (ro='chem') {s{"C"}}
+						}
+						Gr (t='uppr')
+						{
+							Bg {}
+						}
+						Gr (t='lwrt')
+						{
+							Bg {}
+							Sb (ro='chem') {s{"H"}}
+						}
+					}
+				}
+				Gr (t='lowr')
+				{
+					Bg {}
+					Sb (ro='chem') {s{"H"}}
+				}
+			}
+		}
+		Gr (t='lwlf')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"H"}}
+		}
+	}
+}

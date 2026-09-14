@@ -1,0 +1,50 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb (ro='nmbr',tf) {s{"7"}}
+	Dv
+	{
+		Gr
+		{
+			Bg {}
+			Sb (ro='nmbr',tf) {s{"91"}}
+			Bg {}
+			Wm (t='line',un)
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='nmbr',tf) {s{"7"}}
+				}
+			}
+			Bg {}
+			Sb (ro='nmbr',tf) {s{"21"}}
+			Bg {}
+			Wm (t='line',un)
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='nmbr',tf) {s{"21"}}
+				}
+			}
+			Bg {}
+			Ph (t='full')
+			{
+				Bg {}
+				Sb (ro='nmbr',tf) {s{"2"}}
+			}
+			Sb (ro='nmbr',tf) {s{"0"}}
+		}
+		Gr (t='quot')
+		{
+			Bg {}
+			Sb (ro='nmbr',tf) {s{"13"}}
+		}
+	}
+}

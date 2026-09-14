@@ -1,0 +1,50 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb (ro='nmbr') {s{"2"}}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='chem') {s{"O"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Ar
+	{
+		u32{'long'}
+		u32{'rarw'}
+		Gr (t='uppr')
+		{
+			Bg {}
+			Sb (ro='text') {s{"spark"}}
+		}
+	}
+	Sb (ro='nmbr') {s{"2"}}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='chem') {s{"O"}}
+}

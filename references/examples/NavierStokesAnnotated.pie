@@ -1,0 +1,237 @@
+// Radical Pie Equation
+
+D
+{
+}
+Ln $_0 (s,es='arr1')
+{
+	X
+	{
+		ref{$_13,$_8}
+		u32{'cent','xxx!'}
+		i32{1,1}
+	}
+}
+Rt $_1 (f,fpi=9)
+{
+	X
+	{
+		ref{$_9,$_10}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Ln $_2 (s,es='arr1')
+{
+	X
+	{
+		ref{$_1,$_8}
+		u32{'edge','xxx!'}
+		i32{3,1}
+	}
+}
+Ln $_3 (s,es='arr1')
+{
+	X
+	{
+		ref{$_16,$_8}
+		u32{'cent','xxx!'}
+		i32{1,1}
+	}
+}
+Rt $_4 (f,fpi=9)
+{
+	X
+	{
+		ref{$_14,$_15}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Rt $_5 (f,fpi=10)
+{
+	X
+	{
+		ref{$_11,$_12}
+		u32{0,0}
+		i32{1,0}
+	}
+}
+Ln $_6 (s,es='arr1')
+{
+	X
+	{
+		ref{$_5,$_8}
+		u32{'edge','xxx!'}
+		i32{2,0}
+	}
+}
+Ln $_7 (s,es='arr1')
+{
+	X
+	{
+		ref{$_4,$_8}
+		u32{'edge','xxx!'}
+		i32{2,0}
+	}
+}
+Gr $_8
+{
+	Bg {}
+	Sb (st='itgk') {s{"ρ"}}
+	Br
+	{
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sp (s=1.5) {}
+			Fr
+			{
+				Gr (t='numr')
+				{
+					Bg $_9 {}
+					Sb (ro='unry',st='sym1') {s{"∂"}}
+					Sb (st='bold') {s{"u"}}
+				}
+				Gr (t='dnom')
+				{
+					Bg {}
+					Sb (ro='unry',st='sym1') {s{"∂"}}
+					Sb $_10 {s{"t"}}
+				}
+			}
+			Sb $_11 (ro='oper') {s{"+"}}
+			Br $_12
+			{
+				u32{0x00,0x00}
+				Gr (ba='mddl')
+				{
+					Bg {}
+					Br
+					{
+						Gr (ba='mddl')
+						{
+							Bg {}
+							Sb (st='bold') {s{"u"}}
+							Sb (ro='oper') {s{"⋅"}}
+							Sb (ro='unry',st='sym1') {s{"∇"}}
+						}
+					}
+					Sb (st='bold') {s{"u"}}
+				}
+			}
+			Sp (s=1.5) {}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Br
+	{
+		u32{0x00,0x00}
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sb (ro='oper') {s{"−"}}
+			Sb (ro='unry',st='sym1') {s{"∇"}}
+			St
+			{
+				Gr (ba='mddl')
+				{
+					Bg {}
+					Sb $_13 {s{"p"}}
+				}
+			}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Br
+	{
+		u32{0x00,0x00}
+		Gr (ba='mddl')
+		{
+			Bg $_14 {}
+			Sb (st='itgk') {s{"μ"}}
+			Sb (ro='unry',st='sym1') {s{"∇"}}
+			Sc
+			{
+				Gr (t='sups')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
+				}
+			}
+			Sb $_15 (st='bold') {s{"u"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	St
+	{
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Sb $_16 (st='bold') {s{"f"}}
+		}
+	}
+}
+Gr (t='anno',al='cent')
+{
+	Bg {}
+	Sb (ro='text') {s{"Pressure"}}
+	X
+	{
+		ref{$_0}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (t='anno',al='cent')
+{
+	Bg {}
+	Sb (ro='text') {s{"Local"}}
+	Bg {}
+	Sb (ro='text') {s{"acceleration"}}
+	X
+	{
+		ref{$_2}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (t='anno',al='cent')
+{
+	Bg {}
+	Sb (ro='text') {s{"Body"}}
+	Bg {}
+	Sb (ro='text') {s{"Force"}}
+	X
+	{
+		ref{$_3}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (t='anno',al='cent')
+{
+	Bg {}
+	Sb (ro='text') {s{"Convective"}}
+	Bg {}
+	Sb (ro='text') {s{"Acceleration"}}
+	X
+	{
+		ref{$_6}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (t='anno',al='cent')
+{
+	Bg {}
+	Sb (ro='text') {s{"Viscous"}}
+	Bg {}
+	Sb (ro='text') {s{"Diffusion"}}
+	X
+	{
+		ref{$_7}
+		u32{'anno'}
+		i32{1}
+	}
+}

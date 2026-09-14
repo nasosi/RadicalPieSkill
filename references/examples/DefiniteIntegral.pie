@@ -1,0 +1,52 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	In
+	{
+		Gr
+		{
+			Bg {}
+			Sb {s{"x"}}
+			Sc
+			{
+				Gr (t='sups')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
+				}
+			}
+			Sp (s=3.0) {}
+			Sb {s{"d"}}
+			Sb {s{"x"}}
+		}
+		Gr (t='lowr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"0"}}
+		}
+		Gr (t='uppr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"1"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Fr (sm)
+	{
+		Gr (t='numr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"1"}}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"3"}}
+		}
+	}
+}

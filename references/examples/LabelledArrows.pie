@@ -1,0 +1,125 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb (ro='chem') {s{"C"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"4"}}
+		}
+	}
+	Ar
+	{
+		u32{'long'}
+		u32{'rarw'}
+		Gr (t='uppr')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"H"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"3"}}
+				}
+			}
+			Sb (ro='chem') {s{"PO"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"4"}}
+				}
+			}
+		}
+		Gr (t='lowr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"300"}}
+			Sb (ro='unit') {s{"°C"}}
+		}
+	}
+	Sb (ro='chem') {s{"C"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"5"}}
+		}
+	}
+	Sb (ro='chem') {s{"OH"}}
+	Ar
+	{
+		u32{'long'}
+		u32{'rarw'}
+		Gr (t='uppr')
+		{
+			Bg {}
+			Sb (ro='chem') {s{"K"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
+				}
+			}
+			Sb (ro='chem') {s{"Cr"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
+				}
+			}
+			Sb (ro='chem') {s{"O"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"7"}}
+				}
+			}
+		}
+	}
+	Sb (ro='chem') {s{"CH"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"3"}}
+		}
+	}
+	Sb (ro='chem') {s{"COOH"}}
+}

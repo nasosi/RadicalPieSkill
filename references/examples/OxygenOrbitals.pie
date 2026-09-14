@@ -1,0 +1,113 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Mx (r=3,c=4,al='left',eh,ew)
+	{
+		Gr
+		{
+			Bg {}
+			Sb (ro='text') {s{"2p"}}
+		}
+		Gr
+		{
+			Bg {}
+			Bx
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='arrw') {s{"↑↓"}}
+				}
+			}
+		}
+		Gr
+		{
+			Bg {}
+			Bx
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='arrw') {s{"↑"}}
+					Ph (t='horz')
+					{
+						Bg {}
+						Sb (ro='arrw') {s{"↓"}}
+					}
+				}
+			}
+		}
+		Gr
+		{
+			Bg {}
+			Bx
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='arrw') {s{"↑"}}
+					Ph (t='horz')
+					{
+						Bg {}
+						Sb (ro='arrw') {s{"↓"}}
+					}
+				}
+			}
+		}
+		Gr
+		{
+			Bg {}
+			Sb (ro='text') {s{"2s"}}
+		}
+		Gr
+		{
+			Bg {}
+			Bx
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='arrw') {s{"↑↓"}}
+				}
+			}
+		}
+		Gr
+		{
+			Bg {}
+		}
+		Gr
+		{
+			Bg {}
+		}
+		Gr
+		{
+			Bg {}
+			Sb (ro='text') {s{"1s"}}
+		}
+		Gr
+		{
+			Bg {}
+			Bx
+			{
+				Gr
+				{
+					Bg {}
+					Sb (ro='arrw') {s{"↑↓"}}
+				}
+			}
+		}
+		Gr
+		{
+			Bg {}
+		}
+		Gr
+		{
+			Bg {}
+		}
+	}
+}

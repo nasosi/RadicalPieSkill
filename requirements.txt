@@ -1,0 +1,12 @@
+# What the pipelines under scripts/Tools import. Validate.py and WrapSvg.py need none of it: the parser and
+# the validator are pure Python and run on a bare 3.9 interpreter.
+#
+# pywin32       the Win32 and COM calls of Render, Word and PowerPoint: win32gui, win32con, win32api,
+#               win32event, win32process, win32com.client, pythoncom, pywintypes
+# python-docx   Word reads and writes the .docx package with it
+# lxml          Word and PowerPoint edit the WordprocessingML and PresentationML parts with it
+# olefile       Word and PowerPoint read the embedded objects' compound files with it
+pywin32
+python-docx
+lxml
+olefile

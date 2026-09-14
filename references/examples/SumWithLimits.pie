@@ -1,0 +1,71 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	It
+	{
+		Gr
+		{
+			Bg {}
+			Fr
+			{
+				Gr (t='numr')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"1"}}
+				}
+				Gr (t='dnom')
+				{
+					Bg {}
+					Sb {s{"n"}}
+					Sc
+					{
+						Gr (t='sups')
+						{
+							Bg {}
+							Sb (ro='nmbr') {s{"2"}}
+						}
+					}
+				}
+			}
+		}
+		Gr (t='lowr')
+		{
+			Bg {}
+			Sb {s{"n"}}
+			Sb (ro='rltn') {s{"="}}
+			Sb (ro='nmbr') {s{"1"}}
+		}
+		Gr (t='uppr')
+		{
+			Bg {}
+			Sb (st='uprt') {s{"∞"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Fr
+	{
+		Gr (t='numr')
+		{
+			Bg {}
+			Sb (st='itgk') {s{"π"}}
+			Sc
+			{
+				Gr (t='sups')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
+				}
+			}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"6"}}
+		}
+	}
+}

@@ -1,0 +1,79 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='chem') {s{"CO"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='chem') {s{"O"}}
+	Ar
+	{
+		u32{'long'}
+		u32{'rarw'}
+		Gr (t='uppr',al='cent')
+		{
+			Bg {}
+			Sb (ro='text') {s{"light"}}
+		}
+	}
+	Sb (ro='chem') {s{"C"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"6"}}
+		}
+	}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"12"}}
+		}
+	}
+	Sb (ro='chem') {s{"O"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"6"}}
+		}
+	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='chem') {s{"O"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+}

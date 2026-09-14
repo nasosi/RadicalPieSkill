@@ -1,0 +1,151 @@
+// Radical Pie Equation
+
+D
+{
+	V (d='mtrx',n='rwgp') {f{18.0}}
+}
+Ln $ein (s,ef='arr2')
+{
+	X
+	{
+		ref{$grid,$grid}
+		u32{'cell','mrow'}
+		i32{6,3}
+	}
+}
+Ln $eout (s,ef='arr2')
+{
+	X
+	{
+		ref{$grid,$grid}
+		u32{'mrow','cell'}
+		i32{3,0}
+	}
+}
+Gr $main
+{
+	Bg {}
+	Mx $grid (r=3,c=1,eh,ew)
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=42.0) {}
+		}
+		Gr
+		{
+			Bg {}
+		}
+		Gr
+		{
+			Bg {}
+		}
+	}
+}
+Gr (t='anno',al='left',ay=-8.0)
+{
+	Bg {}
+	Wm (t='tild')
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=9.0) {}
+		}
+	}
+	Wm (t='tild')
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=9.0) {}
+		}
+	}
+	Wm (t='tild')
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=9.0) {}
+		}
+	}
+	Wm (t='tild')
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=9.0) {}
+		}
+	}
+	Wm (t='tild')
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=9.0) {}
+		}
+	}
+	Wm $photon (t='tild')
+	{
+		Gr
+		{
+			Bg {}
+			Sp (s=9.0) {}
+		}
+	}
+	X
+	{
+		ref{$grid}
+		u32{'mrow'}
+		i32{3}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb {s{"e"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='oper') {s{"−"}}
+		}
+	}
+	X
+	{
+		ref{$ein}
+		u32{'anno'}
+		i32{0}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb {s{"e"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='oper') {s{"−"}}
+		}
+	}
+	X
+	{
+		ref{$eout}
+		u32{'anno'}
+		i32{1}
+	}
+}
+Gr (as=0.8125,t='anno',al='cent')
+{
+	Bg {}
+	Sb (st='grek') {s{"γ"}}
+	X
+	{
+		ref{$photon}
+		u32{0}
+		i32{1}
+	}
+}

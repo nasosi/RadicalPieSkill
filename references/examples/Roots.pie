@@ -1,0 +1,49 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Rd
+	{
+		Gr
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='pnct') {s{","}}
+	Sp (s=4.5) {}
+	Rd
+	{
+		Gr
+		{
+			Bg {}
+			Sb {s{"x"}}
+		}
+		Gr (t='degr')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"3"}}
+		}
+	}
+	Sb (ro='pnct') {s{","}}
+	Sp (s=4.5) {}
+	Rd
+	{
+		Gr
+		{
+			Bg {}
+			Sb {s{"x"}}
+			Sb (ro='oper') {s{"+"}}
+			Sb {s{"y"}}
+		}
+		Gr (t='degr')
+		{
+			Bg {}
+			Sb {s{"n"}}
+		}
+	}
+}

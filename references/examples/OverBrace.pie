@@ -1,0 +1,54 @@
+// Radical Pie Equation
+
+D
+{
+}
+Gr
+{
+	Bg {}
+	Wm (t='brac')
+	{
+		Gr
+		{
+			Bg {}
+			Sb {s{"a"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"1"}}
+				}
+			}
+			Sb (ro='oper') {s{"+"}}
+			Sb (ro='elps') {s{"⋯"}}
+			Sb (ro='oper') {s{"+"}}
+			Sb {s{"a"}}
+			Sc
+			{
+				Gr (t='subs')
+				{
+					Bg {}
+					Sb {s{"n"}}
+				}
+			}
+		}
+		Gr (t='labl')
+		{
+			Bg {}
+			Sb {s{"n"}}
+			Sp (s=3.0) {}
+			Sb (ro='text') {s{"terms"}}
+		}
+	}
+	Sb (ro='rltn') {s{"="}}
+	Sb {s{"S"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb {s{"n"}}
+		}
+	}
+}
