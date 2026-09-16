@@ -12,24 +12,37 @@ embedded object, `identity progId width height drawn-or-blank`, and a last line 
 `RadicalPie.Application.1` objects among them. It exits non-zero when an object is still the blank Word
 caches before an activation draws it, or is of another class.
 
-Either verb prints the reason it failed on stderr and exits 1.
+Either verb prints the reason it failed on stderr and exits 1. `embed` validates every equation before Word
+starts and refuses the job with the validator's own lines, because Radical Pie drops a structure it does not
+know instead of refusing the file.
+
+`Main` takes the name of the program that invoked it, because the usage line is a command the caller can run:
+the front door scripts/Word.py passes its own path, and the module invocation below passes itself.
 """
 
 import sys
+import zipfile
 from pathlib import Path
 
+from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Word import Docx
 from Tools.Word.Docx import CheckObjects, EmbedEquations, WordError
 
-Usage = (
-    "usage: python -m Tools.Word embed [--timeout <seconds>] <input.docx> <output.docx>"
-    " <key>=<file.pie> [<key>=<file.pie> ...]\n"
-    "       python -m Tools.Word check <document.docx>"
-)
+ModuleProgram = "python -m Tools.Word"
 
 
-def ReadEquations(arguments: list) -> dict:
-    equations = {}
+def Usage(program: str) -> str:
+    return (
+        f"usage: {program} embed [--timeout <seconds>] <input.docx> <output.docx>"
+        " <key>=<file.pie> [<key>=<file.pie> ...]\n"
+        f"       {program} check <document.docx>"
+    )
+
+
+def ReadEquationFiles(arguments: list) -> dict:
+    """The `<key>=<file.pie>` pairs as a mapping of key to file name, each key given once."""
+
+    files = {}
 
     for argument in arguments:
         key, separator, fileName = argument.partition("=")
@@ -37,15 +50,15 @@ def ReadEquations(arguments: list) -> dict:
         if not separator or not key:
             raise ValueError(f"{argument!r} is not a <key>=<file.pie> pair")
 
-        if key in equations:
+        if key in files:
             raise ValueError(f"the key {key!r} is given twice")
 
-        equations[key] = Path(fileName).read_text(encoding="utf-8")
+        files[key] = fileName
 
-    return equations
+    return files
 
 
-def Embed(arguments: list) -> int:
+def Embed(arguments: list, program: str) -> int:
     timeoutSeconds = Docx.DefaultTimeoutSeconds
 
     if arguments[:1] == ["--timeout"]:
@@ -56,9 +69,15 @@ def Embed(arguments: list) -> int:
         arguments = arguments[2:]
 
     if len(arguments) < 3:
-        raise ValueError(Usage)
+        raise ValueError(Usage(program))
 
-    equations = ReadEquations(arguments[2:])
+    files = ReadEquationFiles(arguments[2:])
+    refusal = RefusalMessage(files.values())
+
+    if refusal:
+        raise WordError(refusal)
+
+    equations = {key: Path(fileName).read_text(encoding="utf-8") for key, fileName in files.items()}
     embedded = EmbedEquations(Path(arguments[0]), Path(arguments[1]), equations, timeoutSeconds=timeoutSeconds)
 
     for equation in embedded:
@@ -69,11 +88,17 @@ def Embed(arguments: list) -> int:
     return 0
 
 
-def Check(arguments: list) -> int:
+def Check(arguments: list, program: str) -> int:
     if len(arguments) != 1:
-        raise ValueError(Usage)
+        raise ValueError(Usage(program))
 
-    records = CheckObjects(Path(arguments[0]))
+    documentPath = Path(arguments[0])
+
+    try:
+        records = CheckObjects(documentPath)
+    except zipfile.BadZipFile:
+        # A truncated download, or a file saved in another format under a .docx name.
+        raise WordError(f"{documentPath} is not a Word package: it is not a zip file") from None
 
     for record in records:
         status = "drawn" if record.drawn else "blank"
@@ -87,14 +112,16 @@ def Check(arguments: list) -> int:
     return 0 if all(record.drawn and record.progId == Docx.ObjectClass for record in records) else 1
 
 
-def Main(arguments: list) -> int:
+def Main(arguments: list, program: str = ModuleProgram) -> int:
     if not arguments or arguments[0] not in ("embed", "check"):
-        print(Usage, file=sys.stderr)
+        print(Usage(program), file=sys.stderr)
 
         return 1
 
     try:
-        return Embed(arguments[1:]) if arguments[0] == "embed" else Check(arguments[1:])
+        verb = Embed if arguments[0] == "embed" else Check
+
+        return verb(arguments[1:], program)
     except (WordError, OSError, ValueError) as error:
         print(error, file=sys.stderr)
 

@@ -18,7 +18,7 @@ their own default in the editor applies to a new equation the editor creates and
 A caller hands a design over in one of three ways. As a `D` block, copied from an equation the document
 already has or from the editor's Settings menu, which is the exact text to use. As a description, "Cambria
 at 11 point" or "our house blue for the highlighted terms", which becomes an `F` and its `M` structures, a
-`V (n='fsiz')` and a `P`; `references/StructureCatalogue.md` gives each of the four structures and
+`V (n='fsiz')` and a `P`; `references/catalogue/Design.md` gives each of the four structures and
 `references/Examples.md` example 35 is a whole one. Or as nothing at all, which leaves `D {}` in every
 equation and the factory design in force.
 
@@ -39,6 +39,9 @@ equation file's design parameters straight into the current one, a route open on
 User Default Design and Save User Default Design keep that saved default in
 `%appdata%/RadicalPie/design.pie`, a file the pipeline never reads or writes; a caller who wants that
 design in a generated file copies its `D` block instead, as above.
+
+Every pipeline below validates the `.pie` files it is given before it launches anything, and what it
+prints on a failure is the validator's own lines, so nothing starts on an equation that does not validate.
 
 **A `.pie` file.** The default. UTF-8 without a BOM, opening with `// Radical Pie Equation`. Radical
 Pie opens it by file argument, and `.pie` is associated with the editor.
@@ -63,9 +66,15 @@ python scripts/Render.py pdf MyEquation.pie MyEquation.pdf
 python scripts/Render.py emf MyEquation.pie MyEquation.emf
 ```
 
-The SVG command prints width, height and the baseline shift in points, the sum of the SVG's own `viewBox`
-minimum y and its height; use the PDF for LaTeX and print, the EMF for Office applications. About one
-second per SVG, two per PDF or EMF.
+The SVG command prints width, height and the baseline shift in points, the sum of the SVG's own
+`viewBox` minimum y and its height; use the PDF for LaTeX and print, the EMF for Office
+applications, and the PDF again for looking at the equation, since an SVG comes back to an agent as
+text. About one second per SVG, two per PDF or EMF.
+
+Every form but the `.pie` file and the SVG carrier needs Radical Pie installed at the path the
+README gives. Where it is not, the command prints one line and exits 1: hand over the validated
+`.pie` file and say in the reply that the rendering was not made and the picture therefore not
+checked.
 
 Two vendor fixes shape what these bounds mean. Since 1.9.2 an SVG's left and right bounds are no longer
 rounded outward to the whole point, so placing a rendering against surrounding content is exact rather than
@@ -112,7 +121,7 @@ A whole sentence can be one equation as well, which is how a theorem statement k
 same fonts as its prose. Set the words as `Sb (ro='text')`, with the spaces written inside the strings, and
 a letter inside the sentence as `Sb (ro='text',st='ital')`. The role brings no typeface of its own: it draws
 from the same fonts as `'math'`, upright where no `st` says otherwise. What it changes is spacing, and the
-catalogue's symbol entry gives the rule.
+`Sb` entry of `references/catalogue/Symbols.md` gives the rule.
 
 Each equation becomes a Radical Pie OLE object that the author double-clicks to edit in the editor. A key
 is a word (`[A-Za-z][A-Za-z0-9_]*`, at most 37 characters) and doubles as the bookmark name, so choose
@@ -121,9 +130,10 @@ a centre tab at half the text width and a right tab at the full width, computed 
 set as the style of the paragraph that follows it, and spacing before and after close to the body font
 size. The pipeline drives the installed Word and Radical Pie invisibly, about twenty seconds plus a second
 per equation, and refuses the job before starting Word when a placeholder has no file, a file no
-placeholder, a display placeholder shares its paragraph, or a reference names an equation that is not
-numbered. `embed` takes `--timeout <seconds>` (default 120) for a document with many objects, since each
-one costs Word and Radical Pie real time to create.
+placeholder, a display placeholder shares its paragraph, a reference names an equation that is not
+numbered, or a `{{pie:key}}` sits outside the document body, in a header, a footer, a footnote or a text
+box, naming the part it sits in. `embed` takes `--timeout <seconds>` (default 120) for a document with
+many objects, since each one costs Word and Radical Pie real time to create.
 
 A finished document is checked the same way as a deck, with no Word running:
 
@@ -189,11 +199,15 @@ nothing beyond `\usepackage{graphicx}`, which it loads itself. Then, with one `.
 python scripts/Latex.py build Draft.tex Out/ ratio=Ratio.pie quadratic=Quadratic.pie --engine lualatex
 ```
 
-The build exports each equation to PDF through Radical Pie, measures its baseline shift, writes
-`Out/radicalpie.sty` defining `\pie` as an `\includegraphics` raised by that shift, and compiles twice
-with pdflatex (and lualatex when asked), stopping on the log's first error. About 2.5 seconds per
-equation plus a second per compile. Every `\pie{key}` needs a file and every file a placeholder, checked
-before anything launches.
+The build exports each equation to PDF through Radical Pie, measures its baseline shift, and writes
+`Out/radicalpie.sty` defining `\pie` as an `\includegraphics` raised by that shift, and `Out/Main.tex`, a
+copy of the document under a marker comment line, whatever it was called. It refuses an output directory
+that already holds a file of either name it did not write, naming the file, before it exports anything, so
+an empty output directory is the safe choice. It then compiles twice with pdflatex (and lualatex when
+asked), stopping on the log's first error. The finished document is `Out/Main-pdflatex.pdf`, or
+`Out/Main-lualatex.pdf`, and its path is the one line the command prints. About 2.5 seconds per
+equation plus a second per compile. Every `\pie{key}` needs a file and every file a placeholder,
+checked before anything launches.
 
 Set the symbols the prose mentions as equations as well, one `.pie` holding one symbol behind an inline
 `\pie{key}`, rather than as `\textit{j}` in the text font. Measured on 2026-09-12 in a 12-point document

@@ -5,20 +5,47 @@ equation, writes `radicalpie.sty`, copies the document and compiles it with pdfl
 `key width height shift` in points for each equation and then the path of each compiled PDF. `--engine
 lualatex` compiles with lualatex as well, over the same pictures. The reason it failed goes to stderr with
 exit code 1.
+
+Every equation is validated before anything is started, and a key given twice is refused rather than
+resolved to the last file: both are mistakes the build used to carry into a document.
+
+`Main` takes the name of the program that invoked it, because the usage line is a command the caller can
+run: the front door scripts/Latex.py passes its own path, and the module invocation below passes itself.
 """
 
 import sys
 from pathlib import Path
 
 from Tools.Latex.Build import BuildDocument, LatexError
+from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Render.Svg import RenderError
 
-Usage = "usage: python -m Tools.Latex build <input.tex> <output directory> [--engine lualatex] <key>=<file.pie> ..."
+ModuleProgram = "python -m Tools.Latex"
 
 DefaultEngine = "pdflatex"
 
 
-def Main(arguments: list) -> int:
+def Usage(program: str) -> str:
+    return f"usage: {program} build <input.tex> <output directory> [--engine lualatex] <key>=<file.pie> ..."
+
+
+def ReadPairs(pairs: list) -> dict:
+    """The `<key>=<file.pie>` arguments as a mapping of key to file name, each key given once."""
+
+    files = {}
+
+    for pair in pairs:
+        key, _, fileName = pair.partition("=")
+
+        if key in files:
+            raise LatexError(f"the key {key!r} is given twice, and one key names one equation")
+
+        files[key] = fileName
+
+    return files
+
+
+def Main(arguments: list, program: str = ModuleProgram) -> int:
     engines = [DefaultEngine]
     positional = []
     index = 0
@@ -30,7 +57,7 @@ def Main(arguments: list) -> int:
             continue
 
         if index + 1 == len(arguments):
-            print(Usage, file=sys.stderr)
+            print(Usage(program), file=sys.stderr)
 
             return 1
 
@@ -38,18 +65,21 @@ def Main(arguments: list) -> int:
         index += 2
 
     if len(positional) < 3 or positional[0] != "build" or not all("=" in pair for pair in positional[3:]):
-        print(Usage, file=sys.stderr)
+        print(Usage(program), file=sys.stderr)
 
         return 1
 
     texPath, outputDir = positional[1:3]
-    files = {}
-
-    for pair in positional[3:]:
-        key, _, fileName = pair.partition("=")
-        files[key] = fileName
 
     try:
+        files = ReadPairs(positional[3:])
+        refusal = RefusalMessage(files.values())
+
+        if refusal:
+            print(refusal, file=sys.stderr)
+
+            return 1
+
         equations = {key: Path(fileName).read_text(encoding="utf-8") for key, fileName in files.items()}
         result = BuildDocument(texPath, outputDir, equations, tuple(engines))
     except (LatexError, RenderError, OSError) as error:

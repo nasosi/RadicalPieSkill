@@ -14,16 +14,23 @@ object and a last line with the count of RadicalPie.Application.1 objects, and e
 import sys
 from pathlib import Path
 
-# Two layouts: inside the repository, Tools sits at parents[3]; packaged by Scripts/PackageSkill.py, it is
-# vendored beside this script as scripts/Tools. The package name is Tools either way, so the import is one.
-RepositoryRoot = Path(__file__).resolve().parents[3]
-ScriptDir = Path(__file__).resolve().parent
+# ToolsPath sits beside this script and knows which of the two layouts this is, the repository or the
+# published folder with the pipelines vendored under scripts/Tools. The script's own directory has to be on
+# sys.path before it can be imported, which is where Python puts it for a script but not for an import.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-sys.path.insert(0, str(RepositoryRoot if (RepositoryRoot / "Tools" / "Word").is_dir() else ScriptDir))
+from ToolsPath import MissingPackageExit, PutToolsOnPath  # noqa: E402  the path has to be set first
 
-from Tools.Word.__main__ import Main  # noqa: E402  the path has to be set before the import
+PutToolsOnPath("Word")
+
+try:
+    from Tools.Word.__main__ import Main  # noqa: E402  the path has to be set before the import
+except ModuleNotFoundError as error:  # noqa: E402  a pipeline package the machine has not installed
+    sys.exit(MissingPackageExit(error))
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
-    sys.exit(Main(sys.argv[1:]))
+    # The usage line the pipeline prints names this script as it was invoked, not `python -m Tools.X`,
+    # which runs only with the working directory set to scripts/.
+    sys.exit(Main(sys.argv[1:], f"python {sys.argv[0]}"))

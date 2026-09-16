@@ -15,8 +15,13 @@ which structure may hold which child, and which property may take which value, l
 A property value written as a single-quoted literal is a CharLiteral, because Radical Pie writes a
 uint32 property value that way and a string literal is not accepted in its place.
 
-Two grammar forms are refused with a syntax error because no Radical Pie file writes them: the data
-state form of a subarray (`float[2]* {...}`) and base64 data lists.
+Four grammar forms are refused with a syntax error because Radical Pie does not read them. The data
+state form of a subarray (`float[2]* {...}`) and base64 data lists are forms no Radical Pie file
+writes. A trailing comma in a data list is a form Radical Pie 1.15 refuses with its invalid-data
+dialog, `u32{0x28,0x29,}` and the subarray `u32[2]{{0,'sing'},}` alike (measured 2026-09-14 through the
+render pipeline). The local name, `%eq`, is refused because a `ref` that names one raises the same
+dialog; a local name nothing references renders and is dropped from the equation Radical Pie saves, so
+this last rule is narrower than the executable by that one case (ADR-0011).
 """
 
 
@@ -256,6 +261,14 @@ def Tokenize(text):
 
             if end == index + 1:
                 raise PieSyntaxError("a name needs an identifier after {}".format(character), line, column)
+
+            if "%" in text[index:end]:
+                raise PieSyntaxError(
+                    "{} is a local name; Radical Pie refuses a file whose ref names one, so write a "
+                    "global name with $".format(text[index:end]),
+                    line,
+                    column,
+                )
 
             tokens.append(Token("name", text[index:end], line, column))
             index = end
@@ -614,19 +627,32 @@ class Parser:
                 values.append(subarray)
 
                 if self.AtPunctuation(","):
-                    self.Take()
+                    comma = self.Take()
+
+                    if self.AtPunctuation("}"):
+                        raise PieSyntaxError("a subarray must follow a comma", comma.line, comma.column)
 
         self.TakePunctuation("}")
         return DataList(primitiveType, subarraySize, values, token.line, token.column)
 
     def ParseValues(self, primitiveType, terminator):
+        """The comma-separated values of one data list or one subarray, the terminator ending them.
+
+        A comma is a separator and not a terminator: Radical Pie refuses `u32{0x28,0x29,}` with its
+        invalid-data dialog (measured 2026-09-14), so a comma must be followed by a value.
+        """
+
         values = []
 
         while not self.AtPunctuation(terminator):
             values.append(self.ParseLiteral(primitiveType))
 
             if self.AtPunctuation(","):
-                self.Take()
+                comma = self.Take()
+
+                if self.AtPunctuation(terminator):
+                    raise PieSyntaxError("a data list value must follow a comma", comma.line, comma.column)
+
                 continue
 
             break

@@ -7,7 +7,7 @@ cannot be read, 2 when the command line is wrong.
 
 import sys
 
-from .Validator import ValidateFile
+from .Validator import ValidateFile, ViolationLine
 
 Usage = "usage: python -m Tools.PieFormat validate <file>..."
 
@@ -37,9 +37,7 @@ def Main(arguments):
         failed = True
 
         for error in errors:
-            print(
-                "{}:{}:{} {}: {} [{}]".format(name, error.line, error.column, error.path, error.message, error.section)
-            )
+            print(ViolationLine(name, error))
 
     return 1 if failed else 0
 

@@ -21,10 +21,24 @@ because one anchor twice is a shape with no area. CheckDrawingProperties and Che
 them, and Schema.py records the render each was measured by.
 
 Anchors are checked in a pass of their own, because a connector's reference is resolved against the
-whole file: CollectAnchorTargets indexes every named node and CheckAnchors then holds every anchor to
-the anchor-type table and the measured anchor counts in Schema.py. An anchor type a structure does not
-own, and an index past the last anchor of a type, crash Radical Pie with an access violation instead of
-raising its invalid-data dialog, so this pass is the only thing standing between a writer and a crash.
+whole file: CollectAnchorTargets indexes every named node, reporting a name given twice, and
+CheckAnchors then holds every anchor to the anchor-type table and the measured anchor counts in
+Schema.py. An anchor type a structure does not own, and an index past the last anchor of a type, crash
+Radical Pie with an access violation instead of raising its invalid-data dialog, so this pass is one of
+the things standing between a writer and a crash.
+
+Five more rules stand there, each measured on 2026-09-14 against Radical Pie 1.15 and each carrying the
+render in its own doc comment: CheckValueRanges holds every data-list value to the width of its
+primitive type and every Unicode character value to the last code point, CheckPropertyRange does the
+same for a property whose table row states no range of its own, CheckStyleMapFonts holds a style map's
+first index to a slot that holds a font, CheckGroupConnector refuses an X in a group that is not of
+type 'anno', and CollectAnchorTargets refuses a repeated name. CheckBondArrays and CheckDesignParameter
+cover the other direction, the values Radical Pie reads and then drops without a word.
+
+One rule is about how an equation travels rather than about how it is written: CheckCarrierComment
+refuses a text that ends the XML comment the SVG carrier holds an equation in. RefusalMessage is that
+whole gate as one string, which every pipeline's command line runs over its .pie files before it
+launches anything, because Radical Pie drops a structure it does not know instead of refusing the file.
 """
 
 import codecs
@@ -233,6 +247,29 @@ def CheckPropertyRange(structure, propertyRule, value, path, errors):
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return
 
+    limits = Schema.IntegerRanges.get(propertyRule.valueType)
+
+    if limits is not None and propertyRule.minimum is None and propertyRule.maximum is None:
+        # The property's own table row gives it no range, so the range is the width of its type.
+        # Radical Pie wraps a value past that width instead of refusing it: `Sb (co=-1)` is saved as
+        # `co=0xFFFFFFFF` and draws white ink (measured 2026-09-14), which nothing else reports.
+        minimum, maximum = limits
+
+        if not minimum <= value <= maximum:
+            errors.append(
+                PieError(
+                    structure.line,
+                    structure.column,
+                    path,
+                    "property {!r} is a {}, whose values are {} to {}, found {}".format(
+                        propertyRule.name, propertyRule.valueType, minimum, maximum, FormatValue(value)
+                    ),
+                    propertyRule.section,
+                )
+            )
+
+        return
+
     if propertyRule.minimum is not None and propertyRule.maximum is not None:
         if not propertyRule.minimum <= value <= propertyRule.maximum:
             errors.append(
@@ -402,7 +439,72 @@ def CheckChildren(structure, rule, path, errors):
             )
 
 
+def DataListValues(dataList):
+    """Every value of a data list, whether it is written flat or in subarrays."""
+
+    if dataList.subarraySize is None:
+        return dataList.values
+
+    return [value for subarray in dataList.values for value in subarray]
+
+
+def CheckValueRanges(dataList, substructureRule, structure, path, errors):
+    """Every value of a data list against the range of its primitive type, and code points against Unicode.
+
+    Radical Pie reads a value with the width its type names and wraps anything past it, which is the
+    hole the one guard on a style map's first index had: `M (t='uprt') {u8{-1}}` is the refused
+    `u8{255}` after the wrap and crashes Radical Pie with the access violation 3221225477, as does
+    `u8{300}`, which is slot 44 (measured 2026-09-14 and 2026-09-13).
+
+    The five structures of Schema.UnicodeValueStructures hold character values rather than numbers, and
+    a value past the last code point crashes the same way: `Mk {u32{0x110000}}`, `Br {u32{0x110000,...}}`
+    and `Pr {u32{0x110000}}` each exited 3221225477 before rendering, and so did `In { u32{-1} ... }`
+    (measured 2026-09-14). A character literal carries no range: the format packs it into the integer.
+    """
+
+    limits = Schema.IntegerRanges.get(dataList.primitiveType)
+
+    if limits is None:
+        return
+
+    minimum, maximum = limits
+    holdsCodePoints = structure.identifier in Schema.UnicodeValueStructures and dataList.primitiveType == "uint32"
+
+    for value in DataListValues(dataList):
+        if not isinstance(value, int) or isinstance(value, bool):
+            continue
+
+        if not minimum <= value <= maximum:
+            errors.append(
+                PieError(
+                    dataList.line,
+                    dataList.column,
+                    path,
+                    "a {} value is {} to {}, found {}".format(
+                        dataList.primitiveType, minimum, maximum, FormatValue(value)
+                    ),
+                    substructureRule.section,
+                )
+            )
+            continue
+
+        if holdsCodePoints and value > Schema.MaximumCodePoint:
+            errors.append(
+                PieError(
+                    dataList.line,
+                    dataList.column,
+                    path,
+                    "a Unicode character value is 0 to 0x{:X}, found 0x{:X}; a higher one crashes Radical Pie".format(
+                        Schema.MaximumCodePoint, value
+                    ),
+                    substructureRule.section,
+                )
+            )
+
+
 def CheckDataList(dataList, substructureRule, structure, path, errors):
+    CheckValueRanges(dataList, substructureRule, structure, path, errors)
+
     if substructureRule.subarraySize != dataList.subarraySize:
         expected = (
             "a flat list"
@@ -646,19 +748,127 @@ def CheckArrowArrays(structure, path, errors):
         )
 
 
-def CheckAnnotationConnector(structure, path, errors):
-    """Gr of type 'anno': an annotation group must contain a connector structure."""
+def CheckBondPairs(array, structure, groupTypes, valueTypes, describe, path, errors):
+    """One of Bd's two arrays: each pair names a direction the site holds and a value from its table."""
 
-    if structure.properties.get("t") != "anno":
+    for pair in array.values:
+        groupType, value = pair
+
+        if groupType not in groupTypes:
+            errors.append(
+                PieError(
+                    array.line,
+                    array.column,
+                    path,
+                    "the first value of a pair here is one of {}, found {}".format(
+                        FormatValues(groupTypes), FormatValue(groupType)
+                    ),
+                    Schema.BdSection,
+                )
+            )
+        elif groupType != 0 and not HoldsGroupOfType(structure, groupType):
+            errors.append(
+                PieError(
+                    array.line,
+                    array.column,
+                    path,
+                    "a pair names group type {}, which this bond site does not hold; the bond and the "
+                    "atoms at its end are dropped in silence".format(FormatValue(groupType)),
+                    Schema.BdSection,
+                )
+            )
+
+        if value not in valueTypes:
+            errors.append(
+                PieError(
+                    array.line,
+                    array.column,
+                    path,
+                    "{}, found {}".format(describe, FormatValue(value)),
+                    Schema.BdSection,
+                )
+            )
+
+
+def CheckBondArrays(structure, path, errors):
+    """Bd: the first uint32[2] array pairs a direction with a bond type, the second with an angle type.
+
+    The bond types are the fifteen of the specification's table with their capitalised long forms, and a
+    value outside them is drawn as a single bond and written back into the saved equation unchanged:
+    `u32[2]{{0,'zzzz'}}` and `u32[2]{{0,'sing'}}` each rendered 15.6075 by 9 pt (measured 2026-09-14), so
+    this enumeration is narrower than the executable the way Ar's two are (ADR-0007). A pair naming a
+    direction whose group the site does not hold is dropped with the atoms at its end: 7.33691 by 9 pt
+    against the control's 7.94385 by 28 pt, with the pair written back unchanged (measured 2026-09-14).
+    Angles belong to the four diagonal bonds alone, which is the specification's own restriction.
+    """
+
+    arrays = [
+        child
+        for child in structure.children
+        if isinstance(child, OpenDdl.DataList) and child.primitiveType == "uint32" and child.subarraySize == 2
+    ]
+
+    if not arrays:
+        # CheckChildren reports a bond structure with no array and one written as a flat list.
         return
 
-    if not any(isinstance(child, OpenDdl.Structure) and child.identifier == "X" for child in structure.children):
+    CheckBondPairs(
+        arrays[0],
+        structure,
+        Schema.BondGroupTypes,
+        Schema.BondTypeValues,
+        "a bond type is one of the fifteen the specification lists, or one of those with its first "
+        "letter capitalised for a long bond",
+        Join(path, arrays[0]),
+        errors,
+    )
+
+    for array in arrays[1:]:
+        CheckBondPairs(
+            array,
+            structure,
+            Schema.BondAngleGroupTypes,
+            Schema.BondAngleTypes,
+            "an angle type is one of {}".format(FormatValues(Schema.BondAngleTypes)),
+            Join(path, array),
+            errors,
+        )
+
+
+def CheckGroupConnector(structure, path, errors):
+    """Gr: an annotation group contains a connector structure, and no other group may hold one.
+
+    The specification's substructure table gives every group an X and says of it only that "an
+    annotation group must contain a connector structure". The other half is measured: an X in the main
+    equation group, or in any subgroup, exits Radical Pie with the access violation 3221225477 before it
+    renders anything (measured 2026-09-14), so the validator is the only thing that refuses it.
+    """
+
+    isAnnotation = structure.properties.get("t") == "anno"
+    connector = next(
+        (child for child in structure.children if isinstance(child, OpenDdl.Structure) and child.identifier == "X"),
+        None,
+    )
+
+    if isAnnotation and connector is None:
         errors.append(
             PieError(
                 structure.line,
                 structure.column,
                 path,
                 "an annotation group must contain an X substructure",
+                Schema.GrSection,
+            )
+        )
+
+    if not isAnnotation and connector is not None:
+        errors.append(
+            PieError(
+                connector.line,
+                connector.column,
+                Join(path, connector),
+                "a connector belongs to a drawing structure or to a group of type 'anno'; an X in any "
+                "other group crashes Radical Pie",
                 Schema.GrSection,
             )
         )
@@ -722,12 +932,16 @@ def CheckBracketContent(structure, path, errors):
 
 
 def CheckDesignParameter(structure, path, errors):
-    """V: the name must exist in the domain, and its value must be in the range the dialog gives it.
+    """V: the name must exist in the domain, and its one value must be a number in the dialog's range.
 
     Measured 2026-09-13 (V — Value Structure, Docs/ARCHITECTURE.md format facts): Radical Pie drops a
     parameter whose name it does not know, and one written in the wrong domain, from the design it saves
     without a word, so a misspelling here has no other reader. It does not clamp a value either:
     `V (d='intg',n='slnt') {f{90.0}}` against a maximum of 20 rendered an SVG of width `INF`.
+
+    A value that is not a number is dropped the same way: `V (n='fsiz') {s{"24.0"}}`, a doubled font
+    size, rendered the geometry of the same equation under an empty design and was saved as `D { }`
+    (measured 2026-09-14). The count of the values is Schema's own rule on V's data list.
     """
 
     domain = structure.properties.get("d", 0)
@@ -756,8 +970,21 @@ def CheckDesignParameter(structure, path, errors):
         if not isinstance(child, OpenDdl.DataList):
             continue
 
-        for value in child.values:
-            if isinstance(value, (int, float)) and not isinstance(value, bool) and not minimum <= value <= maximum:
+        for value in DataListValues(child):
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(
+                    PieError(
+                        child.line,
+                        child.column,
+                        Join(path, child),
+                        "the design parameter {!r} takes a number, found {}; Radical Pie drops a "
+                        "parameter it cannot read".format(name, ValueTypeOf(value)),
+                        Schema.VSection,
+                    )
+                )
+                continue
+
+            if not minimum <= value <= maximum:
                 errors.append(
                     PieError(
                         child.line,
@@ -771,19 +998,53 @@ def CheckDesignParameter(structure, path, errors):
                 )
 
 
-def CheckStyleMapFonts(structure, path, errors):
-    """M: the first index of a style map names a font, and 255, the "no font" index, is not a font.
+def FilledFontSlots(design):
+    """The font slots that hold a font: the factory design's own, and the slot of every F written here.
+
+    A design merges into the factory design, so a slot the file does not name still holds the factory's
+    font (Docs/ARCHITECTURE.md, format facts). The F structures of this design add to those slots; the
+    later indexes of a style map are its fallbacks and may name any slot, filled or not, because Radical
+    Pie fills them from the factory chain itself (`M (t='uprt') {u8{1}}` is saved as `u8{1,1,7,5}`).
+    """
+
+    slots = set(range(Schema.HighestFactoryFontSlot + 1))
+
+    for child in design.children:
+        if not (isinstance(child, OpenDdl.Structure) and child.identifier == "F"):
+            continue
+
+        index = child.properties.get("i")
+
+        if isinstance(index, int) and not isinstance(index, bool):
+            slots.add(index)
+
+    return slots
+
+
+def CheckStyleMapFonts(structure, slots, path, errors):
+    """M: the first index of a style map names a slot that holds a font, which 255 never does.
 
     Measured 2026-09-13 (M — Map Structure): `M (t='uprt') {u8{255}}` and `M (t='uprt') {u8{255,8,0,1}}`
     each crashed Radical Pie with the access violation 3221225477 before it rendered anything, while
     `M (t='uprt') {u8{8,255,255,255}}`, the shape the operator's design fixture writes, rendered.
+
+    Measured 2026-09-14, one render per slot on a design holding the map alone: slots 1, 7 and 8 render,
+    each in its own face, and slots 9 and 20 crash with the same access violation. 300, which is slot 44
+    after the uint8 wrap, drew every glyph as the missing-glyph box instead (2026-09-13). So a first
+    index no font fills is a crash or a page of boxes, and the slots that hold one without an F of their
+    own are 0 to Schema.HighestFactoryFontSlot.
     """
 
     for child in structure.children:
         if not isinstance(child, OpenDdl.DataList) or child.primitiveType != "uint8" or not child.values:
             continue
 
-        if child.values[0] == Schema.NoFontIndex:
+        index = child.values[0]
+
+        if not isinstance(index, int) or isinstance(index, bool):
+            continue
+
+        if index == Schema.NoFontIndex:
             errors.append(
                 PieError(
                     child.line,
@@ -794,6 +1055,37 @@ def CheckStyleMapFonts(structure, path, errors):
                     Schema.MSection,
                 )
             )
+            continue
+
+        # CheckValueRanges reports an index outside the uint8 range; this rule reads the slot it wrapped to.
+        if index in slots or not 0 <= index <= Schema.IntegerRanges["uint8"][1]:
+            continue
+
+        own = sorted(slot for slot in slots if slot > Schema.HighestFactoryFontSlot)
+        adds = "adds none" if not own else "adds {}".format(", ".join(str(slot) for slot in own))
+
+        errors.append(
+            PieError(
+                child.line,
+                child.column,
+                Join(path, child),
+                "the first index of a style map is its primary font, and no font fills slot {}, which "
+                "crashes Radical Pie; the factory design fills slots 0 to {} and this design {}".format(
+                    index, Schema.HighestFactoryFontSlot, adds
+                ),
+                Schema.MSection,
+            )
+        )
+
+
+def CheckDesignFonts(design, path, errors):
+    """D: every style map of the design against the font slots that design fills."""
+
+    slots = FilledFontSlots(design)
+
+    for child in design.children:
+        if isinstance(child, OpenDdl.Structure) and child.identifier == "M":
+            CheckStyleMapFonts(child, slots, Join(path, child), errors)
 
 
 ConnectorValueNames = {
@@ -965,23 +1257,42 @@ class AnchorTarget:
         self.isNested = isNested
 
 
-def CollectAnchorTargets(nodes, ancestors, targets):
+def CollectAnchorTargets(nodes, ancestors, path, targets, errors):
     """Every named node of the file, under the name a connector's ref carries.
 
     A node is nested when a group that is not itself at the file level encloses it, which is what the
-    ancestor chain is read for. The first node of a repeated name wins; OpenDDL names are unique and
-    Radical Pie rewrites them all on save.
+    ancestor chain is read for.
+
+    A name is written once. Radical Pie raises its invalid-data dialog on a file that gives two
+    structures the same name, whether or not anything refers to it, while the same file with the second
+    name changed renders (measured 2026-09-14), so the second occurrence is reported here and the first
+    node keeps the name for the anchor pass.
     """
 
     for node in nodes:
         if isinstance(node, OpenDdl.DataList):
             continue
 
-        if node.name is not None and node.name not in targets:
-            isNested = any(ancestor.identifier == "Gr" for ancestor in ancestors[1:])
-            targets[node.name] = AnchorTarget(node, not ancestors, isNested)
+        nodePath = Join(path, node)
 
-        CollectAnchorTargets(node.children, ancestors + (node,), targets)
+        if node.name is not None:
+            if node.name in targets:
+                errors.append(
+                    PieError(
+                        node.line,
+                        node.column,
+                        nodePath,
+                        "the name {} is given twice; Radical Pie refuses a file that names two structures alike".format(
+                            node.name
+                        ),
+                        Schema.FileSection,
+                    )
+                )
+            else:
+                isNested = any(ancestor.identifier == "Gr" for ancestor in ancestors[1:])
+                targets[node.name] = AnchorTarget(node, not ancestors, isNested)
+
+        CollectAnchorTargets(node.children, ancestors + (node,), nodePath, targets, errors)
 
 
 def IsAnnotationGroup(node):
@@ -1231,8 +1542,11 @@ def CheckStructure(node, path, errors):
     if node.identifier == "Mx":
         CheckMatrixEntries(node, path, errors)
 
+    if node.identifier == "Bd":
+        CheckBondArrays(node, path, errors)
+
     if node.identifier == "Gr":
-        CheckAnnotationConnector(node, path, errors)
+        CheckGroupConnector(node, path, errors)
 
     if node.identifier == "Br":
         CheckBracketContent(node, path, errors)
@@ -1240,8 +1554,9 @@ def CheckStructure(node, path, errors):
     if node.identifier == "V":
         CheckDesignParameter(node, path, errors)
 
-    if node.identifier == "M":
-        CheckStyleMapFonts(node, path, errors)
+    # A style map reads the font slots of the design around it, which is why D and not M dispatches it.
+    if node.identifier == "D":
+        CheckDesignFonts(node, path, errors)
 
     if node.identifier in Schema.ShapeStructures:
         CheckShapeAnchors(node, path, errors)
@@ -1359,8 +1674,58 @@ def CheckFileSections(nodes, errors):
         errors.append(PieError(1, 1, "", "a file needs a main equation group", Schema.FileSection))
 
 
+# The sequences that end the XML comment the SVG carrier holds an equation in. Measured 2026-09-14 through
+# `python -m Tools.Render svg`: a symbol text holding `-->` is refused by Radical Pie itself, which raised
+# the "does not contain valid Radical Pie equation data" dialog on both attempts, and one holding `--!>`
+# renders (32.9106 by 9 points) but ends the comment for an HTML parser, which reads the rest of the
+# equation as markup. A text holding a bare `--` travels and renders (23.2085 by 9 points) and is left alone.
+CommentEnders = ("-->", "--!>")
+
+
+def CheckCarrierComment(text, errors):
+    """Nothing in an equation may end the XML comment that carries it to Radical Pie or to Inkscape."""
+
+    for ender in CommentEnders:
+        start = text.find(ender)
+
+        while start >= 0:
+            lineStart = text.rfind("\n", 0, start) + 1
+            errors.append(
+                PieError(
+                    text.count("\n", 0, start) + 1,
+                    start - lineStart + 1,
+                    "",
+                    "this text holds {!r}, which ends an XML comment; the SVG carrier holds the equation"
+                    " in a comment and cannot carry it".format(ender),
+                    Schema.CarrierSection,
+                )
+            )
+            start = text.find(ender, start + 1)
+
+
 def Validate(text):
-    """Validate .pie text. Returns the list of PieError, empty when the text satisfies every rule."""
+    """Validate .pie text. Returns the list of PieError, empty when the text satisfies every rule.
+
+    A file nested deeper than the interpreter's stack allows is one violation and not a RecursionError
+    traceback, which is what a couple of thousand nested groups used to cost the caller.
+    """
+
+    try:
+        return Violations(text)
+    except RecursionError:
+        return [
+            PieError(
+                1,
+                1,
+                "",
+                "this equation nests structures deeper than the validator reads",
+                Schema.FileSection,
+            )
+        ]
+
+
+def Violations(text):
+    """Every violation of the parsed text, in line order."""
 
     try:
         nodes = OpenDdl.Parse(text)
@@ -1368,13 +1733,14 @@ def Validate(text):
         return [PieError(error.line, error.column, "", "syntax error: " + error.message, Schema.FileSection)]
 
     errors = []
+    CheckCarrierComment(text, errors)
     CheckFileSections(nodes, errors)
 
     for node in nodes:
         CheckStructure(node, "", errors)
 
     targets = {}
-    CollectAnchorTargets(nodes, (), targets)
+    CollectAnchorTargets(nodes, (), "", targets, errors)
     CheckAnchors(nodes, "", targets, errors)
 
     errors.sort(key=lambda error: (error.line, error.column))
@@ -1427,6 +1793,32 @@ def PrefixPath(index, error):
     path = "#{}".format(index) if not error.path else "#{}/{}".format(index, error.path)
 
     return PieError(error.line, error.column, path, error.message, error.section)
+
+
+def ViolationLine(name, error):
+    """One violation as every command line of this repository prints it."""
+
+    return "{}:{}:{} {}: {} [{}]".format(name, error.line, error.column, error.path, error.message, error.section)
+
+
+def RefusalMessage(fileNames):
+    """Why a pipeline refuses the equations it was given, or the empty string when every one validates.
+
+    Radical Pie drops a structure it does not know instead of refusing the file, so an equation with one
+    typo in a structure name renders as the empty equation, 5.5 by 8 points, and every pipeline reported
+    success. Each pipeline's command line runs this over its .pie files before it launches anything, and
+    what it prints is the validator's own lines.
+    """
+
+    lines = []
+
+    for name in fileNames:
+        lines += [ViolationLine(name, error) for error in ValidateFile(name)]
+
+    if not lines:
+        return ""
+
+    return "\n".join(["these equations do not validate, so nothing was started:"] + lines)
 
 
 def ValidateFile(path):

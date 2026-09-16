@@ -34,6 +34,7 @@ Gr
 				{
 					Bg {}
 					Sb (ro='arrw') {s{"↑"}}
+					Sp (s=0.0) {}
 					Ph (t='horz')
 					{
 						Bg {}
@@ -51,6 +52,7 @@ Gr
 				{
 					Bg {}
 					Sb (ro='arrw') {s{"↑"}}
+					Sp (s=0.0) {}
 					Ph (t='horz')
 					{
 						Bg {}

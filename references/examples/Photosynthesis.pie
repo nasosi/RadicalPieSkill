@@ -17,7 +17,7 @@ Gr
 		}
 	}
 	Sb (ro='oper') {s{"+"}}
-	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='nmbr') {s{"12"}}
 	Sb (ro='chem') {s{"H"}}
 	Sc
 	{
@@ -76,4 +76,16 @@ Gr
 			Sb (ro='nmbr') {s{"2"}}
 		}
 	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='chem') {s{"O"}}
 }

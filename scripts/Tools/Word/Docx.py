@@ -78,11 +78,17 @@ Ending a session costs one handled COM failure, which pytest's faulthandler prin
 handled and nothing leaks.
 
 Every process this module starts it ends, and holds it in the registry of `Tools.Processes` until its exit has
-been seen, which is what the live tests are checked against. Only the Word instance this pipeline created and
-the servers that appear while it runs are terminated, so the operator's own Word is left alone. A modal Word
+been seen, which is what the live tests are checked against. What it ends is the Word instance it created and
+the editors its own activations adopted, each found by a window title naming this document; a Radical Pie that
+merely appeared while the pass ran belongs to the operator or to another agent and is left alone. A modal Word
 dialog blocks a COM call for ever and `DisplayAlerts = 0` does not suppress it, so a guard thread closes what
 it finds and the step fails naming the dialog; the same thread terminates the processes when `timeoutSeconds`
 runs out, which is what makes a hung COM call end rather than hold the caller.
+
+A placeholder is replaced in the document body and nowhere else. One in a header, a footer, a footnote or a
+text box is a different story of the package, which neither `ReadPlaceholders` nor Word's own Find reaches, so
+the document used to come out with `{{pie:hdr}}` printed on every page and exit 0. `CheckPlaceholderParts`
+refuses such a document before Word starts, naming the part the placeholder sits in.
 """
 
 import io
@@ -149,6 +155,7 @@ RelationshipNamespace = "http://schemas.openxmlformats.org/officeDocument/2006/r
 PackageRelationshipNamespace = "http://schemas.openxmlformats.org/package/2006/relationships"
 
 ParagraphTag = f"{{{WordNamespace}}}p"
+TextBoxTag = f"{{{WordNamespace}}}txbxContent"
 TextTag = f"{{{WordNamespace}}}t"
 OleObjectTag = f"{{{OfficeNamespace}}}OLEObject"
 ImageDataTag = f"{{{VmlNamespace}}}imagedata"
@@ -268,6 +275,7 @@ def EmbedEquations(
     inputPath = Path(os.path.abspath(inputPath))
     outputPath = Path(os.path.abspath(outputPath))
 
+    CheckPlaceholderParts(inputPath)
     placeholders, references = ReadPlaceholders(inputPath)
     CheckPlaceholders(placeholders, references, equations)
 
@@ -288,6 +296,42 @@ def EmbedEquations(
         EmbeddedEquation(placeholder.key, placeholder.kind, placeholder.paragraphIndex, number, width, height)
         for placeholder, number, (width, height) in zip(placeholders, numbers, sizes)
     ]
+
+
+def CheckPlaceholderParts(documentPath: Path) -> None:
+    """Refuse a document whose placeholders are not all in the body, naming the part the first one sits in.
+
+    Word keeps a header, a footer, a footnote and an endnote in parts of their own and a text box inside the
+    body in a `w:txbxContent` of its own, and each of those is a separate story: `AddOLEObject` inserts at
+    the selection of the body story and Word's Find runs in that story too, so a placeholder anywhere else
+    is left in the finished document as the literal text the author typed. The scan reads the package
+    without starting Word, so this costs nothing and happens before anything is launched.
+    """
+
+    with zipfile.ZipFile(documentPath) as package:
+        for name in sorted(package.namelist()):
+            if not name.startswith("word/") or not name.endswith(".xml"):
+                continue
+
+            root = etree.fromstring(package.read(name))
+
+            for paragraph in root.iter(ParagraphTag):
+                inBody = name == DocumentPart and next(paragraph.iterancestors(TextBoxTag), None) is None
+
+                if inBody:
+                    continue
+
+                where = f"a text box in {name}" if name == DocumentPart else name
+                paragraphText = "".join(node.text or "" for node in paragraph.iter(TextTag))
+
+                for pattern in (PlaceholderPattern, ReferencePattern):
+                    match = pattern.search(paragraphText)
+
+                    if match:
+                        raise WordError(
+                            f"{where} holds {match.group(0)}; this pipeline replaces a placeholder in the"
+                            " document body only, so an equation goes in the body text"
+                        )
 
 
 def ReadPlaceholders(documentPath: Path) -> tuple:
@@ -830,7 +874,7 @@ def RenderObjects(documentPath: Path, keys: list, deadline: float) -> list:
                 raise WordError(f"the reopened document holds {len(indexes)} Radical Pie objects, expected {len(keys)}")
 
             for key, index in zip(keys, indexes):
-                sizes.append(RenderObject(session, document, index, key, deadline))
+                sizes.append(RenderObject(session, documentPath, document, index, key, deadline))
 
             document.Save()
             document.Close(WdDoNotSaveChanges)
@@ -842,7 +886,7 @@ def RenderObjects(documentPath: Path, keys: list, deadline: float) -> list:
     return sizes
 
 
-def RenderObject(session, document, index: int, key: str, deadline: float) -> tuple:
+def RenderObject(session, documentPath: Path, document, index: int, key: str, deadline: float) -> tuple:
     """Draw one object, retrying the activation once, and return the size Word ends up with.
 
     Under load of 2026-09-12 the server closed the editor without drawing an equation it draws on the rerun,
@@ -859,7 +903,7 @@ def RenderObject(session, document, index: int, key: str, deadline: float) -> tu
             time.sleep(ActivationSettleSeconds)
 
         try:
-            return AttemptActivation(session, document, index, key, deadline)
+            return AttemptActivation(session, documentPath, document, index, key, deadline)
         except WordError as error:
             failures.append(str(error))
 
@@ -868,8 +912,12 @@ def RenderObject(session, document, index: int, key: str, deadline: float) -> tu
     )
 
 
-def AttemptActivation(session, document, index: int, key: str, deadline: float) -> tuple:
-    """Activate one object, save it from the editor, close the editor, and return the size Word ends up with."""
+def AttemptActivation(session, documentPath: Path, document, index: int, key: str, deadline: float) -> tuple:
+    """Activate one object, save it from the editor, close the editor, and return the size Word ends up with.
+
+    The editor is the session's from the moment it is found until it has been seen to exit, which is what
+    lets the guard thread end it when the timeout ends the pass in the middle of an activation.
+    """
 
     shape = document.InlineShapes(index)
     blank = (shape.Width, shape.Height)
@@ -878,7 +926,8 @@ def AttemptActivation(session, document, index: int, key: str, deadline: float) 
     shape.OLEFormat.Activate()
     session.CheckDialogs()
 
-    pid, window = AwaitEditor(running, key, deadline)
+    pid, window = AwaitEditor(documentPath, running, key, deadline)
+    session.AdoptEditor(pid)
     QuietenEditor(window)
 
     try:
@@ -886,6 +935,7 @@ def AttemptActivation(session, document, index: int, key: str, deadline: float) 
     finally:
         PostToEditor(window, win32con.WM_CLOSE, 0)
         EndProcess(pid, min(ExitGraceSeconds, max(deadline - time.monotonic(), 0.0)))
+        session.ReleaseEditor(pid)
 
     shape = document.InlineShapes(index)
 
@@ -923,22 +973,27 @@ def PostToEditor(window: int, message: int, wparam: int) -> None:
         pass
 
 
-def AwaitEditor(running: set, key: str, deadline: float) -> tuple:
+def AwaitEditor(documentPath: Path, running: set, key: str, deadline: float) -> tuple:
     """The server this activation started and its editor window, as (pid, window), found by the title.
 
     Every Radical Pie that starts while the activation runs appears in the process listing the same way, the
-    operator's own and the one another test launched included, and the pid taken out of that listing used to
-    be whichever was lowest: that one leaves within a couple of seconds, and the pass then reported the
-    equation as unreadable. The editor window says which it is. It carries `Radical Pie - Equation in <the
-    document file name>`, where a Radical Pie opened on a file carries `<the file name> - Radical Pie`, and
-    the pid comes from the window rather than the other way round.
+    operator's own and the one another agent's render launched included, and the pid taken out of that
+    listing used to be whichever was lowest: that one leaves within a couple of seconds, and the pass then
+    reported the equation as unreadable. The editor window says which it is, and the whole of its title has
+    to say it: `Radical Pie - Equation in <the document file name>` for this document and no other, which is
+    the rule `Tools/PowerPoint/Pptx.py` states for its own deck. A title merely starting with the prefix is
+    an editor of somebody else's document, opened by a double-click in a Word of the operator's own, and
+    this pass would have minimised it, saved it back into that document, closed it and terminated it.
 
     A server that leaves instead of showing a window has failed the same way one that leaves after showing
     it has, so both say so in the same words. Which of the two happens with an unreadable equation varies
-    between runs.
+    between runs. The titles that were seen instead go into the message of the timeout, because a title this
+    rule does not match is the one failure the rule can cause.
     """
 
+    title = EditorTitlePrefix + documentPath.name
     candidates = set()
+    seen = []
 
     while time.monotonic() < deadline:
         candidates |= Pids(ServerImage) - running
@@ -947,11 +1002,17 @@ def AwaitEditor(running: set, key: str, deadline: float) -> tuple:
             windows = TopLevelWindows(pid)
             RaiseOnServerDialog(windows)
 
-            for handle, className, title in windows:
-                if className == WindowClass and title.startswith(EditorTitlePrefix):
+            for handle, className, windowTitle in windows:
+                if className != WindowClass:
+                    continue
+
+                if windowTitle == title:
                     Processes.Register(pid)
 
                     return pid, handle
+
+                if windowTitle not in seen:
+                    seen.append(windowTitle)
 
         if candidates and all(AwaitProcessExit(pid, 0) for pid in candidates):
             raise WordError(f"Radical Pie left without an editor window for {key}: {UnreadableEquation}")
@@ -961,7 +1022,10 @@ def AwaitEditor(running: set, key: str, deadline: float) -> tuple:
     if not candidates:
         raise WordError(f"Radical Pie did not start when the equation {key} was activated")
 
-    raise WordError(f"Radical Pie did not show the editor window for the equation {key}")
+    raise WordError(
+        f"Radical Pie did not show the editor window titled {title!r} for the equation {key}"
+        f" (the windows it showed: {seen})"
+    )
 
 
 def AwaitPresentation(document, index: int, blank: tuple, pid: int, window: int, key: str, deadline: float) -> None:
@@ -1042,7 +1106,10 @@ class WordSession:
         self.smartCutPaste = None
         self.dialogs = []
         self.wordPids = set()
-        self.serverPidsBefore = Pids(ServerImage)
+        # The editors this session's activations adopted, by pid. The guard thread reads it while the main
+        # thread adds to it, so both go through the lock.
+        self.editorPids = set()
+        self.editorLock = threading.Lock()
         self.timedOut = False
         self.stop = threading.Event()
 
@@ -1136,8 +1203,27 @@ class WordSession:
             f" after a modal dialog: {detail}" if detail else ""
         )
 
+    def AdoptEditor(self, pid: int) -> None:
+        """Take responsibility for the editor of one activation, so a timeout ends it with the session."""
+
+        with self.editorLock:
+            self.editorPids.add(pid)
+
+    def ReleaseEditor(self, pid: int) -> None:
+        """Give up an editor the activation has already ended."""
+
+        with self.editorLock:
+            self.editorPids.discard(pid)
+
     def Terminate(self) -> None:
-        """End this session's Word and every server that appeared while it ran. Nothing else is touched.
+        """End this session's Word and the editors its own activations adopted. Nothing else is touched.
+
+        This used to end every `RadicalPie.exe` that was not in the process listing when the session began,
+        which killed the equation the operator had open and the renders of other agents, whose servers
+        appear in that listing in exactly the same way (R5-1 and R4-1 of the review of 2026-09-14). An
+        editor is this session's only when `AwaitEditor` found it by a window title naming this document,
+        which is the rule `Tools/PowerPoint/Pptx.py` states, and `AttemptActivation` gives it up as soon as
+        it has ended it. What is left here is the editor of an activation the guard thread cut short.
 
         `TerminateProcess` only posts the termination; the process is still listed for a moment afterwards,
         so a kill is followed by another wait rather than trusted to have finished by the time this returns.
@@ -1146,11 +1232,12 @@ class WordSession:
         for pid in sorted(self.wordPids):
             EndProcess(pid, ExitGraceSeconds)
 
-        for pid in sorted(Pids(ServerImage) - self.serverPidsBefore):
-            # A server that appeared without an activation asking for it is ended the same way, and it is
-            # registered first so that a kill which does not take is reported as the stray it is.
-            Processes.Register(pid)
+        with self.editorLock:
+            editors = sorted(self.editorPids)
+
+        for pid in editors:
             EndProcess(pid, ServerExitGraceSeconds)
+            self.ReleaseEditor(pid)
 
 
 def EndProcess(pid: int, graceSeconds: float) -> None:

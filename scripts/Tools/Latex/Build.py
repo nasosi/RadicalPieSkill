@@ -23,11 +23,15 @@ like any other, so the shift alone puts it right. A key holding an underscore su
 Every process this module starts it ends: Radical Pie is owned by the render pipeline, and each engine run
 is a `subprocess.run` with a timeout, `-interaction=nonstopmode` and `-halt-on-error`, so no run can stop on
 a console prompt and none outlives its call. A failed compilation is reported as the log's first error line.
+
+The two files whose names the build fixes, `Main.tex` and `radicalpie.sty`, are written with a marker
+comment in their first line, and a file of either name that does not carry it stops the build before
+anything is exported. Without that check a build pointed at the directory holding the author's paper
+replaced the paper.
 """
 
 import os
 import re
-import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -48,11 +52,20 @@ StyleFileName = "radicalpie.sty"
 ImageDirectoryName = "RadicalPie"
 DocumentName = "Main"
 
+# The line that says a file in the output directory is this build's own. Both files the build writes carry
+# fixed names, so a build pointed at a LaTeX project rather than at an empty directory would replace that
+# project's `Main.tex` and its own `radicalpie.sty` with no way back; a file of either name that does not
+# carry this line stops the build before an equation is exported. TeX ignores a comment line, and the copy
+# keeps the author's document under it, one line lower than in the file it was copied from.
+MarkerComment = "% Written by the Radical Pie LaTeX pipeline (Tools/Latex/Build.py)."
+
 # The first run writes the `.aux` the equation numbers and the `\eqref`s are read back from.
 CompileRuns = 2
 
 StyleTemplate = Template(
-    r"""\NeedsTeXFormat{LaTeX2e}
+    MarkerComment
+    + "\n"
+    + r"""\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{radicalpie}[2026/09/11 Radical Pie equations as included pictures]
 \RequirePackage{graphicx}
 
@@ -137,20 +150,52 @@ def BuildDocument(
     if not engines:
         raise LatexError("no engine was named, and the document is compiled by at least one")
 
+    stylePath = outputDir / StyleFileName
+    documentPath = outputDir / f"{DocumentName}.tex"
+
+    CheckOutputFiles(stylePath, documentPath)
+
     imageDirectory = outputDir / ImageDirectoryName
     imageDirectory.mkdir(parents=True, exist_ok=True)
 
     exported = [ExportEquation(key, equations[key], imageDirectory) for key in Keys(placeholders)]
 
-    stylePath = outputDir / StyleFileName
     stylePath.write_text(StyleText(exported), encoding="utf-8")
 
-    documentPath = outputDir / f"{DocumentName}.tex"
-    shutil.copyfile(texPath, documentPath)
+    # The author's file byte for byte under the marker line, rather than a copy of it: the marker is what
+    # lets the next build tell its own document from one it must not touch.
+    documentPath.write_bytes((MarkerComment + "\n").encode("utf-8") + texPath.read_bytes())
 
     outputs = {engine: Compile(outputDir, engine, timeoutSeconds) for engine in engines}
 
     return BuildResult(exported, stylePath, documentPath, outputs)
+
+
+def CheckOutputFiles(stylePath: Path, documentPath: Path) -> None:
+    """Refuse an output directory holding a file of either fixed name that this build did not write.
+
+    Both names are fixed, so a build pointed at a LaTeX project rather than at an empty directory would
+    destroy that project's document and its own package of the same name. A file this build wrote carries
+    MarkerComment in its first line; anything else, a directory of that name included, stops the build here,
+    before an equation is exported and before an engine runs.
+    """
+
+    for path in (stylePath, documentPath):
+        if not path.exists():
+            continue
+
+        try:
+            with path.open(encoding="utf-8", errors="replace") as stream:
+                firstLine = stream.readline()
+        except OSError:
+            # A directory of that name, or a file this process cannot read, is not one the build wrote.
+            firstLine = ""
+
+        if not firstLine.startswith(MarkerComment):
+            raise LatexError(
+                f"{path} is in the output directory and this build did not write it;"
+                " name an empty output directory or move that file"
+            )
 
 
 def ReadPlaceholders(texText: str) -> list:

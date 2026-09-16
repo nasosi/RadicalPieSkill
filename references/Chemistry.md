@@ -31,7 +31,7 @@ writing the file directly means assigning them yourself. Four roles carry a cond
 preceding number and the element, which is why a coefficient needs no `Sp` after it (the
 documentation's Role Style page, Chemistry Mode). Letters that share the role share one symbol: the
 site's Photosynthesis equation, line 10, writes `Sb (ro='chem') {s{"CO"}}`, one symbol for two
-letters, and `Skill/RadicalPie/references/examples/SaltDissolution.pie` writes `s{"NaCl"}` for four.
+letters, and `references/examples/SaltDissolution.pie` writes `s{"NaCl"}` for four.
 
 `ro='nmbr'` on a coefficient, written as a plain symbol before the formula, as the site's
 Photosynthesis equation does.
@@ -86,7 +86,7 @@ None of the site's chemistry equations shows a state of matter, so the role is a
 follows loses its spacing and the result reads `Na(aq)+Cl`; with `ro='pnct'` it loses the space after
 the operator; with `ro='unit'` the label gets a thin space before it and the operator keeps its
 spacing on both sides, giving `Na (aq) + Cl`. Write a state of matter as `Sb (ro='unit') {s{"(aq)"}}`.
-`Skill/RadicalPie/references/examples/SaltDissolution.pie` is the worked case.
+`references/examples/SaltDissolution.pie` is the worked case.
 
 ```pie
 // Radical Pie Equation
@@ -127,8 +127,10 @@ it on a diagonal.
 Two data lists configure it.
 
 The first `u32[2]` list holds one pair per bond drawn, each pair a group type and a bond kind. A
-neighbour group with no pair in the list gets no bond line. A pair whose group is absent draws a stub
-that ends in nothing, which is how a ring is closed.
+neighbour group with no pair in the list gets no bond line. A pair whose group is written and left
+empty draws a stub that ends in nothing, which is how a ring is closed; a pair naming a group that is
+not written at all draws a shorter stub, measured 7.34 pt against the empty group's 7.94 pt, so write
+the group.
 
 The second `u32[2]` list is optional and holds one pair per bond whose angle is not the default 45
 degrees, each pair a group type and `'step'` or `'shal'`. Only the four diagonals take an angle.
@@ -194,8 +196,8 @@ Rendering one rightward bond of each kind gives the picture the specification's 
 | `'hevy'` | One thick line. |
 | `'wavy'` | One wavy line, for undefined stereochemistry. |
 | `'part'` | One dashed line. |
-| `'prd1'` | Two lines, the second dashed, on one side of the shaft. |
-| `'prd2'` | Two lines, the second dashed, on the other side. |
+| `'prd1'` | Two lines, the dashed one on the left of the bond's own direction. |
+| `'prd2'` | Two lines, the dashed one on the right of it. |
 | `'prt1'` | Three lines, the first dashed. |
 | `'prt2'` | Three lines, the last dashed. |
 | `'prt3'` | Three lines, the middle one dashed. |
@@ -206,6 +208,10 @@ Rendering one rightward bond of each kind gives the picture the specification's 
 
 `'prd1'` and `'prd2'` differ only in which side of the shaft carries the dashed line, so a
 delocalised ring picks the variant that puts the dashed line inside the ring, one bond at a time.
+The side is read along the direction the bond leaves its central atom: measured 2026-09-15 on a
+rightward bond, `'prd1'` drew the dashed line above the shaft and `'prd2'` below it, and on a `'uprt'`
+bond `'prd1'` drew it on the upper left. Walking a benzene ring from the lower-left carbon, that makes
+the `'uprt'` bond `'prd2'` and the `'lwrt'` and `'uppr'` bonds `'prd1'`.
 The site's Orthoxylene equation does exactly that: `'prd2'` on the three bonds of one half
 and `'prd1'` on the three of the other, which renders as a hexagon with every dashed line inboard.
 
@@ -279,7 +285,7 @@ Benzene, as both those files draw it, is written from the lower-left carbon:
 
 Alternate `'doub'` and `'sing'` round the six ring bonds for a Kekulé structure, or use `'prd1'` and
 `'prd2'` throughout for the delocalised one. Substituting the ring is a change to step 3 alone: the
-site's Phenol equation puts `OH` there, `Skill/RadicalPie/references/examples/Toluene.pie` puts `CH₃`.
+site's Phenol equation puts `OH` there, `references/examples/Toluene.pie` puts `CH₃`.
 
 ```pie
 // Radical Pie Equation
@@ -420,11 +426,13 @@ drawing and keeps the equation's baseline on the first line rather than the last
 
 ## Placing the atom in a neighbour group
 
-A neighbour group is laid out as a line of its own, and `al` on the group says where the bond meets
-it. A group on the left of the atom that reads right to left, such as `H₃C`, takes `al='rght'` so the
-bond touches its right edge, as in the site's Acetone equation. A group under the atom takes
-`al='cent'` to sit squarely beneath the bond, as in the site's R-12 equation. The default puts the
-bond at the left edge, which is what a group to the right of the atom wants.
+A neighbour group is laid out as a line of its own, and `al` on the group places it inside its box.
+A group on the left of the atom that reads right to left, such as `H₃C`, takes `al='rght'`, as in
+the site's Acetone equation, and a group under the atom takes `al='cent'`, as in the site's R-12
+equation. A one-line group's box fits its content, so on a one-line neighbour group the property
+changes nothing: measured 2026-09-14, the bond already starts 0.797 pt past the right edge of a bare
+`H₃C` and `al='rght'` moved no path of the site. It earns its place on a neighbour group of more
+than one line, whose box is as wide as the widest line.
 
 ## Panels and callouts on a bond site
 
@@ -467,7 +475,7 @@ carries the `f{}` offset that brings its rail end to the meeting point, `f{0.0,1
 `f{0.0,-17.97}` on the other in the site's ortho-xylene drawing, and the caption hangs on one of the
 two arrows. An arrow that points into a drawing starts from open space, the caption group's own type
 `0` anchor or a rail, never from a neighbouring atom, or the line crosses the bonds between the two.
-The connector section of `references/StructureCatalogue.md` has the fence for both.
+The connector section of `references/catalogue/Annotations.md` has the fence for both.
 
 ```pie
 // Radical Pie Equation
@@ -542,13 +550,13 @@ The site's Photosynthesis equation, lines 31 to 40, is the whole pattern: `u32{'
 `u32{'rarw'}`, and a `'uppr'` group with `al='cent'` holding the word light as `ro='text'`. Put a
 catalyst in the upper label and a temperature in the lower one, both `al='cent'`; a temperature is
 `ro='nmbr'` followed by `ro='unit'`.
-`Skill/RadicalPie/references/examples/CatalyticHydrogenation.pie` is the worked case.
+`references/examples/CatalyticHydrogenation.pie` is the worked case.
 
 The charm list is read left to right with an alignment cursor that starts at right. `'left'`,
 `'cent'` and `'rght'` in the list move the cursor, and every other value drops a charm at the cursor.
 Every charm draws wherever the cursor is, so the cursor and nothing else decides which end a charm
 lands on: `u32{'rarw'}` alone puts the head at the right end, and a charm meant for the left end needs
-the cursor moved first. `references/StructureCatalogue.md` under `Ar` lists all forty charms and the
+the cursor moved first. `references/catalogue/Arrows.md` under `Ar` lists all forty charms and the
 lengths the labels give the shaft.
 
 ## Equilibria
@@ -593,15 +601,19 @@ An orbital is a `Bx` around a group holding the electrons as arrow characters,
 one symbol; the box sizes itself to the content.
 
 A half-filled box comes out narrower than a filled one, which makes a row of them ragged. Put a
-horizontal phantom of the missing arrow in it, `Ph (t='horz')` holding `s{"↓"}`, and every box in the
-row is the same width.
+horizontal phantom of the missing arrow in it, `Ph (t='horz')` holding `s{"↓"}`, and a
+`Sp (s=0.0) {}` between the symbol and the phantom. The space is what makes the widths match: the
+arrow role puts 4 math units between two structures, and a zero-width space drops them. Measured
+2026-09-14 at the factory design, the filled box is 18.1477 pt wide, the bare half-filled box
+11.8351, the half-filled box with the phantom alone 20.5921, and the half-filled box with the space
+and the phantom 18.1477.
 
 Lay the levels out on an `Mx`, one row per level with the highest energy on top, one column for the
 label and one for each orbital. Set `al='left'` so the labels align, `eh` for equal row heights and
 `ew` for equal column widths. Level labels are `ro='text'`. Entries are listed row-major: label,
 boxes, next label, boxes. An entry with no content is an empty `Gr { Bg {} }`.
 
-`Skill/RadicalPie/references/examples/OxygenOrbitals.pie` is oxygen's ground state on that plan, 1s
+`references/examples/OxygenOrbitals.pie` is oxygen's ground state on that plan, 1s
 and 2s filled and 2p holding one pair and two unpaired electrons.
 
 ```pie
@@ -619,6 +631,7 @@ Gr
 		{
 			Bg {}
 			Sb (ro='arrw') {s{"↑"}}
+			Sp (s=0.0) {}
 			Ph (t='horz')
 			{
 				Bg {}
@@ -639,18 +652,18 @@ site's FDG equation does. The `'bond'` domain is missing from the specification'
 domains and the executable both writes and accepts it. Leave the design block empty unless the caller
 supplies a design.
 
-`Sb (ro='bond')` is a bond drawn inline between two condensed groups rather than by a bond site. The
-site's FDG equation writes it with an empty string, which the specification's `Sb` section forbids
-and the executable accepts. What belongs in the string is one of the twelve bond characters the Radical
-font keeps in the private use area, U+EE30 single, U+EE31 double, U+EE32 triple, U+EE33 quadruple,
-U+EE34 to U+EE39 the partial forms, U+EE3A long single and U+EE3B long double. They are cut for the job:
-measured 2026-09-13 at 11 pt, the bar of U+EE30 in `HOH` sits 3.6416 pt above the baseline, half the
-capital height of the `H`, while an em dash in the same place sits at 2.7560 pt, the math axis, so
-`Sb (ro='bond') {s{"—"}}` draws its bond 0.886 pt low. Write the character itself in the UTF-8 string;
-the catalogue's `Sb` entry has the list and a fence. An em dash still renders and still breaks no rule,
-and a quadruple or a partial bond has no other spelling at all.
+`Sb (ro='bond')` is a bond drawn inline between two condensed groups rather than by a bond site. The site's
+FDG equation writes it with an empty string, which the specification's `Sb` section forbids and the
+executable accepts. What belongs in the string is one of the twelve bond characters the Radical font keeps
+in the private use area, U+EE30 single, U+EE31 double, U+EE32 triple, U+EE33 quadruple, U+EE34 to U+EE39
+the partial forms, U+EE3A long single and U+EE3B long double. They are cut for the job: measured 2026-09-13
+at 11 pt, the bar of U+EE30 in `HOH` sits 3.6416 pt above the baseline, half the capital height of the
+`H`, while an em dash in the same place sits at 2.7560 pt, the math axis, so `Sb (ro='bond') {s{"—"}}`
+draws its bond 0.886 pt low. Write the character itself in the UTF-8 string; the `Sb` entry of
+`references/catalogue/Symbols.md` has the list and a fence. An em dash still renders and still breaks no
+rule, and a quadruple or a partial bond has no other spelling at all.
 
-None of the site's chemistry equations draws a lone pair. A mark on the element does it:
-`Sb (ro='chem') {s{"N"} Mk {u32{0x308}}}` renders as `N̈`, two dots over the letter. `un` on the mark
-puts it under the character instead (catalogue, `Mk`). Dots at the sides of a letter need a different
+None of the site's chemistry equations draws a lone pair. A mark on the element does it: `Sb (ro='chem')
+{s{"N"} Mk {u32{0x308}}}` renders as `N̈`, two dots over the letter. `un` on the mark puts it under the
+character instead (`references/catalogue/Symbols.md`, `Mk`). Dots at the sides of a letter need a different
 structure and no fixture shows one.

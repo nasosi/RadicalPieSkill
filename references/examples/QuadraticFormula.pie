@@ -7,6 +7,16 @@ Gr
 {
 	Bg {}
 	Sb {s{"x"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"1"}}
+			Sb (ro='pnct') {s{","}}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
 	Sb (ro='rltn') {s{"="}}
 	Fr
 	{

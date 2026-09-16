@@ -4,28 +4,47 @@
 `width height baselineShift` in points. `pdf` and `emf` write the file Radical Pie exports through its
 Save a Copy dialog and print its size in bytes. Any of the three prints the reason it failed on stderr with
 exit code 1.
+
+The equation is validated before Radical Pie is started, and a violation is the validator's own line with
+nothing launched: Radical Pie drops a structure it does not know instead of refusing the file, so an
+equation with one typo in a structure name used to render as the empty equation and exit 0.
+
+`Main` takes the name of the program that invoked it, because the usage line is a command the caller can
+run: the front door scripts/Render.py passes its own path, and the module invocation below passes itself.
 """
 
 import sys
 from pathlib import Path
 
+from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Render.Export import ExportEmf, ExportPdf
 from Tools.Render.Svg import RenderError, RenderSvg
 
-Usage = "usage: python -m Tools.Render (svg|pdf|emf) <input.pie> <output>"
+ModuleProgram = "python -m Tools.Render"
 
 Exporters = {"pdf": ExportPdf, "emf": ExportEmf}
 
 
-def Main(arguments: list) -> int:
+def Usage(program: str) -> str:
+    return f"usage: {program} (svg|pdf|emf) <input.pie> <output>"
+
+
+def Main(arguments: list, program: str = ModuleProgram) -> int:
     if len(arguments) != 3 or arguments[0] not in ("svg", *Exporters):
-        print(Usage, file=sys.stderr)
+        print(Usage(program), file=sys.stderr)
 
         return 1
 
     command, inputPath, outputPath = arguments
 
     try:
+        refusal = RefusalMessage([inputPath])
+
+        if refusal:
+            print(refusal, file=sys.stderr)
+
+            return 1
+
         pieText = Path(inputPath).read_text(encoding="utf-8")
 
         if command == "svg":

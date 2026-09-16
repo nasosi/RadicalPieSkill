@@ -2,16 +2,19 @@
 
 Every rule carries the section title of that document it comes from, so a validation error can name
 the section its reader must open. Each rule that the specification does not state, and that a fixture
-written by Radical Pie proves, carries a comment naming the fixture; the file wins over the document,
-per the precedence in CLAUDE.md. Those rules are Br's absent array, Mx's subgroup minimum, the data
-lists inside F, P and V, Sb's 'ma' property, Ph's substructures and V's 'bond' domain. Three more come
-from a render rather than a fixture, because no fixture in the corpus carries them: the endpoint and
-offset properties of Cn, Zg and Qe, the 'line' anchor type on those same three structures, and the
-'pi' and 'co' properties on the four modifier structures, which the specification offers to the
-equation category alone.
+written by Radical Pie proves, carries a comment naming the fixture; the file wins over the document.
+Those rules are Br's absent array, Mx's
+subgroup minimum, the data lists inside F, P and V, Sb's 'ma' property, Ph's substructures and V's 'bond'
+domain. Three more come from a render rather than a fixture, because no fixture in the corpus carries
+them: the endpoint and offset properties of Cn, Zg and Qe, the 'line' anchor type on those same three
+structures, and the 'pi' and 'co' properties on the four modifier structures, which the specification
+offers to the equation category alone.
 
-Where the specification enumerates nothing, this catalogue enumerates nothing: `Gr`'s `al` and the
-values inside every data list other than `Ar`'s are unconstrained here. Three exceptions are measurements and
+Where the specification enumerates nothing, this catalogue enumerates nothing: `Gr`'s `al` is
+unconstrained here. Every data-list value is held to the range of its primitive type (`IntegerRanges`),
+a Unicode character value to the last code point (`UnicodeValueStructures`), and the values the
+specification does enumerate to its tables: `Ar`'s arrow and charm types and `Bd`'s bond types, bond
+group types, angle group types and angle types. Three exceptions are measurements and
 not readings. `V`'s `n` is DesignParameters.Domains, the 347 design parameter names the executable holds,
 with the range each is given, because Radical Pie drops a name it does not know without a word (ADR-0008).
 `Gr`'s `ba`: the Group menu offers three baseline alignments and the editor writes 'frst' and 'mddl' for
@@ -20,9 +23,9 @@ the default (ADR-0006). `Ar`'s two data-list enumerations, `ArrowTypes` and `Cha
 the same reason: an arrow type outside the four draws a full-length arrow and a charm outside the forty is
 dropped, both without a word (ADR-0007). Each of these rules is narrower than the executable rather than
 wider.
-`Al`'s `al`, `Ph`'s `t`, `Ng`'s `t` and `Sl`'s `t` are narrower than the executable the same way and needed
-no decision of their own, because the enumeration each keeps is the specification's; `Sp`'s `s` carries
-no bound at all, because the limits the Spaces page states are the Insert Space dialog's.
+`Al`'s `al`, `Ph`'s `t`, `Ng`'s `t`, `Sl`'s `t` and `Bd`'s bond types are narrower than the executable the
+same way and needed no decision of their own, because the enumeration each keeps is the specification's;
+`Sp`'s `s` carries no bound at all, because the limits the Spaces page states are the Insert Space dialog's.
 The 't' of Bx, Kt and En is enumerated by the specification and is narrower than the
 executable in the same way, a four-letter value outside the table drawing the default (rendered
 2026-09-13), and so are Dv's subgroup types, En's one enclosure per symbol and En's place inside a
@@ -52,6 +55,12 @@ without a value is true in OpenDDL 3.0, so "off" has no spelling other than leav
 from .DesignParameters import Domains as DesignParameters
 
 FileSection = "File Format Specification"
+
+# The one section that is not a heading of FileFormat.md. Radical Pie and InkRadix hand an equation to
+# another program inside an XML comment in an SVG, which Docs/ARCHITECTURE.md records under format facts and
+# no page of the captured documentation states; the rule it carries is Validator.CheckCarrierComment.
+CarrierSection = "SVG comment carrier"
+
 GeneralEquationSection = "General Equation Structure Properties"
 GeneralDrawingSection = "General Drawing Structure Properties"
 
@@ -272,6 +281,74 @@ ValueDomains = tuple(DesignParameters)
 # The index a style map puts in a font slot it does not use (Corpus/Pie/aaa.pie, and every style the
 # operator's design fixture maps to fewer than four fonts).
 NoFontIndex = 255
+
+# The highest font slot that resolves to a font with no F in the design, measured 2026-09-14 through the
+# render pipeline: `M (t='uprt') {u8{n}}` in a design holding nothing else renders for n of 1, 7 and 8,
+# each in a different face, and crashes Radical Pie with the access violation 3221225477 for n of 9 and
+# 20. Validator.CheckDesignFonts holds a style map's first index to these slots and the ones the design's
+# own F structures fill.
+HighestFactoryFontSlot = 8
+
+# The range of every integer primitive OpenDDL spells, which Radical Pie reads with the width the type
+# names: a value outside it wraps. `M (t='uprt') {u8{-1}}` is the refused `u8{255}` after the wrap and
+# crashes, `Sb (co=-1)` is 0xFFFFFFFF and draws white ink on white paper, and `M (t='uprt') {u8{300}}` is
+# slot 44 (measured 2026-09-13 and 2026-09-14). The wrap is silent, so the validator is the only reader
+# that sees the value the writer meant.
+IntegerRanges = {
+    "int8": (-128, 127),
+    "int16": (-32768, 32767),
+    "int32": (-2147483648, 2147483647),
+    "int64": (-(2**63), 2**63 - 1),
+    "uint8": (0, 255),
+    "uint16": (0, 65535),
+    "uint32": (0, 4294967295),
+    "uint64": (0, 2**64 - 1),
+}
+
+# The five structures whose uint32 data list holds Unicode character values, which the specification says
+# of each of them. A value above the last code point crashes Radical Pie with the access violation
+# 3221225477 before it renders: measured 2026-09-14 on Mk, Br and Pr with 0x110000 and on In with -1,
+# which is 0xFFFFFFFF after the wrap. It was not rendered on It, which is here because its uint32 list is
+# the same "Unicode value of the character" row of the specification.
+UnicodeValueStructures = ("Mk", "Br", "Pr", "In", "It")
+
+MaximumCodePoint = 0x10FFFF
+
+# The fifteen bond types of the "Bd — Bond Structure" section, each of which can be written with its
+# first letter capitalised for a long bond. Radical Pie 1.15 draws a value outside the table as a single
+# bond and writes it back unchanged, so this enumeration is narrower than the executable the way Ar's two
+# are: `u32[2]{{0,'zzzz'}}` and `u32[2]{{0,'sing'}}` both rendered 15.6075 by 9 pt (measured 2026-09-14).
+BondTypes = (
+    "sing",
+    "doub",
+    "trip",
+    "hevy",
+    "wavy",
+    "part",
+    "prd1",
+    "prd2",
+    "prt1",
+    "prt2",
+    "prt3",
+    "swgo",
+    "swgi",
+    "dwgo",
+    "dwgi",
+)
+
+BondTypeValues = BondTypes + tuple(bondType.capitalize() for bondType in BondTypes)
+
+# The group type in a bond pair names the direction the bond points. 0 is the rightward bond, which has
+# no group of its own (Corpus/Site/Chemistry/FDG.pie line 30 writes `{0,'Sing'}`); each of the six others
+# names the neighbour group the bond ends at, and a pair whose group the site does not hold draws neither
+# the bond nor the atom and reports nothing (measured 2026-09-14, 7.33691 by 9 pt against the control's
+# 7.94385 by 28 pt).
+BondGroupTypes = (0, "uppr", "uplf", "uprt", "lowr", "lwlf", "lwrt")
+
+# "Angles can be specified only for the upper-left, upper-right, lower-left, and lower-right bonds."
+BondAngleGroupTypes = ("uplf", "uprt", "lwlf", "lwrt")
+
+BondAngleTypes = (0, "step", "shal")
 
 LineOffsetTypes = (0, "long", "shrt")
 
@@ -694,8 +771,10 @@ Structures = {
             properties=[PropertyRule("i", "int32", 0, FSection, minimum=1, maximum=15)],
             # F — Font Structure gives F no substructures. Corpus/Pie/rpie.pie writes the font name as
             # a string data list inside it, and each of the 202 font structures in the corpus holds
-            # exactly one data list, a string or a uint8 index (corpus census 2026-09-10).
-            substructures=[SubstructureRule("anyPrimitive", 1, 1, FSection)],
+            # exactly one data list, a string or a uint8 index (corpus census 2026-09-10), holding one
+            # value: `F (i=8) {s{}}` is dropped from the design Radical Pie saves without a word, so a
+            # style mapped to slot 8 draws from whatever filled it before (measured 2026-09-14).
+            substructures=[SubstructureRule("anyPrimitive", 1, 1, FSection, valueMinimum=1, valueMaximum=1)],
         ),
         Rule(
             "Fr",
@@ -978,9 +1057,11 @@ Structures = {
             ],
             # V — Value Structure gives V no substructures. Corpus/Pie/test11.pie writes the parameter
             # value as a float data list inside it, and each of the 26 value structures in the corpus
-            # holds exactly one data list (corpus census 2026-09-10); any primitive type is accepted
-            # here because the document says nothing about which types a design parameter can take.
-            substructures=[SubstructureRule("anyPrimitive", 1, 1, VSection)],
+            # holds exactly one data list (corpus census 2026-09-10) holding one value; any primitive
+            # type is accepted here because the document says nothing about which types a design
+            # parameter can take, and Validator.CheckDesignParameter holds the value to a number.
+            # `V (n='fsiz') {f{}}` is dropped from the design Radical Pie saves (measured 2026-09-14).
+            substructures=[SubstructureRule("anyPrimitive", 1, 1, VSection, valueMinimum=1, valueMaximum=1)],
         ),
         Rule(
             "Wm",

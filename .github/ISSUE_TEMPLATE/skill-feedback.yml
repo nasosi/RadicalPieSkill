@@ -1,0 +1,46 @@
+name: Skill feedback
+description: What the Radical Pie skill got wrong, or what would have saved time.
+title: "Skill feedback"
+labels: ["feedback"]
+body:
+  - type: input
+    id: skill-version
+    attributes:
+      label: Skill version
+      description: From the skill's README.md.
+      placeholder: "0.10.0"
+    validations:
+      required: true
+  - type: input
+    id: radicalpie-version
+    attributes:
+      label: Radical Pie version
+      description: From a pipeline run, or "unknown" if nothing drove the executable.
+      placeholder: "1.15"
+    validations:
+      required: true
+  - type: textarea
+    id: what-was-asked
+    attributes:
+      label: What was asked
+    validations:
+      required: true
+  - type: textarea
+    id: what-the-skill-lacked
+    attributes:
+      label: What the skill said or lacked
+    validations:
+      required: true
+  - type: textarea
+    id: what-worked
+    attributes:
+      label: What worked
+    validations:
+      required: true
+  - type: checkboxes
+    id: attachment
+    attributes:
+      label: Attachment
+      options:
+        - label: I can attach the .pie file
+          required: false

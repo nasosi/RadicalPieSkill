@@ -49,8 +49,9 @@ model it.
 - **Office Math conversion.** Inserting a Radical Pie equation with the cursor immediately after an OMML
   equation, or at the start of the line after a displayed one, initialises it from that equation. The
   skill does not read or write OMML.
-- **PowerPoint objects** (1.9), inserted by the PowerPoint add-in. The skill's Word pipeline has no
-  PowerPoint counterpart, so a request for slides ends with `.pie` files and the add-in.
+- **PowerPoint objects** (1.9), inserted by the PowerPoint add-in. The skill writes the same objects
+  into a deck without the editor, `python scripts/PowerPoint.py embed Draft.pptx Final.pptx eq=Eq.pie`,
+  which `references/OutputForms.md` gives in full beside the Word pipeline.
 - **Update Design and Update Font Size**, the two commands that apply the current default design, or the
   surrounding text's font size, to every equation in a Word selection, and generate alternative text for
   them. Restyling a document is that selection and those buttons, not a rewrite of the embedded files.

@@ -12,21 +12,35 @@ The carrier's width, height and viewBox describe an empty equation; Radical Pie 
 when it renders. Extraction is Tools/PieFormat's ExtractPieFromSvg, so it also reads the SVG that
 Radical Pie has already rendered and the InkRadix element. Both directions write UTF-8 without a BOM
 and Unix line endings, which is what Radical Pie writes.
+
+An equation goes into the carrier only when the validator accepts it, so a wrap prints the validator's
+own lines and writes nothing for a file that does not validate. The rule that matters most to this
+script is the one about `-->`: the equation travels inside an XML comment, and a text that ends that
+comment truncates the equation on the way back and turns the rest of it into live markup.
 """
 
 import sys
 from pathlib import Path
 
-# Two layouts: inside the repository, Tools sits at parents[3]; packaged by Scripts/PackageSkill.py, it is
-# vendored beside this script as scripts/Tools. The package name is Tools either way, so the import is one.
-RepositoryRoot = Path(__file__).resolve().parents[3]
-ScriptDir = Path(__file__).resolve().parent
+# ToolsPath sits beside this script and knows which of the two layouts this is, the repository or the
+# published folder with the pipelines vendored under scripts/Tools. The script's own directory has to be on
+# sys.path before it can be imported, which is where Python puts it for a script but not for an import.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-sys.path.insert(0, str(RepositoryRoot if (RepositoryRoot / "Tools" / "PieFormat").is_dir() else ScriptDir))
+from ToolsPath import MissingPackageExit, PutToolsOnPath  # noqa: E402  the path has to be set first
 
-from Tools.PieFormat.Validator import ExtractPieFromSvg  # noqa: E402  the path has to be set before the import
+PutToolsOnPath("PieFormat")
 
-Usage = "usage: python WrapSvg.py <input.pie> <output.svg> | python WrapSvg.py <input.svg> <output.pie>"
+try:
+    # The path has to be set before the import.
+    from Tools.PieFormat.Validator import ExtractPieFromSvg, RefusalMessage  # noqa: E402
+except ModuleNotFoundError as error:  # noqa: E402  a pipeline package the machine has not installed
+    sys.exit(MissingPackageExit(error))
+
+
+def Usage(program):
+    return f"usage: {program} <input.pie> <output.svg> | {program} <input.svg> <output.pie>"
+
 
 Carrier = (
     '<svg width="6pt" height="9pt" viewBox="0 -9 6 9" version="1.1" xmlns="http://www.w3.org/2000/svg">\n'
@@ -53,16 +67,15 @@ def Wrap(pieText):
     return Carrier.format(pieText.replace("\r\n", "\n").strip("\n"))
 
 
-def Main(arguments):
+def Main(arguments, program="python WrapSvg.py"):
     if len(arguments) != 2:
-        print(Usage, file=sys.stderr)
+        print(Usage(program), file=sys.stderr)
         return 2
 
     inputPath = Path(arguments[0])
-    text = inputPath.read_text(encoding="utf-8")
 
     if inputPath.suffix.lower() == ".svg":
-        equation = ExtractPieFromSvg(text)
+        equation = ExtractPieFromSvg(inputPath.read_text(encoding="utf-8"))
 
         if not equation:
             print("{}: this SVG carries no Radical Pie equation".format(inputPath), file=sys.stderr)
@@ -70,11 +83,24 @@ def Main(arguments):
 
         WriteText(arguments[1], equation)
     else:
-        WriteText(arguments[1], Wrap(text))
+        # The carrier is an XML comment around the equation, so only an equation the validator accepts
+        # goes into one. The file is read after that check, because a file that is not UTF-8 is one of
+        # the things the validator reports as a line of its own.
+        refusal = RefusalMessage([inputPath])
+
+        if refusal:
+            print(refusal, file=sys.stderr)
+            return 1
+
+        WriteText(arguments[1], Wrap(inputPath.read_text(encoding="utf-8")))
 
     print(arguments[1])
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(Main(sys.argv[1:]))
+    # A .pie path can be Greek or mathematical, and the console codec refuses it (the guideline the
+    # repository keeps); five of the six front doors did this already.
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+    sys.exit(Main(sys.argv[1:], f"python {sys.argv[0]}"))

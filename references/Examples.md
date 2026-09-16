@@ -3,19 +3,18 @@
 Thirty-seven equations, easiest first. Each one gives the LaTeX or a description, the complete `.pie`
 file, and the decisions that matter in it.
 
-The first seven equations were written by Radical Pie itself; read them for what the program's own
-output looks like. Every later example is a file under
-`references/examples/`, Examples 23 and 25 among them two more files the program wrote, and each one
-passes the validator. Examples 6, 21, 25 to 32 and 34 are chemistry; `references/Chemistry.md` is the
-method behind them.
+Example 2 is a file Radical Pie itself saved; read it for what the program's own output looks like,
+and Example 23 for what it does to the node names in an annotated one. Every example from 8 on is a
+file under `references/examples/`, and each one passes the validator. Examples 6, 21, 25 to 32 and 34
+are chemistry; `references/Chemistry.md` is the method behind them.
 
 ```
-python Skill/RadicalPie/scripts/Validate.py Skill/RadicalPie/references/examples/QuadraticFormula.pie
+python scripts/Validate.py references/examples/QuadraticFormula.pie
 ```
 
 ## 1. A single symbol
 
-`=`, on its own, the file Radical Pie itself wrote for it.
+`\ne`, on its own.
 
 ```pie
 // Radical Pie Equation
@@ -26,13 +25,14 @@ D
 Gr
 {
 	Bg {}
-	Sb (ro='rltn') {s{"="}}
+	Sb (ro='rltn') {s{"≠"}}
 }
 ```
 
 The smallest useful file: header line, empty design, one group, the `Bg` that begins its first line,
-one symbol. The equals sign takes `ro='rltn'` so that Radical Pie puts relation spacing around it. A
-bare `Sb {s{"="}}` would fall to the `'math'` role and be spaced as a variable.
+one symbol. The not-equal sign is one code point, U+2260, and it takes `ro='rltn'` so that Radical Pie
+puts relation spacing around it. A bare `Sb {s{"≠"}}` would fall to the `'math'` role and be spaced
+as a variable.
 
 ## 2. A number and a fraction, with a saved design
 
@@ -102,7 +102,7 @@ characters that share a role and a style belong in one symbol.
 
 ## 3. A binomial coefficient
 
-`\binom{n}{k} = \frac{n!}{k!(n-k)!}`, the file Radical Pie itself wrote for it. The fixture's design names a font imported on the documentation author's machine, `F (i=15) {u8{42}}`, which raises a Font Import dialog anywhere else, so the design is shown empty here.
+`\binom{2n}{n} = \frac{(2n)!}{n!\,n!}`, the central binomial coefficient.
 
 ```pie
 // Radical Pie Equation
@@ -123,12 +123,13 @@ Gr
 				Gr (t='numr')
 				{
 					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
 					Sb {s{"n"}}
 				}
 				Gr (t='dnom')
 				{
 					Bg {}
-					Sb {s{"k"}}
+					Sb {s{"n"}}
 				}
 			}
 		}
@@ -139,24 +140,24 @@ Gr
 		Gr (t='numr')
 		{
 			Bg {}
-			Sb {s{"n"}}
-			Sb (st='uprt') {s{"!"}}
-		}
-		Gr (t='dnom')
-		{
-			Bg {}
-			Sb {s{"k"}}
-			Sb (st='uprt') {s{"!"}}
 			Br
 			{
 				Gr (ba='mddl')
 				{
 					Bg {}
+					Sb (ro='nmbr') {s{"2"}}
 					Sb {s{"n"}}
-					Sb (ro='oper') {s{"−"}}
-					Sb {s{"k"}}
 				}
 			}
+			Sb (st='uprt') {s{"!"}}
+		}
+		Gr (t='dnom')
+		{
+			Bg {}
+			Sb {s{"n"}}
+			Sb (st='uprt') {s{"!"}}
+			Sp (s=3.0) {}
+			Sb {s{"n"}}
 			Sb (st='uprt') {s{"!"}}
 		}
 	}
@@ -164,13 +165,14 @@ Gr
 ```
 
 A binomial coefficient is a vertical fraction with the bar cleared, `Fr (at)`, inside a bracket. The
-bracket has no `uint32` data list, which gives parentheses. The factorial is `Sb (st='uprt')`: the role
-stays `'math'` so the spacing is right, and only the style is overridden.
+bracket has no `uint32` data list, which gives parentheses, and a second bracket of the same kind is
+what the factorial in the numerator applies to. A factorial is `Sb (st='uprt')`: the role stays
+`'math'` so the spacing is right, and only the style is overridden. `Sp (s=3.0)` is the thin space
+between the two factorials in the denominator.
 
 ## 4. Cases
 
-`\mathrm{step}(x,c) = \begin{cases} 1, & \text{if } x \ge c; \\ 0, & \text{otherwise.} \end{cases}`.
-The file Radical Pie itself wrote for it. The design is shown empty for the reason given in example 3.
+`\mathrm{sgn}(t) = \begin{cases} 1, & \text{if } t > 0; \\ 0, & \text{if } t = 0; \\ -1, & \text{if } t < 0. \end{cases}`.
 
 ```pie
 // Radical Pie Equation
@@ -181,15 +183,13 @@ D
 Gr
 {
 	Bg {}
-	Sb (ro='func') {s{"step"}}
+	Sb (ro='func') {s{"sgn"}}
 	Br
 	{
 		Gr (ba='mddl')
 		{
 			Bg {}
-			Sb {s{"x"}}
-			Sb (ro='pnct') {s{","}}
-			Sb {s{"c"}}
+			Sb {s{"t"}}
 		}
 	}
 	Sb (ro='rltn') {s{"="}}
@@ -204,29 +204,45 @@ Gr
 			Al (al='cent') {}
 			Sp (s=18.0) {}
 			Sb (ro='text') {s{"if "}}
-			Sb {s{"x"}}
-			Sb (ro='rltn') {s{"≥"}}
-			Sb {s{"c"}}
+			Sb {s{"t"}}
+			Sb (ro='rltn') {s{">"}}
+			Sb (ro='nmbr') {s{"0"}}
 			Sb (ro='pnct') {s{";"}}
 			Bg {}
 			Sb (ro='nmbr') {s{"0"}}
 			Sb (ro='pnct') {s{","}}
 			Al (al='cent') {}
 			Sp (s=18.0) {}
-			Sb (ro='text') {s{"otherwise."}}
+			Sb (ro='text') {s{"if "}}
+			Sb {s{"t"}}
+			Sb (ro='rltn') {s{"="}}
+			Sb (ro='nmbr') {s{"0"}}
+			Sb (ro='pnct') {s{";"}}
+			Bg {}
+			Sb (ro='oper') {s{"−"}}
+			Sb (ro='nmbr') {s{"1"}}
+			Sb (ro='pnct') {s{","}}
+			Al (al='cent') {}
+			Sp (s=18.0) {}
+			Sb (ro='text') {s{"if "}}
+			Sb {s{"t"}}
+			Sb (ro='rltn') {s{"<"}}
+			Sb (ro='nmbr') {s{"0"}}
+			Sb (ro='pnct') {s{"."}}
 		}
 	}
 }
 ```
 
 Three things carry this one. The bracket's `u32{0x7B,0x00}` draws a left brace and nothing on the
-right. The single bracket subgroup holds two lines, each begun by its own `Bg`. The `Al (al='cent')`
-after each comma lines the two conditions up, and `Sp (s=18.0)` opens a quad of space before the words.
-`step` is `ro='func'`, which is what gives a function name its upright style and its side bearings.
+right. The single bracket subgroup holds three lines, each begun by its own `Bg`. The `Al (al='cent')`
+after each comma lines the three conditions up, and `Sp (s=18.0)` opens a quad of space before the
+words. `sgn` is `ro='func'`, which is what gives a function name its upright style and its side
+bearings.
 
 ## 5. Three aligned lines
 
-Three definitions aligned on their equals signs, the file Radical Pie itself wrote for it.
+Three definitions aligned on their equals signs, their left-hand sides three different widths.
 
 ```pie
 // Radical Pie Equation
@@ -237,45 +253,36 @@ D
 Gr
 {
 	Bg {}
-	Sb {s{"x"}}
+	Sb {s{"a"}}
 	Br
 	{
 		Gr (ba='mddl')
 		{
 			Bg {}
-			Sb {s{"t"}}
+			Sb {s{"n"}}
 		}
 	}
 	Al (al='cent') {}
 	Sb (ro='rltn') {s{"="}}
-	Sb {s{"t"}}
-	Sc
-	{
-		Gr (t='sups')
-		{
-			Bg {}
-			Sb (ro='nmbr') {s{"2"}}
-		}
-	}
-	Sb (ro='oper') {s{"+"}}
-	Sb {s{"t"}}
-	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"2"}}
+	Sb {s{"n"}}
+	Sb (ro='oper') {s{"−"}}
 	Sb (ro='nmbr') {s{"1"}}
 	Bg {}
-	Sb {s{"y"}}
+	Sb {s{"b"}}
 	Br
 	{
 		Gr (ba='mddl')
 		{
 			Bg {}
-			Sb {s{"s"}}
+			Sb {s{"m"}}
 			Sb (ro='pnct') {s{","}}
-			Sb {s{"t"}}
+			Sb {s{"n"}}
 		}
 	}
 	Al (al='cent') {}
 	Sb (ro='rltn') {s{"="}}
-	Sb {s{"s"}}
+	Sb {s{"m"}}
 	Sc
 	{
 		Gr (t='sups')
@@ -285,7 +292,7 @@ Gr
 		}
 	}
 	Sb (ro='oper') {s{"+"}}
-	Sb {s{"t"}}
+	Sb {s{"n"}}
 	Sc
 	{
 		Gr (t='sups')
@@ -294,64 +301,36 @@ Gr
 			Sb (ro='nmbr') {s{"2"}}
 		}
 	}
-	Sb (ro='oper') {s{"+"}}
-	Sb (ro='nmbr') {s{"2"}}
-	Sb {s{"st"}}
 	Bg {}
-	Sb {s{"z"}}
+	Sb {s{"c"}}
 	Br
 	{
 		Gr (ba='mddl')
 		{
 			Bg {}
-			Sb {s{"s"}}
+			Sb {s{"m"}}
 			Sb (ro='pnct') {s{","}}
-			Sb {s{"t"}}
+			Sb {s{"n"}}
 			Sb (ro='pnct') {s{","}}
-			Sb {s{"u"}}
+			Sb {s{"p"}}
 		}
 	}
 	Al (al='cent') {}
 	Sb (ro='rltn') {s{"="}}
-	Sb {s{"u"}}
-	Sc
-	{
-		Gr (t='sups')
-		{
-			Bg {}
-			Sb (ro='nmbr') {s{"2"}}
-		}
-	}
+	Sb {s{"mnp"}}
 	Sb (ro='oper') {s{"−"}}
-	Sb {s{"s"}}
-	Sc
-	{
-		Gr (t='sups')
-		{
-			Bg {}
-			Sb (ro='nmbr') {s{"2"}}
-		}
-	}
-	Sb (ro='oper') {s{"−"}}
-	Sb {s{"t"}}
-	Sc
-	{
-		Gr (t='sups')
-		{
-			Bg {}
-			Sb (ro='nmbr') {s{"2"}}
-		}
-	}
+	Sb (ro='nmbr') {s{"1"}}
 }
 ```
 
 A multi-line equation is one group with several `Bg` structures, not several groups. The centre aligner
 before each `=` puts all three signs in one column and centres each left-hand side in the width the
-longest of them needs.
+longest of them needs. `mnp` is one symbol, because three letters that share a role and a style belong
+in one.
 
 ## 6. A molecule
 
-Ethanol as a structural diagram, the file Radical Pie itself wrote for it.
+Dimethyl ether as a structural diagram.
 
 ```pie
 // Radical Pie Equation
@@ -392,6 +371,15 @@ Gr
 	}
 	Bd
 	{
+		u32[2]{{0,'sing'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"O"}}
+		}
+	}
+	Bd
+	{
 		u32[2]{{'uppr','sing'},{'lowr','sing'},{0,'sing'}}
 		Gr
 		{
@@ -409,18 +397,19 @@ Gr
 			Sb (ro='chem') {s{"H"}}
 		}
 	}
-	Sb (ro='chem') {s{"OH"}}
+	Sb (ro='chem') {s{"H"}}
 }
 ```
 
 Each bond site is a `Bd` whose pair list names one bond per direction, with group type `0` for the
 rightward bond that has no group of its own. The atoms are `ro='chem'`, which sets them upright. The
-molecule reads left to right along the baseline, one bond site per atom that has neighbours.
+molecule reads left to right along the baseline, one bond site per atom that has a neighbour to its
+right; the last hydrogen is a plain symbol, because the carbon before it draws the bond that reaches
+it.
 
 ## 7. A phantom that evens up two radicals
 
-`\sqrt{\mathbf{v} \cdot \mathbf{v}} = \sqrt{v_x^2 + v_y^2 + v_z^2}`, first as written, then with a
-phantom, the two files Radical Pie itself wrote for it, designs shown empty as in example 3.
+`\sqrt{a^3 b} = a\sqrt{ab}`, first as written, then with a phantom.
 
 ```pie
 // Radical Pie Equation
@@ -436,68 +425,34 @@ Gr
 		Gr
 		{
 			Bg {}
-			Sb (st='bold') {s{"v"}}
-			Sb (ro='oper') {s{"·"}}
-			Sb (st='bold') {s{"v"}}
+			Sb {s{"a"}}
+			Sc
+			{
+				Gr (t='sups')
+				{
+					Bg {}
+					Sb (ro='nmbr') {s{"3"}}
+				}
+			}
+			Sb {s{"b"}}
 		}
 	}
 	Sb (ro='rltn') {s{"="}}
+	Sb {s{"a"}}
 	Rd
 	{
 		Gr
 		{
 			Bg {}
-			Sb {s{"v"}}
-			Sc
-			{
-				Gr (t='sups')
-				{
-					Bg {}
-					Sb (ro='nmbr') {s{"2"}}
-				}
-				Gr (t='subs')
-				{
-					Bg {}
-					Sb {s{"x"}}
-				}
-			}
-			Sb (ro='oper') {s{"+"}}
-			Sb {s{"v"}}
-			Sc
-			{
-				Gr (t='sups')
-				{
-					Bg {}
-					Sb (ro='nmbr') {s{"2"}}
-				}
-				Gr (t='subs')
-				{
-					Bg {}
-					Sb {s{"y"}}
-				}
-			}
-			Sb (ro='oper') {s{"+"}}
-			Sb {s{"v"}}
-			Sc
-			{
-				Gr (t='sups')
-				{
-					Bg {}
-					Sb (ro='nmbr') {s{"2"}}
-				}
-				Gr (t='subs')
-				{
-					Bg {}
-					Sb {s{"z"}}
-				}
-			}
+			Sb {s{"ab"}}
 		}
 	}
 }
 ```
 
-The two radicals come out different heights because the right-hand radicand carries scripts. Adding a
-phantom of `v_y^2` to the left-hand radicand gives both the same vertical extent:
+The two radicals come out different heights because the left-hand radicand carries a script: the left
+sign reaches 12.3 points above the baseline and the right one 9.99. Adding a phantom of `a^3` to the
+right-hand radicand gives both the same vertical extent:
 
 ```pie
 // Radical Pie Equation
@@ -513,77 +468,37 @@ Gr
 		Gr
 		{
 			Bg {}
-			Sb (st='bold') {s{"v"}}
-			Sb (ro='oper') {s{"·"}}
-			Sb (st='bold') {s{"v"}}
-			Ph
+			Sb {s{"a"}}
+			Sc
 			{
-				Bg {}
-				Sb {s{"v"}}
-				Sc
+				Gr (t='sups')
 				{
-					Gr (t='sups')
-					{
-						Bg {}
-						Sb (ro='nmbr') {s{"2"}}
-					}
-					Gr (t='subs')
-					{
-						Bg {}
-						Sb {s{"y"}}
-					}
+					Bg {}
+					Sb (ro='nmbr') {s{"3"}}
 				}
 			}
+			Sb {s{"b"}}
 		}
 	}
 	Sb (ro='rltn') {s{"="}}
+	Sb {s{"a"}}
 	Rd
 	{
 		Gr
 		{
 			Bg {}
-			Sb {s{"v"}}
-			Sc
+			Sb {s{"ab"}}
+			Ph
 			{
-				Gr (t='sups')
+				Bg {}
+				Sb {s{"a"}}
+				Sc
 				{
-					Bg {}
-					Sb (ro='nmbr') {s{"2"}}
-				}
-				Gr (t='subs')
-				{
-					Bg {}
-					Sb {s{"x"}}
-				}
-			}
-			Sb (ro='oper') {s{"+"}}
-			Sb {s{"v"}}
-			Sc
-			{
-				Gr (t='sups')
-				{
-					Bg {}
-					Sb (ro='nmbr') {s{"2"}}
-				}
-				Gr (t='subs')
-				{
-					Bg {}
-					Sb {s{"y"}}
-				}
-			}
-			Sb (ro='oper') {s{"+"}}
-			Sb {s{"v"}}
-			Sc
-			{
-				Gr (t='sups')
-				{
-					Bg {}
-					Sb (ro='nmbr') {s{"2"}}
-				}
-				Gr (t='subs')
-				{
-					Bg {}
-					Sb {s{"z"}}
+					Gr (t='sups')
+					{
+						Bg {}
+						Sb (ro='nmbr') {s{"3"}}
+					}
 				}
 			}
 		}
@@ -592,11 +507,14 @@ Gr
 ```
 
 The phantom holds its content directly after a `Bg`, with no `Gr` in between. Its default type
-`'vert'` claims the height and none of the width.
+`'vert'` claims the height and none of the width, so the right-hand sign rises to 12.3 points and the
+equation stays the same width.
 
 ## 8. The quadratic formula
 
-`x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}`.
+File: `examples/QuadraticFormula.pie`
+
+`x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}`.
 
 ```pie
 // Radical Pie Equation
@@ -608,6 +526,16 @@ Gr
 {
 	Bg {}
 	Sb {s{"x"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"1"}}
+			Sb (ro='pnct') {s{","}}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
 	Sb (ro='rltn') {s{"="}}
 	Fr
 	{
@@ -647,11 +575,14 @@ Gr
 }
 ```
 
-The leading minus is `ro='oper'`, the same role as the minus inside the radicand and every other minus
-sign the site writes; `'unry'` is reserved for `∂` and `∇`. Both are U+2212, the minus sign, not the
-hyphen. `ac` is one symbol, and `2a` is two, because the digit and the letter have different roles.
+The leading minus is `ro='oper'`, the same role as the minus inside the radicand; `'unry'` is reserved
+for `∂` and `∇`. Both are U+2212, the minus sign, not the hyphen. `ac` is one symbol, and `2a` is
+two, because the digit and the letter have different roles. The subscript that names the two roots is
+an ordinary `Sc` holding a `'subs'` group of three symbols, a number, a comma and a number.
 
 ## 9. Roots
+
+File: `examples/Roots.pie`
 
 `\sqrt{2}, \sqrt[3]{x}, \sqrt[n]{x+y}`.
 
@@ -712,6 +643,8 @@ separate cube-root structure, and the `\cbrt` character in `references/TexSymbol
 editor types to insert this same structure.
 
 ## 10. A definite integral
+
+File: `examples/DefiniteIntegral.pie`
 
 `\int_0^1 x^2 \, dx = \frac{1}{3}`.
 
@@ -776,6 +709,8 @@ symbol, italic like any other letter, preceded by a thin space of 3 mu, which is
 upright is a house-style choice the site does not make.
 
 ## 11. A sum with limits
+
+File: `examples/SumWithLimits.pie`
 
 `\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}`.
 
@@ -859,6 +794,8 @@ the Greek italic style that a small Greek letter gets by convention.
 
 ## 12. A limit
 
+File: `examples/Limit.pie`
+
 `\lim_{x \to 0} \frac{\sin x}{x} = 1`.
 
 ```pie
@@ -908,6 +845,8 @@ Gr
 `'lowr'`. Both `lim` and `sin` are `ro='func'`. The arrow is `ro='arrw'`.
 
 ## 13. A matrix in brackets
+
+File: `examples/BracketedMatrix.pie`
 
 `\mathbf{A} = \begin{bmatrix} a & b \\ c & d \end{bmatrix}`.
 
@@ -963,6 +902,8 @@ the matrix with `u32{0x5B,0x5D}`; `pmatrix` is the same with `0x28,0x29`, and `v
 `0x7C,0x7C`.
 
 ## 14. A second partial derivative
+
+File: `examples/PartialDerivative.pie`
 
 `\frac{\partial^2 u^{\alpha}}{\partial x_i \partial x_j}`.
 
@@ -1034,6 +975,8 @@ that symbol alone.
 
 ## 15. An overbrace with a label
 
+File: `examples/OverBrace.pie`
+
 `\overbrace{a_1 + \cdots + a_n}^{n \, \text{terms}} = S_n`.
 
 ```pie
@@ -1099,6 +1042,8 @@ ellipsis is `ro='elps'`.
 
 ## 16. Vectors and bars
 
+File: `examples/Vector.pie`
+
 `\vec{AB} = \overline{z + w}`.
 
 ```pie
@@ -1137,6 +1082,8 @@ covers an expression. For a mark over a single character, `\hat{a}` and the like
 symbol instead, which draws a font accent at a fixed size.
 
 ## 17. A norm
+
+File: `examples/Norm.pie`
 
 `\|\mathbf{v}\| = \sqrt{\mathbf{v} \cdot \mathbf{v}} \ge 0`.
 
@@ -1178,6 +1125,8 @@ A norm is a bracket whose two characters are both U+2016. A single absolute valu
 Bold vectors are `st='bold'` over the default `'math'` role, so they keep variable spacing.
 
 ## 18. Primes and accents
+
+File: `examples/PrimesAndMarks.pie`
 
 `f'(x) = 2x, \quad \hat{a} \cdot \tilde{b} \in \mathbb{R}^n`.
 
@@ -1228,6 +1177,8 @@ a plain `R`.
 
 ## 19. A system of equations under a brace
 
+File: `examples/SystemOfEquations.pie`
+
 `\begin{cases} 2x + y = 5, \\ x - 3y = -1. \end{cases}`.
 
 ```pie
@@ -1273,6 +1224,8 @@ before each relation. The sign of `-1` is `ro='oper'`, the same role as the minu
 minus takes no special role.
 
 ## 20. A multi-line derivation
+
+File: `examples/AlignedDerivation.pie`
 
 Three lines of `(a+b)^2` expanded, aligned on the equals signs.
 
@@ -1385,6 +1338,8 @@ which is the usual choice for a derivation; a centre aligner centres it, as in e
 
 ## 21. A chemical equation
 
+File: `examples/ChemicalReaction.pie`
+
 `2\,\mathrm{H_2} + \mathrm{O_2} \xrightarrow{\text{spark}} 2\,\mathrm{H_2O}`.
 
 ```pie
@@ -1446,6 +1401,8 @@ The coefficient needs no space after it: a number before a `'chem'` symbol gets 
 
 ## 22. Text and mathematics together
 
+File: `examples/TextAndMath.pie`
+
 `\text{The kinetic energy is } E = \tfrac{1}{2}mv^2, \text{ with } m = 3\,\mathrm{kg}.`
 
 ```pie
@@ -1498,6 +1455,8 @@ it, since the role spaces itself. `Fr (sm)` is the small fraction that belongs i
 the closing full stop after math is a plain `st='uprt'` symbol, not `ro='pnct'`.
 
 ## 23. An equation with its terms labelled
+
+File: `examples/NavierStokesAnnotated.pie`
 
 The Navier-Stokes momentum equation with each of its five terms named: a highlight behind three of them,
 a vertical arrow from each term to a rail, and a caption on the far end of every arrow. Radical Pie
@@ -1778,6 +1737,8 @@ no nudge is needed; `al='cent'` centres the lines over it, and a second `Bg` giv
 padding of its own, and without the space the box would touch the bracket.
 
 ## 24. The rendering equation, annotated
+
+File: `examples/RenderingEquationAnnotated.pie`
 
 The rendering equation with five highlights, six arrows and six captions, in three colours. This file
 was written by hand, so its nodes carry names that say what they are, `$boxOut`, `$arOut`, `$main`;
@@ -2189,8 +2150,10 @@ boxes would meet.
 
 ## 25. A reaction with a labelled arrow, in chemistry mode
 
-`6\,\mathrm{CO_2} + 6\,\mathrm{H_2O} \xrightarrow{\text{light}} \mathrm{C_6H_{12}O_6} + 6\,\mathrm{O_2}`,
-photosynthesis. Radical Pie wrote this file in chemistry mode, as the site's Photosynthesis equation.
+File: `examples/Photosynthesis.pie`
+
+`6\,\mathrm{CO_2} + 12\,\mathrm{H_2O} \xrightarrow{\text{light}} \mathrm{C_6H_{12}O_6} + 6\,\mathrm{O_2} + 6\,\mathrm{H_2O}`,
+photosynthesis in the form that shows the six water molecules the reaction gives back.
 
 ```pie
 // Radical Pie Equation
@@ -2212,7 +2175,7 @@ Gr
 		}
 	}
 	Sb (ro='oper') {s{"+"}}
-	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='nmbr') {s{"12"}}
 	Sb (ro='chem') {s{"H"}}
 	Sc
 	{
@@ -2271,6 +2234,18 @@ Gr
 			Sb (ro='nmbr') {s{"2"}}
 		}
 	}
+	Sb (ro='oper') {s{"+"}}
+	Sb (ro='nmbr') {s{"6"}}
+	Sb (ro='chem') {s{"H"}}
+	Sc
+	{
+		Gr (t='subs')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='chem') {s{"O"}}
 }
 ```
 
@@ -2279,12 +2254,15 @@ stands it upright and puts a little space between a preceding number and the ele
 coefficient `Sb (ro='nmbr') {s{"6"}}` sits directly against `Sb (ro='chem') {s{"CO"}}` with no `Sp`
 between them, and letters that share the role share one symbol. Each subscript is an ordinary `Sc`
 holding a `'subs'` group, written after the element it counts, which is all that the automatic
-subscripting of version 1.15 leaves in the file; `s{"12"}` is one number in one symbol, not two
-digits. The reaction arrow is an `Ar` with `'long'` and `'rarw'` in two `u32` lists and an `'uppr'`
-label group holding the word light as `ro='text'`, and the label is what stretches the arrow.
-`al='cent'` centres the label over the arrow, where Example 21 leaves `al` at its default.
+subscripting of version 1.15 leaves in the file; `s{"12"}` is one number in one symbol, coefficient or
+subscript, never two digits. The reaction arrow is an `Ar` with `'long'` and `'rarw'` in two `u32`
+lists and an `'uppr'` label group holding the word light as `ro='text'`, and the label is what
+stretches the arrow. `al='cent'` centres the label over the arrow, where Example 21 leaves `al` at its
+default.
 
 ## 26. A structural formula written from scratch
+
+File: `examples/AceticAcid.pie`
 
 Acetic acid, `\mathrm{CH_3COOH}`, drawn as a structural formula.
 
@@ -2348,6 +2326,8 @@ that group, as here, keeps the drawing to the part that carries the chemistry. B
 choose per atom. `references/Chemistry.md` covers the choice.
 
 ## 27. A benzene ring with one substituent
+
+File: `examples/Toluene.pie`
 
 Toluene, a benzene ring carrying a methyl group.
 
@@ -2499,6 +2479,8 @@ step-by-step recipe is in `references/Chemistry.md`.
 
 ## 28. A reaction with a catalyst and a temperature
 
+File: `examples/CatalyticHydrogenation.pie`
+
 `\ce{C2H4 + H2 ->[Pt][150 ^\circ C] C2H6}`, the hydrogenation of ethene.
 
 ```pie
@@ -2585,6 +2567,8 @@ symbol.
 
 ## 29. An equilibrium
 
+File: `examples/AmmoniaEquilibrium.pie`
+
 `\ce{N2 + 3H2 <=>[Fe][450 ^\circ C] 2NH3}`, the Haber process.
 
 ```pie
@@ -2658,6 +2642,8 @@ Example 28 and belong to the whole `Ar`, not to either arrow.
 
 ## 30. An orbital diagram
 
+File: `examples/OxygenOrbitals.pie`
+
 The ground-state electron configuration of oxygen, 1s² 2s² 2p⁴.
 
 ```pie
@@ -2697,6 +2683,7 @@ Gr
 				{
 					Bg {}
 					Sb (ro='arrw') {s{"↑"}}
+					Sp (s=0.0) {}
 					Ph (t='horz')
 					{
 						Bg {}
@@ -2714,6 +2701,7 @@ Gr
 				{
 					Bg {}
 					Sb (ro='arrw') {s{"↑"}}
+					Sp (s=0.0) {}
 					Ph (t='horz')
 					{
 						Bg {}
@@ -2778,8 +2766,9 @@ Gr
 
 Each orbital is a `Bx` around a group holding its electrons as one `ro='arrw'` symbol, `↑↓` for a
 pair and `↑` for a single electron. A box with one arrow in it would come out narrower than a box with
-two, so the half-filled boxes carry `Ph (t='horz')` holding the missing `↓`: the phantom takes the
-width and draws nothing, and the three 2p boxes match.
+two, so the half-filled boxes carry a `Sp (s=0.0) {}` and `Ph (t='horz')` holding the missing `↓`: the
+space drops the arrow role's own gap and the phantom takes the width without drawing, and the three 2p
+boxes render at the same 18.1477 pt.
 
 The levels sit on a three by four `Mx`, highest energy at the top, one column for the label and one
 for each orbital. Entries are listed row-major, so the order is the 2p label, its three boxes, the 2s
@@ -2788,6 +2777,8 @@ label, its box, two empty entries, and the same again for 1s. An empty entry is 
 Hund's rule, and the file says nothing about it; the arrows are what the reader sees.
 
 ## 31. Ions, charges and states of matter
+
+File: `examples/SaltDissolution.pie`
 
 `\ce{NaCl(s) ->[H2O] Na+(aq) + Cl-(aq)}`, sodium chloride dissolving.
 
@@ -2855,6 +2846,8 @@ and leaves the operator alone, which is the spacing the equation wants. The solv
 an ordinary `'uppr'` label holding a formula rather than a word.
 
 ## 32. A saturated ring
+
+File: `examples/Cyclohexanediol.pie`
 
 Cyclohexane-1,2-diol, drawn as a Haworth hexagon with the ring name under it.
 
@@ -2956,7 +2949,9 @@ both lines.
 
 ## 33. A Feynman diagram
 
-A QED vertex: an electron in, an electron out, and a photon leaving where they meet. `references/StructureCatalogue.md`, under Feynman diagrams, has the recipe this equation follows.
+File: `examples/FeynmanVertex.pie`
+
+A QED vertex: an electron in, an electron out, and a photon leaving where they meet. `references/catalogue/Annotations.md`, under Feynman diagrams, has the recipe this equation follows.
 
 ```pie
 // Radical Pie Equation
@@ -3070,7 +3065,7 @@ Gr (as=0.8125,t='anno',al='cent')
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='oper') {s{"−"}}
+			Sb (ro='unry') {s{"−"}}
 		}
 	}
 	X
@@ -3089,7 +3084,7 @@ Gr (as=0.8125,t='anno',al='cent')
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='oper') {s{"−"}}
+			Sb (ro='unry') {s{"−"}}
 		}
 	}
 	X
@@ -3122,6 +3117,8 @@ widemarks in one annotation group anchored on the vertex, `al='left'` so the wav
 and each of the three legs takes its own caption from an annotation group on its `'anno'` anchor.
 
 ## 34. Two labelled arrows in a synthesis
+
+File: `examples/LabelledArrows.pie`
 
 `\ce{C2H4 ->[H3PO4][300 ^\circ C] C2H5OH ->[K2Cr2O7] CH3COOH}`, ethene to ethanol to ethanoic
 acid.
@@ -3262,6 +3259,8 @@ written the way the line around them is, `ro='chem'` with `Sc` subscripts.
 
 ## 35. One design for a whole document
 
+File: `examples/DocumentDesign.pie`
+
 A document whose equations are all set in Cambria at 12 point, with a palette of its own, from
 `references/examples/DocumentDesign.pie`. The design block is the whole of it, and every other equation in
 that document carries the same block, character for character.
@@ -3335,6 +3334,8 @@ the file carries it, and an equation with an empty `D {}` renders at the factory
 
 ## 36. A worked long division
 
+File: `examples/LongDivision.pie`
+
 `\polylongdiv{91}{7}`, ninety-one divided by seven as a textbook prints it, quotient above the
 vinculum and the working under the dividend. The divisor stands outside the `Dv`, each line of the
 working is a further `Bg` inside the dividend group, and the division sign grows down over all of
@@ -3399,6 +3400,8 @@ column on the last line is a `Ph (t='full')` holding the digit that would have s
 subtraction rule is a `Wm (t='line',un)` around the row above it.
 
 ## 37. A table of values set with tabs
+
+File: `examples/TabbedTable.pie`
 
 A table of n, n squared and n factorial, four rows under a header row. Every column stands at a fixed
 position because each row steps the same tab interval, which is what `Sp (t)` does and an aligner does
