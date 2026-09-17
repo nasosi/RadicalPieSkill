@@ -1,14 +1,15 @@
 # Radical Pie skill
 
-A skill for an LLM harness, such as Claude Code or Codex, that writes, validates and emits [Radical Pie](https://radicalpie.com) equations in the
-editor's own `.pie` format. It covers the format's OpenDDL structure and roles, the SVG comment carrier Radical Pie and InkRadix pass equations
-through, and the recipes that turn a LaTeX construct into the Radical Pie structure it becomes.
+A skill for an LLM harness that writes, validates and emits [Radical Pie](https://radicalpie.com) equations in the editor's own `.pie` format. It
+covers the format's OpenDDL structure and roles, the SVG comment carrier Radical Pie and InkRadix pass equations through, and the recipes that
+turn a LaTeX construct into the Radical Pie structure it becomes.
 
-Version 0.10.0. Checked against Radical Pie 1.15 on Windows.
+Version 1.0.0. Checked against Radical Pie 1.15 on Windows.
 
 ## What you need
 
-- An LLM harness that loads skill folders, such as Claude Code or Codex: it reads `SKILL.md` and the references it names.
+- An LLM harness that loads skill folders: tested under Claude Code; Codex or another such harness is untested. It reads `SKILL.md` and the
+  references it names.
 - Python 3.9 or later. The validator and the SVG carrier need nothing else.
 - For the four pipelines, `python -m pip install -r requirements.txt` with the same interpreter you run the scripts with (`py` and `python` are often
   different versions on Windows, and a package installed under one is missing under the other), and the programs listed under "What the pipelines
@@ -75,7 +76,8 @@ prints before it exits 1, the module and `requirements.txt` included.
 `references/Feedback.md` has the full instructions for sending back what the skill got wrong or what would have saved time; an agent follows them
 without asking, and a human passes the result on through the repository's "Skill feedback" issue form or, with the GitHub CLI signed in, `gh issue
 create`. An empty file named `radicalpieskill.off` stops the feedback line, in a project folder for that project and in your home directory
-everywhere. `CHANGELOG.md` lists every version.
+everywhere. `CHANGELOG.md` lists every version. From 1.0.0 the script command lines, the feedback line's five fields, the name `radicalpieskill.off`
+and the folder layout are stable, and a change to any of them is a new major version.
 
 ## Licence
 

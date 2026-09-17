@@ -1,40 +1,28 @@
 # Changelog
 
+## 1.0.0 — 2026-09-16
+
+- First stable version. Checked on a fresh Python 3.14 environment installed from `requirements.txt`,
+  and in cold sessions of Claude Code with Sonnet and Opus across SVG, Word, PowerPoint and LaTeX.
+- The script command lines, the feedback line's five fields and the `radicalpieskill.off` switch, and the
+  folder layout, are stable from here; a change to any of them is a new major version.
+- The README names Codex, and any other harness that loads skill folders, as untested.
+
 ## 0.10.0 — 2026-09-15
 
-- Nine facts the showcase agents had to find by probing are now written down: the eight `'rdcl'` design
-  names and what each draws, which side of a bond `'prd1'` and `'prd2'` dash, the spacer a function name
-  needs before a letter, the blank slot an empty `It` iterand reserves, the `'cell'` corner arithmetic
-  that rules a matrix into blocks, the rails an annotation group owns, the phantom that makes two
-  bracket pairs the same size, where a slanted line's `'anno'` 1 sits, and the private use character a
-  file-writing tool can drop.
-- The catalogue of structures is split into `references/catalogue/`, one file per family
-  (`Overview.md`, `Symbols.md`, `Groups.md`, `Brackets.md`, `Fractions.md`, `Operators.md`,
-  `Matrices.md`, `Arrows.md`, `Bonds.md`, `Drawings.md`, `Annotations.md`, `Design.md`), and the
-  edge cases of a domain live in `ChemistryHints.md`, `AnnotationHints.md`, `LayoutHints.md` and
-  `DocumentHints.md`; `references/Pitfalls.md` keeps only the general ones. No sentence was lost
-  in the split.
-- Eight worked examples that were the site's own files are replaced by the skill's own equations,
-  validated and rendered.
-- Measured corrections: the orbital phantom needs `Sp (s=0.0) {}` beside it, two `Sc` in a row do not
-  stack, `mb` moves a matrix 0.83 pt, `ca` centres the bracket and not its content, `al` on a one-line
-  neighbour group changes nothing, a boxed 11 by 9 pt expression comes out 20.04 pt wide, a zero-width
-  space is worth the pair's own kern, and seven measurement blocks now name the factory 11 point design
-  they were taken at.
-- Corrections against the executable: Radical Pie keeps 21 style maps and drops `M (t='grek')`, and the
-  Radical font covers the asteroid range in part rather than not at all.
-- `references/KnownLimitations.md`, new: what cannot be fixed on the skill's side.
-- The feedback line is written only when the skill fell short, never twice for one lesson, at most three
-  to a task, never for a known limitation, and `radicalpieskill.off` turns it off per project or for
-  every project.
-- Guidance: the workflow renders a PDF, the form an agent can look at, and says what its commands are
-  relative to; recipes for floor, ceiling, norm, `\mathrm`, colour and a thousands separator; the charge
-  sign is `'unry'` in every file that names it; `references/TexSymbols.md` says that a bracket, prime,
-  accent or wide mark listed as a character is written as its structure.
-- Consistency: the PowerPoint pipeline is named where the editor's feature list denied it, the bond
-  exception and the validator's reach are in `references/Pitfalls.md`, the anchor table's nesting note
-  matches the validator, three duplicated recipe rows became one each, and no shipped path names the
-  development repository.
+- The reference catalogue is reorganised into `references/catalogue/`, one file per structure family
+  (symbols, groups, brackets, fractions, operators, matrices, arrows, bonds, drawings, annotations and
+  design), with short hint files for chemistry, annotations, layout and document output.
+- Layout details that used to cost a retry are now written down: which side of a bond a partial bond's
+  dashes fall on, the spacing a function name needs before a letter, the corner arithmetic that rules a
+  matrix into blocks, and the phantom that keeps two bracket pairs the same size, among others.
+- The feedback route is limited to what the skill actually fell short on, at most three lines a task,
+  and can be turned off per project or everywhere with an empty `radicalpieskill.off` file;
+  `references/KnownLimitations.md` lists what a feedback line would only repeat.
+- The worked examples that used to be the editor's own sample files are replaced by the skill's own,
+  validated and rendered equations.
+- Every pipeline now refuses a file the format rejects before it opens anything, and ends only the
+  programs it started.
 
 ## 0.9.2 — 2026-09-14
 

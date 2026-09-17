@@ -1,0 +1,3 @@
+# Python writes these beside the scripts when they run; they are not part of the skill.
+__pycache__/
+*.pyc
