@@ -28,6 +28,16 @@ The two files whose names the build fixes, `Main.tex` and `radicalpie.sty`, are 
 comment in their first line, and a file of either name that does not carry it stops the build before
 anything is exported. Without that check a build pointed at the directory holding the author's paper
 replaced the paper.
+
+An input the build cannot read is one line naming the file, from `ReadDocument`: a missing file used to reach
+the caller as an errno line and one that is not UTF-8 text as a UnicodeDecodeError traceback. Every equation is
+validated at the entry point as well as by the command line, because each one costs two Radical Pie runs and a
+caller that came in through `BuildDocument` with text of its own paid both before the build failed.
+
+The build writes into the caller's own output directory rather than moving a finished copy onto it, because
+the marker line is what tells its files from the author's and the refusal above is what protects them. What a
+failure does leave is nothing: the PDF of each engine is removed before its first run and again if the build
+fails, so a path this build promises holds this build's document or no document at all.
 """
 
 import os
@@ -37,6 +47,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from string import Template
 
+from Tools.PieFormat.Validator import FirstViolation
 from Tools.Render.Export import ExportPdf
 from Tools.Render.Svg import RenderSvg
 
@@ -144,8 +155,9 @@ def BuildDocument(
     texPath = Path(os.path.abspath(texPath))
     outputDir = Path(os.path.abspath(outputDir))
 
-    placeholders = ReadPlaceholders(texPath.read_text(encoding="utf-8"))
+    placeholders = ReadPlaceholders(ReadDocument(texPath))
     CheckPlaceholders(placeholders, equations)
+    CheckEquationsValidate(equations)
 
     if not engines:
         raise LatexError("no engine was named, and the document is compiled by at least one")
@@ -166,9 +178,53 @@ def BuildDocument(
     # lets the next build tell its own document from one it must not touch.
     documentPath.write_bytes((MarkerComment + "\n").encode("utf-8") + texPath.read_bytes())
 
-    outputs = {engine: Compile(outputDir, engine, timeoutSeconds) for engine in engines}
+    outputs = {}
+
+    try:
+        for engine in engines:
+            outputs[engine] = Compile(outputDir, engine, timeoutSeconds)
+    except BaseException:
+        # A build that fails leaves no PDF at any path it promised, the PDFs of the engines that had already
+        # compiled included: the second engine failing used to hand the caller the first engine's document.
+        for pdfPath in outputs.values():
+            pdfPath.unlink(missing_ok=True)
+
+        raise
 
     return BuildResult(exported, stylePath, documentPath, outputs)
+
+
+def CheckEquationsValidate(equations: dict) -> None:
+    """Every equation the caller handed over validates, which is the last thing known before Radical Pie starts.
+
+    The command line validates the files it read; this is the same gate for a caller that came in through the
+    entry point with text, and it names the key. Each equation costs two Radical Pie runs, an export and a
+    render, so an equation Radical Pie cannot read used to be paid for twice before the build failed.
+    """
+
+    for key in sorted(equations):
+        violation = FirstViolation(equations[key])
+
+        if violation:
+            raise LatexError(f"the equation {key} does not validate, so nothing was started: {violation}")
+
+
+def ReadDocument(texPath: Path) -> str:
+    """The author's document as text, the file named in the refusal when there is nothing to read.
+
+    A missing file used to reach the caller as `read_text`'s errno line and a file that is not UTF-8 text as a
+    UnicodeDecodeError traceback, which the command line does not catch.
+    """
+
+    if not texPath.is_file():
+        complaint = "there is no file of that name" if not texPath.exists() else "it is not a file"
+
+        raise LatexError(f"{texPath} is not a LaTeX document to build: {complaint}")
+
+    try:
+        return texPath.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        raise LatexError(f"{texPath} is not a LaTeX document to build: it is not UTF-8 text ({error.reason})") from None
 
 
 def CheckOutputFiles(stylePath: Path, documentPath: Path) -> None:
@@ -272,18 +328,30 @@ def StyleText(equations: list) -> str:
 
 
 def Compile(outputDir: Path, engine: str, timeoutSeconds: float) -> Path:
-    """Run `engine` over the copied document from inside `outputDir` and return the PDF it wrote."""
+    """Run `engine` over the copied document from inside `outputDir` and return the PDF it wrote.
+
+    The PDF goes before the first run and again on a failure, so the path this promises holds this build's
+    document or nothing: an engine that stops on an error leaves the PDF of the run before it where it was,
+    and the caller used to be handed a document made of another run's equations along with the error.
+    """
 
     jobName = f"{DocumentName}-{engine}"
     pdfPath = outputDir / f"{jobName}.pdf"
     logPath = outputDir / f"{jobName}.log"
 
-    for _ in range(CompileRuns):
-        Run(engine, jobName, outputDir, timeoutSeconds, logPath)
+    pdfPath.unlink(missing_ok=True)
 
-    # A document that typesets nothing at all leaves the engine happy and writes no PDF.
-    if not pdfPath.exists():
-        raise LatexError(f"{engine} wrote no {pdfPath.name}: {FirstError(logPath)}")
+    try:
+        for _ in range(CompileRuns):
+            Run(engine, jobName, outputDir, timeoutSeconds, logPath)
+
+        # A document that typesets nothing at all leaves the engine happy and writes no PDF.
+        if not pdfPath.exists():
+            raise LatexError(f"{engine} wrote no {pdfPath.name}: {FirstError(logPath)}")
+    except BaseException:
+        pdfPath.unlink(missing_ok=True)
+
+        raise
 
     return pdfPath
 

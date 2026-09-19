@@ -10,6 +10,15 @@ field are the recipe the Radical Pie Word page gives under "Displayed Equations 
 "Referencing Equations"; lowering an inline equation by its baseline shift is what the same page describes
 under "Baseline Alignment".
 
+`{{chapter}}` marks where a chapter starts, and the same page's `(x.y)` recipe is what it turns on. The
+marker becomes a `SEQ chapter` field, which advances the chapter counter and shows its number where the
+author put it, in a heading; from there each numbered equation reads `(x.y)`, a `SEQ chapter \\c` field that
+reads the chapter without advancing it, a full stop, and the equation field, whose count starts again in each
+chapter through `\\r 1` on the first equation of it. The bookmark covers the whole of such a number, so a
+reference to it reads `1.2`. A draft with no marker in it is numbered `(1)`, `(2)` as it always was, and an
+equation standing before the first marker is numbered that way too, because the chapter counter answers zero
+until a marker advances it.
+
 The route is the one ADR-0004 settles, in four passes over one document, because no single pass can do it.
 Word inserts an object of a class, not of a file: `RadicalPie.Document.1` registers no CLSID, so
 `AddOLEObject(FileName=<a .pie>)` raises a modal dialog and fails, while
@@ -25,7 +34,9 @@ Measured on 2026-09-10 against Word 16 and Radical Pie 1.15, and the reason for 
 - `AddOLEObject` inserts the object at the selection and leaves the selected text in place, so the
   placeholder is deleted first. Word appends a space run of its own after the object.
 - Deleting the placeholder with `Options.SmartCutPaste` on costs the space before it: `name: {{pie:x}}.`
-  becomes `name:` and the object. So the session turns that option off and puts it back at teardown.
+  becomes `name:` and the object. So the session turns that option off and puts it back at teardown. The
+  option is the user's own and it travels between Word instances through a clean `Quit` alone, which is why a
+  terminated session restores nothing (measured 2026-09-19, `WordSession`).
 - Word resolves a relative file name against its own working directory, not the caller's, and answers
   `0x80020009 / Sorry, we couldn't find your file` for one it cannot find. Both paths are made absolute at
   the entry point.
@@ -89,6 +100,18 @@ A placeholder is replaced in the document body and nowhere else. One in a header
 text box is a different story of the package, which neither `ReadPlaceholders` nor Word's own Find reaches, so
 the document used to come out with `{{pie:hdr}}` printed on every page and exit 0. `CheckPlaceholderParts`
 refuses such a document before Word starts, naming the part the placeholder sits in.
+
+An input that is not a Word package is refused by `CheckIsWordPackage` before either verb reads it, in one
+line naming the file: `zipfile` and python-docx answer a missing file, a file that is not a zip and a zip of
+something else with an errno line or a traceback of their own.
+
+Every pass works on a file of the pipeline's own beside the output, and the output path is written by one
+rename once the run has succeeded. A refusal or a failure removes that file and leaves the output path as it
+was, whether or not a document already stood there.
+
+Every equation is validated at the entry point, before Word starts, and not only by the command line: a caller
+that came in through `EmbedEquations` with text of its own used to have an equation Radical Pie cannot read
+embedded, drawn as the empty equation and reported as a success.
 """
 
 import io
@@ -102,7 +125,7 @@ import time
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import olefile
 import pythoncom
@@ -114,6 +137,7 @@ from docx import Document as OpenDocument
 from lxml import etree
 
 from Tools import Processes
+from Tools.PieFormat.Validator import FirstViolation
 from Tools.Processes import AwaitProcessExit, KillProcess
 from Tools.Render.Svg import Attempts, DialogText, PostClose, SaveCommand, TopLevelWindows, WindowClass
 
@@ -125,6 +149,7 @@ ServerImage = "RadicalPie.exe"
 
 PlaceholderPattern = re.compile(r"\{\{pie:([^{}]+)\}\}")
 ReferencePattern = re.compile(r"\{\{ref:([^{}]+)\}\}")
+ChapterPattern = re.compile(r"\{\{chapter\}\}")
 
 InlineKind = "inline"
 DisplayKind = "display"
@@ -141,6 +166,20 @@ KeyLimit = BookmarkLimit - len(BookmarkPrefix)
 
 EquationStyleName = "Equation"
 SequenceName = "equation"
+ChapterSequenceName = "chapter"
+
+# The two field codes the `(x.y)` recipe of References/Docs/Text/Word.md adds to `SEQ equation`. The `\c`
+# switch reads the chapter counter without advancing it, so every equation of a chapter shows the same `x`;
+# `\r 1` starts the equation counter again, which is what makes `y` count from one in each chapter.
+ChapterReadCode = f"{ChapterSequenceName} \\c"
+RestartCode = f"{SequenceName} \\r 1"
+
+# The codes `MatchingFields` picks this pipeline's own numbering out of the author's fields by.
+EquationFieldCodes = frozenset({f"SEQ {SequenceName}", f"SEQ {RestartCode}"})
+ChapterFieldCode = f"SEQ {ChapterReadCode}"
+
+# What a number a `SEQ` field came out with looks like, flat or with its chapter before it.
+NumberPattern = re.compile(r"[0-9]+(\.[0-9]+)?\Z")
 
 # The streams Word writes into a fresh embedding. The equation lives in `RP`; the other three are Word's own
 # and are carried over byte for byte, because they are what the add-in's embeddings carry too.
@@ -170,6 +209,9 @@ NameAttribute = f"{{{WordNamespace}}}name"
 DocumentPart = "word/document.xml"
 RelationshipsPart = "word/_rels/document.xml.rels"
 
+# The part every Office package holds, which is what tells one from a zip of something else.
+ContentTypesPart = "[Content_Types].xml"
+
 TwipsPerPoint = 20
 EmuPerPoint = 12700
 
@@ -179,7 +221,12 @@ EmuPerPoint = 12700
 # to measure from, so it takes the measured constant instead.
 BlankPictureSize = 284
 
-DefaultTimeoutSeconds = 120
+# The budget for a whole run when the caller names none, base plus an allowance for each object. Measured on
+# 2026-09-19 against Word 16 and Radical Pie 1.15: a one-object document took 17.4 seconds end to end and a
+# six-object document 23.0, which is 16.3 seconds of the two Word starts and 1.12 seconds an object. The
+# allowance is five times that rate and the base is what a whole run used to get.
+BaseTimeoutSeconds = 120.0
+PerObjectTimeoutSeconds = 6.0
 
 WdDoNotSaveChanges = 0
 WdFindStop = 0
@@ -244,20 +291,36 @@ class Reference:
 
 
 @dataclass(frozen=True)
+class NumberForm:
+    """How one numbered equation's number is written: the chapter before it, and the count starting again."""
+
+    chaptered: bool
+    restart: bool
+
+
+@dataclass(frozen=True)
 class EmbeddedEquation:
-    """One embedded equation: its key and kind, the paragraph it sits in, its number, its size in points."""
+    """One embedded equation: its key and kind, the paragraph it sits in, its number, its size in points.
+
+    The number is the integer the `SEQ equation` field came out with, and the string `'<chapter>.<n>'` in a
+    document whose chapters the markers name.
+    """
 
     key: str
     kind: str
     paragraphIndex: int
-    number: Optional[int]
+    number: Union[int, str, None]
     width: float
     height: float
 
 
-def EmbedEquations(
-    inputPath: Path, outputPath: Path, equations: dict, timeoutSeconds: float = DefaultTimeoutSeconds
-) -> list:
+def TimeoutBudget(objectCount: int) -> float:
+    """What a run of `objectCount` objects gets to finish in, the base and the allowance of each object."""
+
+    return BaseTimeoutSeconds + PerObjectTimeoutSeconds * objectCount
+
+
+def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSeconds: Optional[float] = None) -> list:
     """Write `inputPath` to `outputPath` with every `{{pie:<key>}}` replaced by the equation `equations[key]`.
 
     Both paths may be relative to the caller's working directory, which is not the one Word hands them to
@@ -268,6 +331,16 @@ def EmbedEquations(
     there. Every placeholder needs an equation and every equation needs a placeholder, both checked before
     Word starts, along with the grammar of the keys, the paragraph a display equation is alone in, and the
     numbered equation every reference names.
+
+    Every pass works on a file of the pipeline's own beside the output, which is moved onto the output path
+    once the run has succeeded and its checks have passed. A failure leaves that path as it was: the copy used
+    to go straight there, so a document that failed in a later pass handed the caller the objects with the
+    blank picture still in them, and a rerun over an output file that already held a good document destroyed
+    it.
+
+    Both passes that start Word share one deadline. A `timeoutSeconds` of its own bounds the run at what the
+    caller asks for; none takes `TimeoutBudget` of the count of placeholders, so the budget grows with the
+    objects the run has to draw.
     """
 
     # `Path.resolve` returns a relative path unchanged on Windows under Python 3.9 when the file is not there
@@ -275,27 +348,114 @@ def EmbedEquations(
     inputPath = Path(os.path.abspath(inputPath))
     outputPath = Path(os.path.abspath(outputPath))
 
+    CheckIsWordPackage(inputPath)
     CheckPlaceholderParts(inputPath)
     placeholders, references = ReadPlaceholders(inputPath)
     CheckPlaceholders(placeholders, references, equations)
+    CheckEquationsValidate(equations)
 
     keys = [placeholder.key for placeholder in placeholders]
     bodies = [EquationBody(equations[key]) for key in keys]
 
     outputPath.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(inputPath, outputPath)
+    workPath = WorkingDocument(inputPath, outputPath)
+
+    if timeoutSeconds is None:
+        timeoutSeconds = TimeoutBudget(len(keys))
 
     deadline = time.monotonic() + timeoutSeconds
 
-    numbers = InsertObjects(outputPath, placeholders, references, deadline)
-    blankPictureSize = ReplaceEquationStreams(outputPath, bodies)
-    sizes = RenderObjects(outputPath, keys, deadline)
-    CheckPictures(outputPath, len(keys), blankPictureSize)
+    try:
+        numbers = InsertObjects(workPath, placeholders, references, deadline)
+        blankPictureSize = ReplaceEquationStreams(workPath, bodies)
+        sizes = RenderObjects(workPath, keys, deadline)
+        CheckPictures(workPath, len(keys), blankPictureSize)
+    except BaseException:
+        # A keyboard interrupt leaves no half-built document behind either, so the sweep is on BaseException.
+        workPath.unlink(missing_ok=True)
+
+        raise
+
+    os.replace(workPath, outputPath)
 
     return [
         EmbeddedEquation(placeholder.key, placeholder.kind, placeholder.paragraphIndex, number, width, height)
         for placeholder, number, (width, height) in zip(placeholders, numbers, sizes)
     ]
+
+
+def CheckEquationsValidate(equations: dict) -> None:
+    """Every equation the caller handed over validates, which is the last thing known before Word starts.
+
+    The command line validates the files it read and prints every violation of every one of them; this is the
+    same gate for a caller that came in through the entry point with text, and it names the key. Radical Pie
+    drops a structure it does not know instead of refusing the file, so without this an equation with one typo
+    in a structure name was embedded, drawn as the empty equation and reported as a success.
+
+    It runs after the checks over the document, because those name what the author has to change in the
+    document and cost no launch either.
+    """
+
+    for key in sorted(equations):
+        violation = FirstViolation(equations[key])
+
+        if violation:
+            raise WordError(f"the equation {key} does not validate, so nothing was started: {violation}")
+
+
+def WorkingDocument(inputPath: Path, outputPath: Path) -> Path:
+    """The input copied to a file of the pipeline's own beside the output, which every pass works on.
+
+    The name keeps the output's extension, because Word decides what it is opening by it, and it stands in the
+    output's own directory, so the move onto the output path at the end of the run is a rename on one volume.
+    It is unique, because pass three finds its Radical Pie editor by a window title that carries this file's
+    name, which is what keeps two runs on one machine apart.
+    """
+
+    handle, name = tempfile.mkstemp(prefix=outputPath.stem + ".", suffix=outputPath.suffix, dir=outputPath.parent)
+    os.close(handle)
+    workPath = Path(name)
+    shutil.copyfile(inputPath, workPath)
+
+    return workPath
+
+
+def CheckIsWordPackage(documentPath: Path) -> None:
+    """Refuse a document that is not there or is not a Word package, before anything else reads it.
+
+    Both verbs run this first. `embed` used to hand the caller a `zipfile` traceback for a file that was not a
+    package and an errno line for one that was missing, and `check` a traceback for a zip of something else.
+    """
+
+    complaint = PackageComplaint(documentPath, DocumentPart)
+
+    if complaint:
+        raise WordError(f"{documentPath} is not a Word package: {complaint}")
+
+
+def PackageComplaint(path: Path, requiredPart: str) -> str:
+    """Why `path` is not an Office package holding `requiredPart`, or the empty string when it is one.
+
+    `zipfile` answers a file that is not there with FileNotFoundError, one that is not a zip with BadZipFile,
+    and a zip of something else with a KeyError from the first part read, and each of those reached the caller
+    as an errno line or a traceback. What comes back here is the clause each pipeline puts after the file name
+    in its own error; `Tools/PowerPoint/Pptx.py` names its own required part and raises its own error type.
+    """
+
+    if not path.is_file():
+        return "there is no file of that name" if not path.exists() else "it is not a file"
+
+    try:
+        with zipfile.ZipFile(path) as package:
+            names = set(package.namelist())
+    except (OSError, zipfile.BadZipFile):
+        return "it is not a zip file"
+
+    for part in (ContentTypesPart, requiredPart):
+        if part not in names:
+            return f"it is a zip file that holds no {part}"
+
+    return ""
 
 
 def CheckPlaceholderParts(documentPath: Path) -> None:
@@ -324,7 +484,7 @@ def CheckPlaceholderParts(documentPath: Path) -> None:
                 where = f"a text box in {name}" if name == DocumentPart else name
                 paragraphText = "".join(node.text or "" for node in paragraph.iter(TextTag))
 
-                for pattern in (PlaceholderPattern, ReferencePattern):
+                for pattern in (PlaceholderPattern, ReferencePattern, ChapterPattern):
                     match = pattern.search(paragraphText)
 
                     if match:
@@ -357,6 +517,47 @@ def ReadPlaceholders(documentPath: Path) -> tuple:
             references.append(Reference(index, match.group(1), match.group(0)))
 
     return placeholders, references
+
+
+def ReadChapters(documentPath: Path) -> list:
+    """The paragraph index of every `{{chapter}}` in the body, in document order, with Word not started.
+
+    A marker says that a chapter starts here. What follows it is numbered `(x.y)` with `x` the count of
+    markers up to that point, so this is the whole of what the pipeline needs to know about the structure of
+    the document: a draft with no marker in it is numbered flat, as it always was.
+    """
+
+    document = OpenDocument(str(documentPath))
+    chapters = []
+
+    for index, paragraph in enumerate(document.element.body.iter(ParagraphTag)):
+        text = "".join(node.text or "" for node in paragraph.iter(TextTag))
+
+        chapters.extend(index for _ in ChapterPattern.finditer(text))
+
+    return chapters
+
+
+def NumberForms(placeholders: list, chapters: list) -> dict:
+    """How each numbered placeholder's number is written, by its position in `placeholders`.
+
+    An equation standing before the first marker is numbered flat, because the chapter counter is zero until
+    a marker advances it and the Word page says so. The first numbered equation of a chapter is the one that
+    restarts the equation counter.
+    """
+
+    forms = {}
+    restarted = set()
+
+    for index, placeholder in enumerate(placeholders):
+        if placeholder.kind != NumberedKind:
+            continue
+
+        chapter = sum(1 for paragraph in chapters if paragraph < placeholder.paragraphIndex)
+        forms[index] = NumberForm(chapter > 0, chapter > 0 and chapter not in restarted)
+        restarted.add(chapter)
+
+    return forms
 
 
 def CheckPlaceholders(placeholders: list, references: list, equations: dict) -> None:
@@ -424,10 +625,13 @@ def EquationBody(pieText: str) -> bytes:
 
 
 def InsertObjects(documentPath: Path, placeholders: list, references: list, deadline: float) -> list:
-    """Pass one: the objects, the display style, the numbers, the bookmarks and the reference fields.
+    """Pass one: the chapters, the objects, the display style, the numbers, the bookmarks and the references.
 
     Returns the number of each placeholder in document order, `None` where it is not a numbered equation.
     """
+
+    chapters = ReadChapters(documentPath)
+    forms = NumberForms(placeholders, chapters)
 
     with WordSession(deadline) as session:
         application = session.application
@@ -439,8 +643,12 @@ def InsertObjects(documentPath: Path, placeholders: list, references: list, dead
             if any(placeholder.kind != InlineKind for placeholder in placeholders):
                 EnsureEquationStyle(document)
 
-            for placeholder in placeholders:
-                InsertObject(application, document, placeholder)
+            for _ in chapters:
+                InsertChapter(application, document)
+                session.CheckDialogs()
+
+            for index, placeholder in enumerate(placeholders):
+                InsertObject(application, document, placeholder, forms.get(index))
                 session.CheckDialogs()
                 done += 1
 
@@ -453,7 +661,7 @@ def InsertObjects(documentPath: Path, placeholders: list, references: list, dead
             if len(inserted) != len(placeholders):
                 raise WordError(f"Word holds {len(inserted)} Radical Pie objects after inserting {len(placeholders)}")
 
-            numbers = NumberEquations(document, placeholders, references)
+            numbers = NumberEquations(document, placeholders, forms, references, chapters)
 
             document.Save()
             document.Close(WdDoNotSaveChanges)
@@ -512,7 +720,27 @@ def EnsureEquationStyle(document) -> None:
     paragraphFormat.TabStops.Add(Position=usableWidth, Alignment=WdAlignTabRight)
 
 
-def InsertObject(application, document, placeholder: Placeholder) -> None:
+def InsertChapter(application, document) -> None:
+    """One `{{chapter}}` becomes the `SEQ chapter` field that advances the chapter counter and shows it.
+
+    Every marker carries the same text, so each call takes the first one still standing, which is the order
+    the counter runs in. The Word page puts this field in a title or a heading, because a counter read with
+    `\\c` and never advanced answers zero.
+    """
+
+    SelectPlaceholder(application, "{{chapter}}")
+    selection = application.Selection
+    selection.Delete()
+
+    document.Fields.Add(
+        Range=selection.Range,
+        Type=WdFieldSequence,
+        Text=ChapterSequenceName,
+        PreserveFormatting=False,
+    )
+
+
+def InsertObject(application, document, placeholder: Placeholder, form: Optional[NumberForm]) -> None:
     """One placeholder becomes an object, centred and numbered when its kind asks for it."""
 
     SelectPlaceholder(application, placeholder.text)
@@ -534,7 +762,7 @@ def InsertObject(application, document, placeholder: Placeholder) -> None:
     DeleteSpaceAfterObject(document, shape)
 
     if placeholder.kind == NumberedKind:
-        AddNumberField(document, shape)
+        AddNumberField(document, shape, form)
 
 
 def DeleteSpaceAfterObject(document, shape) -> None:
@@ -552,8 +780,12 @@ def DeleteSpaceAfterObject(document, shape) -> None:
         following.Delete()
 
 
-def AddNumberField(document, shape) -> None:
-    """The right tab, the parentheses and the `SEQ equation` field that counts the displayed equations.
+def AddNumberField(document, shape, form: NumberForm) -> None:
+    """The right tab, the parentheses and the `SEQ` fields that count the displayed equations.
+
+    A flat number is one `SEQ equation` field between the parentheses. A chaptered one is `SEQ chapter \\c`,
+    a full stop and the equation field, which is the `(x.y)` recipe of the Word page, and the first equation
+    of a chapter carries `\\r 1` so that the count starts again there.
 
     The number carries the paragraph style and nothing else, and nothing here resets it: applying the
     `Equation` style to the paragraph clears the direct character formatting the author's own text and
@@ -564,16 +796,27 @@ def AddNumberField(document, shape) -> None:
     paragraph = shape.Range.Paragraphs(1).Range
     tail = document.Range(paragraph.End - 1, paragraph.End - 1)
 
-    # `InsertAfter` on a collapsed range grows it over what it inserted, so the field goes one character back,
-    # between the parentheses, and the bookmark that follows covers the digits alone.
-    tail.InsertAfter("\t()")
+    # `InsertAfter` on a collapsed range grows it over what it inserted, so a field goes one character back,
+    # between the parentheses, and the bookmark that follows covers the number alone.
+    tail.InsertAfter("\t(.)" if form.chaptered else "\t()")
+    end = tail.End
 
+    # The equation field goes in first: inserting it moves nothing before it, so the full stop is still the
+    # character the chapter field goes in front of.
     document.Fields.Add(
-        Range=document.Range(tail.End - 1, tail.End - 1),
+        Range=document.Range(end - 1, end - 1),
         Type=WdFieldSequence,
-        Text=SequenceName,
+        Text=RestartCode if form.restart else SequenceName,
         PreserveFormatting=False,
     )
+
+    if form.chaptered:
+        document.Fields.Add(
+            Range=document.Range(end - 2, end - 2),
+            Type=WdFieldSequence,
+            Text=ChapterReadCode,
+            PreserveFormatting=False,
+        )
 
 
 def InsertReference(application, document, reference: Reference) -> None:
@@ -591,32 +834,48 @@ def InsertReference(application, document, reference: Reference) -> None:
     )
 
 
-def NumberEquations(document, placeholders: list, references: list) -> list:
+def NumberEquations(document, placeholders: list, forms: dict, references: list, chapters: list) -> list:
     """Update the fields, bookmark each number, and read the numbers back.
 
     The order is the one Word needs: a `SEQ` field has no number until it is updated, a bookmark can only be
     put over a number that exists, and a `REF` field resolves only once its bookmark is there. A bookmark
     over a field result survives the second update, measured on 2026-09-11.
+
+    A chaptered number is two fields and the full stop between them, and the bookmark covers all three, which
+    is what the Word page asks for: a reference to such an equation reads `1.2` and not `2`.
     """
 
-    numberedKeys = [placeholder.key for placeholder in placeholders if placeholder.kind == NumberedKind]
+    numbered = [(index, placeholders[index].key) for index in sorted(forms)]
 
-    if not numberedKeys:
+    if not numbered and not chapters:
         return [None] * len(placeholders)
 
     document.Fields.Update()
-    sequenceFields = MatchingFields(document, WdFieldSequence, {f"SEQ {SequenceName}"})
+    sequenceFields = MatchingFields(document, WdFieldSequence, EquationFieldCodes)
+    chapterFields = MatchingFields(document, WdFieldSequence, {ChapterFieldCode})
+    chaptered = [index for index in sorted(forms) if forms[index].chaptered]
 
-    if len(sequenceFields) != len(numberedKeys):
+    if len(sequenceFields) != len(numbered):
         raise WordError(
             f"the document holds {len(sequenceFields)} SEQ {SequenceName} fields"
-            f" after numbering {len(numberedKeys)} equations"
+            f" after numbering {len(numbered)} equations"
+        )
+
+    if len(chapterFields) != len(chaptered):
+        raise WordError(
+            f"the document holds {len(chapterFields)} {ChapterFieldCode} fields"
+            f" after numbering {len(chaptered)} equations inside a chapter"
         )
 
     numbers = {}
+    remainingChapterFields = iter(chapterFields)
 
-    for key, field in zip(numberedKeys, sequenceFields):
+    for (index, key), field in zip(numbered, sequenceFields):
         result = field.Result
+
+        if forms[index].chaptered:
+            result = document.Range(next(remainingChapterFields).Result.Start, result.End)
+
         document.Bookmarks.Add(Name=BookmarkPrefix + key, Range=result)
         numbers[key] = ReadNumber(key, result.Text)
 
@@ -625,7 +884,7 @@ def NumberEquations(document, placeholders: list, references: list) -> list:
         codes = {f"REF {BookmarkPrefix}{reference.key}" for reference in references}
 
         for field in MatchingFields(document, WdFieldRef, codes):
-            if not field.Result.Text.strip().isdigit():
+            if not NumberPattern.match(field.Result.Text.strip()):
                 raise WordError(f"the field {field.Code.Text.strip()} resolved to {field.Result.Text!r}")
 
     # A key may carry an inline placeholder as well as a numbered one, and only the numbered one has a number.
@@ -640,11 +899,15 @@ def MatchingFields(document, fieldType: int, codes: set) -> list:
     return [field for field in fields if field.Type == fieldType and field.Code.Text.strip() in codes]
 
 
-def ReadNumber(key: str, text: str) -> int:
-    try:
-        return int(text.strip())
-    except ValueError:
-        raise WordError(f"the number of the equation {key} came out as {text!r}") from None
+def ReadNumber(key: str, text: str) -> Union[int, str]:
+    """A flat number as an `int`, a chaptered one as the `'<chapter>.<n>'` the two fields came out with."""
+
+    number = text.strip()
+
+    if not NumberPattern.match(number):
+        raise WordError(f"the number of the equation {key} came out as {text!r}")
+
+    return int(number) if number.isdigit() else number
 
 
 def SelectPlaceholder(application, placeholder: str) -> None:
@@ -766,6 +1029,8 @@ def CheckObjects(documentPath: Path) -> list:
     rather than the blank Word caches on insertion, against the measured constant rather than a size read
     live from this same document, because nothing here inserted an object to measure the blank of.
     """
+
+    CheckIsWordPackage(documentPath)
 
     with zipfile.ZipFile(documentPath) as package:
         relationships = ReadRelationships(package)
@@ -989,6 +1254,15 @@ def AwaitEditor(documentPath: Path, running: set, key: str, deadline: float) -> 
     it has, so both say so in the same words. Which of the two happens with an unreadable equation varies
     between runs. The titles that were seen instead go into the message of the timeout, because a title this
     rule does not match is the one failure the rule can cause.
+
+    A candidate that is still alive when this raises is left alone, and there is nothing Windows reports that
+    would let it be ended safely. Measured on 2026-09-19 against Word 16: the Radical Pie an activation starts
+    has the parent process id of svchost.exe, the DCOM launcher, which is the parent of every local server this
+    machine starts through COM and was the parent of this pipeline's own Word as well, so it names no Word
+    instance. Its command line is `"...\\RadicalPie.exe" -Embedding`, which says it was started as an OLE
+    server and not which client asked for it: the operator double-clicking an equation in a Word of his own
+    gets the same command line, where a render of another agent gets a file path instead. So a candidate cannot
+    be tied to this run, and ending one would end somebody else's editor.
     """
 
     title = EditorTitlePrefix + documentPath.name
@@ -1098,6 +1372,12 @@ class WordSession:
 
     `Options.SmartCutPaste` is the user's own setting and Word keeps it outside the document, so the session
     records it, turns it off for its own deletions, and writes the recorded value back before Word quits.
+
+    Nothing restores it where the guard thread terminated Word first, and nothing has to. Measured on
+    2026-09-19 against Word 16: a Word that sets the option and quits through `Quit` hands the new value to the
+    next Word that starts, and a Word that sets it and is terminated hands over nothing, the next Word reading
+    the value the user had. So a terminated session leaves the user's setting as it found it, and a restore
+    would need a Word of its own started on the failure path to write a value that was never changed.
     """
 
     def __init__(self, deadline: float):
@@ -1144,7 +1424,10 @@ class WordSession:
         self.stop.set()
 
         if self.application is not None:
-            # A terminated Word fails both of these, and the restore must not cost the Quit.
+            # A terminated Word fails both of these, and the restore must not cost the Quit. Nothing takes the
+            # restore anywhere else: the option only reaches the user's settings through a Word that quits
+            # cleanly, so the value this session turned off went nowhere (measured 2026-09-19, the class
+            # docstring).
             try:
                 self.application.Options.SmartCutPaste = self.smartCutPaste
             except pythoncom.com_error:

@@ -81,6 +81,63 @@ column and `i32{4,7}` the horizontal rule after the first row, and the four rule
 `i32{4,114}`, `i32{7,117}`, `i32{44,54}` and `i32{77,87}`. The anchors work on a matrix nested inside a
 `Br`, which is where a divided matrix usually sits.
 
+A cell filled solid or shaded is an `Rt (f)` in the background section between that cell's own two grid
+corners, read by the same formula: the cell in row `a` and column `b`, both counted from zero, runs from
+corner `a` times (`c`+1) plus `b` to corner (`a`+1) times (`c`+1) plus `b`+1, eleven apart on a nine by
+nine grid. A square glyph put in the cell instead covers part of it and leaves a border. Measured
+2026-09-19 on a three by three grid of empty cells: the rectangle over one cell came out 16.5 by 16.5 pt,
+the whole cell, and `Sb (st='uprt') {s{"⬛"}}` in a cell of the same grid drew 9.9026 by 9.9030 pt. Those
+empty cells are already square at the factory design, and `'clgp'` below its factory 18.0 narrows the
+columns without touching the rows, 12.5 drawing a cell 13.1389 by 16.5 pt.
+
+```pie
+// Radical Pie Equation
+
+D
+{
+}
+Rt (f,fpi=0)
+{
+	X
+	{
+		ref{$grid,$grid}
+		u32{'cell','cell'}
+		i32{0,4}
+	}
+}
+Gr
+{
+	Bg {}
+	Br
+	{
+		u32{0x5B,0x5D}
+		Gr (ba='mddl')
+		{
+			Bg {}
+			Mx $grid (r=2,c=2,eh,ew,rg,cg)
+			{
+				Gr
+				{
+					Bg {}
+				}
+				Gr
+				{
+					Bg {}
+				}
+				Gr
+				{
+					Bg {}
+				}
+				Gr
+				{
+					Bg {}
+				}
+			}
+		}
+	}
+}
+```
+
 A picture grid, a matrix of coloured blocks and labels, is spaced by the design values and not by spacers
 in its cells: `'rwgp'`, `'aspx'` and `'aspy'` in the `'mtrx'` domain, and `'vtgp'` in the `'brck'` domain
 for the brackets around it. The `V` section of `references/catalogue/Design.md` has the values the site's

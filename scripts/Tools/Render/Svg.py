@@ -40,12 +40,15 @@ outcome the callers read: both the Save the loop posts and the close that ends t
 handlers that tolerate a window destroyed underneath them, so what the caller sees is a RenderError naming
 the exit code.
 
+Nothing here validates the equation, and `RenderSvg` says why: the anchor atlas reads the crash of an equation
+the validator refuses. Every other entry point of the pipelines validates before it launches anything.
+
 A crash also happens to an equation that renders perfectly well on the next run. Under the parallel gate,
 forty workers and an agent rendering beside them, about one render in a hundred exited with 3221225477, the
 access violation, before it ever saved (measured 2026-09-12). So a failed attempt is made again, once, with a
 fresh launch: `Terminate` returns only when the first process is gone, a settle follows it, and a second
-failure raises one RenderError carrying both attempts' messages. A crash the equation itself causes, which is
-what the anchor probes of `Scripts/AnchorAtlas.py` read, therefore costs two launches instead of one.
+failure raises one RenderError carrying both attempts' messages. A caller that reads a crash as its
+measurement asks for one attempt instead, which the anchor probes of `Scripts/AnchorAtlas.py` do.
 """
 
 import re
@@ -120,11 +123,24 @@ class SvgInfo:
         return self.viewBox[1] + self.viewBox[3]
 
 
-def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30) -> SvgInfo:
+def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30, attempts: int = RenderAttempts) -> SvgInfo:
     """Render `pieText` and write the SVG to `outputPath`, returning its geometry.
 
     The text is used as it stands: a missing `// Radical Pie Equation` header is not added, because the
-    comment carries the equation and Radical Pie drops the header line from what it writes back.
+    comment carries the equation and Radical Pie drops the header line from what it writes back. It is not
+    validated either, and this is the one entry point of the pipelines that does not validate, because one of
+    its callers needs an equation the validator refuses to reach the executable. `Scripts/AnchorAtlas.py`
+    measures where each anchor of each structure is by rendering one anchor index at a time until one crashes
+    Radical Pie, and an index past the last anchor of a type is exactly what the validator refuses (46 of the
+    atlas's probe equations, measured 2026-09-19), so a validating render would hand the atlas the validator's
+    message where it reads the crash.
+
+    So a caller that hands text to this function has validated it: the command line does, and so does every
+    pipeline's library entry point.
+
+    `attempts` is how many launches a render that fails gets. The atlas is the caller that asks for one: it
+    renders about forty-five equations a run that it expects to crash the executable, and the retry doubled the
+    launches for every one of them.
     """
 
     outputPath = Path(outputPath)
@@ -132,7 +148,7 @@ def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30) -> Svg
 
     with tempfile.TemporaryDirectory(prefix="RadicalPieRender") as workDirectory:
         workPath = Path(workDirectory) / "Equation.svg"
-        rendered = DriveRadicalPie(workPath, stub, timeoutSeconds)
+        rendered = DriveRadicalPie(workPath, stub, timeoutSeconds, attempts)
 
     outputPath.parent.mkdir(parents=True, exist_ok=True)
     outputPath.write_bytes(rendered)
@@ -140,8 +156,8 @@ def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30) -> Svg
     return ReadSvgInfo(rendered)
 
 
-def DriveRadicalPie(filePath: Path, stub: bytes, timeoutSeconds: float) -> bytes:
-    """Render `filePath`, retrying the whole attempt once. No process outlives this.
+def DriveRadicalPie(filePath: Path, stub: bytes, timeoutSeconds: float, attempts: int = RenderAttempts) -> bytes:
+    """Render `filePath` in at most `attempts` launches. No process outlives this.
 
     The retry is a fresh launch and never a second command to a process that is on its way out: the attempt
     it follows has already terminated its own, and the settle stands between the two. Each attempt gets the
@@ -150,7 +166,7 @@ def DriveRadicalPie(filePath: Path, stub: bytes, timeoutSeconds: float) -> bytes
 
     failures = []
 
-    for attempt in range(RenderAttempts):
+    for attempt in range(attempts):
         if attempt:
             time.sleep(RetrySettleSeconds)
 
@@ -159,7 +175,7 @@ def DriveRadicalPie(filePath: Path, stub: bytes, timeoutSeconds: float) -> bytes
         except RenderError as error:
             failures.append(str(error))
 
-    raise RenderError(f"Radical Pie rendered nothing in {RenderAttempts} attempts: {Attempts(failures)}")
+    raise RenderError(f"Radical Pie rendered nothing in {attempts} attempts: {Attempts(failures)}")
 
 
 def AttemptRender(filePath: Path, stub: bytes, timeoutSeconds: float) -> bytes:

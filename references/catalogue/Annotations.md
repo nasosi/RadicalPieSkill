@@ -488,7 +488,7 @@ Gr (as=0.8125,t='anno',al='cent')
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	X
@@ -507,7 +507,7 @@ Gr (as=0.8125,t='anno',al='cent')
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	X

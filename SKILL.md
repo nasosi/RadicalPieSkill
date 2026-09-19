@@ -101,7 +101,7 @@ typeset. Radical Pie assigns these itself while a user types; writing the file, 
 | Digits and numbers | `'nmbr'` | |
 | Binary operators, `+ − × · ±` | `'oper'` | Every minus sign, a leading one included. |
 | Relations, `= < ≤ ≈ ∈` | `'rltn'` | |
-| `∂`, `∇`, and a charge or sign that hangs on a symbol | `'unry'` | Tighter than `'oper'`. |
+| `∂`, `∇` | `'unry'` | Tighter than `'oper'`. A charge's sign is `'oper'` too. |
 | Function names, `sin`, `log`, `det`, `lim` | `'func'` | Upright, with space either side. |
 | Punctuation | `'pnct'` | Commas and full stops. A bracket is a `Br`, never a `'pnct'` pair. |
 | Ellipses, `⋯ ⋮ ⋱` | `'elps'` | Between factors, with no operator dot either side. |
@@ -113,6 +113,7 @@ typeset. Radical Pie assigns these itself while a user types; writing the file, 
 
 Running text keeps its punctuation and word gaps inside the `'text'` string, `"Let "`, `", and let "`;
 write no separate `Sp` between words and no `'pnct'` full stop in prose, and give `mod` the role `'func'`.
+A line of prose runs on however long it gets, so a statement the caller asks for on two lines is two `Bg`.
 
 Each role has a default style, so `st` is only ever written to override it:
 

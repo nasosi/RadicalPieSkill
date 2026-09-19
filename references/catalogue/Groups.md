@@ -14,6 +14,14 @@ aligner starts at 26.8990 points on every line, and the shorter left-hand sides 
 `'cent'`, which centres them in the box. A line carrying no aligner starts at the line origin and takes
 no part in the columns.
 
+On a derivation whose continuation lines carry no left-hand side, the aligner goes after the relation. A
+relation takes its leading space only when something stands before it on the line, so a line that opens
+with its aligner and then its relation loses that space and its sign sits 2.643 pt left of the first
+line's at the default design. Rendered 2026-09-19 on the three lines of `examples/AlignedDerivation.pie`:
+with the aligner in front of each relation the equals signs stood at 36.572, 33.929 and 33.929 pt, and
+with the aligner after each relation all three stood at 36.572 pt. The site's own Gaussian integral
+derivation is written the second way and renders its three equals signs at 64.959 pt.
+
 | Property | Type | Default | Values |
 | --- | --- | --- | --- |
 | `al` | uint32 | `'left'` | `'left'`, `'rght'`, `'cent'` |

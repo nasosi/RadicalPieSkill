@@ -8,8 +8,11 @@ nothing.
     python scripts/PowerPoint.py embed <input.pptx> <output.pptx> <key>=<file.pie> ...
     python scripts/PowerPoint.py check <deck.pptx>
 
-`embed` prints one line per equation, `key slide width height` in points. `check` prints one line per object,
-`slide <n> <name> <width> by <height> pt <state>`, and exits 1 when one has collapsed.
+`embed` prints one line per equation, `key slide width height form` with the sizes in points and the form the
+placeholder took, `shape`, `tab` or `spaces`, ending in `no padding before ','` where a punctuation mark beside
+the placeholder took the gap's padding on its side away, and one line for each paragraph it opened to make room
+for a tall equation. `check` prints one line per object, `slide <n> <name> <width> by <height> pt <state>`, and
+exits 1 when one has collapsed.
 """
 
 import sys

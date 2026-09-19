@@ -74,8 +74,8 @@ Gr
 
 ## Charges, isotopes and states of matter
 
-A charge is a `Sc` with a `'sups'` group holding the sign as `ro='unry'`, written after the element.
-The unary role keeps the sign tight against the number that may precede it.
+A charge is a `Sc` with a `'sups'` group holding the sign as `ro='oper'`, written after the element:
+the site keeps every plus and minus sign in this role and reserves `'unry'` for `∂` and `∇`.
 
 A mass number is a script attached forwards instead of backwards: `Sc (pr,ns)` before the element.
 The site's FDG equation, lines 124 and 144, writes the 18 of fluorine-18 that way. `pr` attaches
@@ -103,7 +103,7 @@ Gr
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	Sb (ro='unit') {s{"(aq)"}}
@@ -150,8 +150,16 @@ Gr
 	Bg {}
 	Bd
 	{
-		u32[2]{{'uppr','sing'},{'lwlf','sing'},{'lwrt','sing'},{0,'sing'}}
-		u32[2]{{'lwlf','shal'},{'lwrt','shal'}}
+		u32[2]{{0,'sing'}}
+		Gr
+		{
+			Bg {}
+			Sb (ro='chem') {s{"H"}}
+		}
+	}
+	Bd
+	{
+		u32[2]{{'uppr','sing'},{'lowr','sing'},{0,'sing'}}
 		Gr
 		{
 			Bg {}
@@ -162,12 +170,7 @@ Gr
 			Bg {}
 			Sb (ro='chem') {s{"H"}}
 		}
-		Gr (t='lwlf',al='rght')
-		{
-			Bg {}
-			Sb (ro='chem') {s{"H"}}
-		}
-		Gr (t='lwrt')
+		Gr (t='lowr')
 		{
 			Bg {}
 			Sb (ro='chem') {s{"H"}}
@@ -210,10 +213,16 @@ Rendering one rightward bond of each kind gives the picture the specification's 
 delocalised ring picks the variant that puts the dashed line inside the ring, one bond at a time.
 The side is read along the direction the bond leaves its central atom: measured 2026-09-15 on a
 rightward bond, `'prd1'` drew the dashed line above the shaft and `'prd2'` below it, and on a `'uprt'`
-bond `'prd1'` drew it on the upper left. Walking a benzene ring from the lower-left carbon, that makes
-the `'uprt'` bond `'prd2'` and the `'lwrt'` and `'uppr'` bonds `'prd1'`.
-The site's Orthoxylene equation does exactly that: `'prd2'` on the three bonds of one half
-and `'prd1'` on the three of the other, which renders as a hexagon with every dashed line inboard.
+bond `'prd1'` drew it on the upper left. The direction on its own decides nothing on a ring, because the
+walk under Rings leaves the root carbon in two branches that travel opposite ways round the hexagon and
+each of the three ring-bond directions comes up once in each branch. The branch up the left side and over
+the top takes `'prd2'` on its three bonds, the root's `'uppr'`, the upper-left carbon's `'uprt'` and the
+top carbon's `'lwrt'`; the branch down to the bottom apex and up the right side takes `'prd1'` on its
+three, the root's `'lwrt'`, the bottom carbon's `'uprt'` and the lower-right carbon's closing `'uppr'`.
+That is `'prd2'` on the three bonds of one half and `'prd1'` on the three of the other, which the site's
+Orthoxylene equation writes and which renders as a hexagon with every dashed line inboard. Rendered
+2026-09-19 with `'prd1'` on both `'uppr'` bonds instead: the left-hand one drew its dashed line outside
+the ring.
 
 Capitalising the first letter of a bond kind makes the bond long, `'Sing'` against `'sing'`. Reach for
 it when the drawing needs room: the site's Isopropyl Alcohol equation, line 11, uses three long

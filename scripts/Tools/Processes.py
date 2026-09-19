@@ -1,4 +1,4 @@
-"""The processes the pipelines launch, held in one registry until each has been seen to exit.
+"""The processes the pipelines launch, held in one registry and in one job object until each has exited.
 
 The standing ruling of 2026-09-10 is that every process the tooling launches is terminated by the tooling on
 success and on failure. A process listing read before and after a test cannot check that ruling exactly: a
@@ -12,6 +12,17 @@ The registry is a module-level set guarded by a lock, because the Word pipeline'
 processes while the main thread is inside a COM call. It lives in one process: a pipeline run in a child
 process, which is what the command-line tests do, keeps its own registry and empties it on its own exit path,
 so a leak inside such a child is invisible to the parent's registry.
+
+Registration also puts the process in a job object of this interpreter's own, created with
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, which is what covers the end the registry cannot reach: an interrupt
+that runs no Python at all. Ctrl-Break, a closed console and a killed interpreter unwind nothing and leave no
+cleanup to run, and the kernel then closes the last handle to the job and ends every process in it. All four
+launch routes the tooling uses accept the assignment by pid, `OpenProcess` with
+`PROCESS_SET_QUOTA | PROCESS_TERMINATE` and then `AssignProcessToJobObject` (measured 2026-09-19): the
+`RadicalPie.exe` `Tools.Render.Svg` starts with `Popen`, the one the COM launcher starts for
+`RadicalPie.Application.1`, which is the editor an activation opens, and the `POWERPNT.EXE` and `WINWORD.EXE`
+that `DispatchEx` starts. Only a pid a pipeline registers as its own is assigned, so the Radical Pie of
+another agent and the Word the operator is typing in are never touched.
 """
 
 import threading
@@ -21,18 +32,56 @@ import pywintypes
 import win32api
 import win32con
 import win32event
+import win32job
 
 ProcessAccess = win32con.PROCESS_TERMINATE | win32con.SYNCHRONIZE | win32con.PROCESS_QUERY_INFORMATION
+
+# What `AssignProcessToJobObject` asks for on the process handle.
+AssignAccess = win32con.PROCESS_SET_QUOTA | win32con.PROCESS_TERMINATE
 
 Lock = threading.Lock()
 Launched = set()
 
+# The job every registered process goes into, made on the first registration and held open until this
+# interpreter ends. Nothing closes it by hand: the handle closing is what kills the processes in it.
+Job = None
+
 
 def Register(pid: int) -> None:
-    """Record a process this tooling started."""
+    """Record a process this tooling started, and put it in the job that ends with this interpreter."""
 
     with Lock:
         Launched.add(pid)
+        Adopt(pid)
+
+
+def Adopt(pid: int) -> None:
+    """Assign one process to the job. Called with `Lock` held, because the job is made on first use.
+
+    A process that has already gone cannot be assigned, and neither can one this interpreter has no right to,
+    so a failure here is passed over: the assignment is the cleanup for an interrupt that runs no Python, and
+    the pipeline's own termination steps, which the registry above is the check on, run either way.
+    """
+
+    global Job
+
+    if Job is None:
+        Job = win32job.CreateJobObject(None, "")
+        limits = win32job.QueryInformationJobObject(Job, win32job.JobObjectExtendedLimitInformation)
+        limits["BasicLimitInformation"]["LimitFlags"] |= win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        win32job.SetInformationJobObject(Job, win32job.JobObjectExtendedLimitInformation, limits)
+
+    try:
+        handle = win32api.OpenProcess(AssignAccess, False, pid)
+    except pywintypes.error:
+        return
+
+    try:
+        win32job.AssignProcessToJobObject(Job, handle)
+    except pywintypes.error:
+        pass
+    finally:
+        win32api.CloseHandle(handle)
 
 
 def Release(pid: int) -> None:
@@ -79,6 +128,15 @@ def AwaitProcessExit(pid: int, seconds: float) -> bool:
 
 
 def KillProcess(pid: int) -> None:
+    """Terminate one process, tolerating one that has gone already.
+
+    `TerminateProcess` answers `Access is denied` for a process that has exited while a handle to it is still
+    open, and a pid stays openable that way as long as anything holds one (measured 2026-09-19). That is the
+    ordinary case here: a process that exited in the gap between `EndProcess`'s wait and this call, and one the
+    job object ended when the interpreter that registered it was killed. A refusal this does hide is reported
+    by the wait that follows it, which sees the process still running and leaves it in the registry.
+    """
+
     try:
         handle = win32api.OpenProcess(ProcessAccess, False, pid)
     except pywintypes.error:
@@ -86,5 +144,7 @@ def KillProcess(pid: int) -> None:
 
     try:
         win32api.TerminateProcess(handle, 1)
+    except pywintypes.error:
+        pass
     finally:
         win32api.CloseHandle(handle)

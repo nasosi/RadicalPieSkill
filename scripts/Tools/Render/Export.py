@@ -39,6 +39,10 @@ attempt before it has terminated its process, and `Terminate` returns only when 
 guards go with the retry: the file name is typed only into a dialog that still belongs to a live process, and
 an export that reaches the caller's path with nothing in it is a failed attempt rather than an output.
 
+The equation is validated before the launch, which is what an entry point of a pipeline owes a caller that
+hands it text; the render loop is the exception, because the anchor atlas measures Radical Pie's crashes
+through it.
+
 The dialog takes the foreground for about 0.2 s and nothing here can stop it. The window Radical Pie is
 launched into is minimised and unfocused, but the dialog is created afterwards by Radical Pie itself, which
 has the right to activate it. Two ways of handing the foreground back were measured on 2026-09-11 and neither
@@ -59,6 +63,7 @@ from pathlib import Path
 import win32con
 import win32gui
 
+from Tools.PieFormat.Validator import FirstViolation
 from Tools.Render.Svg import (
     Attempts,
     AwaitDocument,
@@ -107,13 +112,24 @@ def ExportEmf(pieText: str, outputPath, timeoutSeconds: float = 30) -> Path:
 def Export(pieText: str, outputPath, extension: str, timeoutSeconds: float) -> Path:
     """Open `pieText` in Radical Pie and save a copy of it in the format `extension` names.
 
-    The text is used as it stands: a missing `// Radical Pie Equation` header is not added, because Radical
-    Pie's own parser does not require it. A failed attempt is made again once, from a fresh launch, and a
-    second failure raises one error carrying both attempts' messages. Each attempt gets the whole of
+    The equation is validated here, before anything is launched, and the refusal names the output file and the
+    first violation: Radical Pie drops a structure it does not know instead of refusing the file, so a caller
+    that came in through `ExportPdf` or `ExportEmf` with text of its own used to be handed a PDF of the empty
+    equation. `Tools.Render.Svg.RenderSvg` is the one entry point that does not validate, for the reason its
+    own doc comment gives.
+
+    The text is otherwise used as it stands: a missing `// Radical Pie Equation` header is not added, because
+    Radical Pie's own parser does not require it. A failed attempt is made again once, from a fresh launch, and
+    a second failure raises one error carrying both attempts' messages. Each attempt gets the whole of
     `timeoutSeconds`, so an export that fails twice takes twice as long to say so.
     """
 
     outputPath = Path(outputPath)
+    violation = FirstViolation(pieText)
+
+    if violation:
+        raise RenderError(f"the equation for {outputPath} does not validate, so nothing was started: {violation}")
+
     failures = []
 
     for attempt in range(ExportAttempts):

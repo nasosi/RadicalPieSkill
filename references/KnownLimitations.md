@@ -9,9 +9,17 @@ is already here is dropped.
   the foreground window and the clipboard being shared.
 - **PowerPoint cannot be hidden.** Word runs invisibly under COM; PowerPoint does not, and its window is
   on the screen, minimised at best, for the length of an embed.
-- **An interrupt that runs no cleanup leaves a program running.** The pipelines end every program they
-  start, on success, on failure and on Ctrl-C. A killed interpreter or a closed console runs no cleanup at
-  all, and the editor or PowerPoint is left for the user to close.
+- **A killed interpreter leaves the working copy of a deck behind.** The pipelines end every program they
+  start, on success, on failure and on Ctrl-C, and every one of those programs is in a Windows job object
+  that ends with the interpreter, so Ctrl-Break, a closed console and a killed process take the editor,
+  PowerPoint and Word with them too. What such an end does leave is the file the PowerPoint pipeline was
+  building, beside the output path it never wrote, for the user to delete.
+- **An inline equation on a slide does not follow the text.** PowerPoint has no inline shape, so an inline
+  equation is an object floating over the sentence it was placed in. Editing that sentence afterwards moves
+  the text and leaves the equation where it was; the fix is to run the pipeline again on the edited draft.
+  The group the pipeline leaves behind is what keeps the two together when the shape itself is moved.
+- **Equations in a layout's placeholder are not grouped with it.** PowerPoint refuses to group a placeholder,
+  so moving that placeholder leaves its equations behind; a plain text box keeps them together.
 - **The PowerPoint collapse is PowerPoint's.** An embedded equation can collapse to a blank 5 by 7 point
   object, which Radical Pie's own PowerPoint page records as a PowerPoint bug. The pipeline detects it and
   refuses the deck; nothing in a `.pie` file prevents it.

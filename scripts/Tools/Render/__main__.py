@@ -9,6 +9,9 @@ The equation is validated before Radical Pie is started, and a violation is the 
 nothing launched: Radical Pie drops a structure it does not know instead of refusing the file, so an
 equation with one typo in a structure name used to render as the empty equation and exit 0.
 
+An output that is the input is refused before the equation is even read, because `svg Eq.pie Eq.pie` wrote
+the rendering over the equation. An output file that exists and is not the input is overwritten as before.
+
 `Main` takes the name of the program that invoked it, because the usage line is a command the caller can
 run: the front door scripts/Render.py passes its own path, and the module invocation below passes itself.
 """
@@ -16,6 +19,7 @@ run: the front door scripts/Render.py passes its own path, and the module invoca
 import sys
 from pathlib import Path
 
+from Tools.OutputPaths import SameFileRefusal
 from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Render.Export import ExportEmf, ExportPdf
 from Tools.Render.Svg import RenderError, RenderSvg
@@ -36,6 +40,12 @@ def Main(arguments: list, program: str = ModuleProgram) -> int:
         return 1
 
     command, inputPath, outputPath = arguments
+    sameFile = SameFileRefusal([outputPath], [inputPath])
+
+    if sameFile:
+        print(sameFile, file=sys.stderr)
+
+        return 1
 
     try:
         refusal = RefusalMessage([inputPath])

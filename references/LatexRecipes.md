@@ -53,7 +53,7 @@ or in words.
 | `\mathbb{1}`, or any double-struck letter or digit outside ℕℤℚℝℂ | the Mathematical Alphanumeric code point, `𝟙` is U+1D7D9, with `st='doub'`; the code point alone with `st='uprt'` renders plain | `references/catalogue/Symbols.md`, `Sb` — roles |
 | `\cdots` between factors | `Sb (ro='elps') {s{"⋯"}}`, with no operator dot before or after it | `references/catalogue/Symbols.md`, `Sb` — roles |
 | `\alpha`, `\Gamma` | `Sb (st='itgk')`, `Sb (st='grek')` | Example 11 |
-| `\begin{align}` and other multi-line forms | Several `Bg` in one group, `Al` at the column | Examples 5, 20 |
+| `\begin{align}` and other multi-line forms | Several `Bg` in one group, one `Al` per line just after the relation; an `&` in front of a relation maps to an aligner behind it | Examples 5, 20 |
 | `\boxed{x}` | `Bx` around the group | `references/catalogue/Brackets.md`, `Bx` |
 | `\fbox{text}` | `Bx` around a `Sb (ro='text')`; the border thickness is `V (d='boxx',n='rule')` | `references/catalogue/Brackets.md`, `Bx` |
 | A box open on two sides | `Bx (t='lwlf')`, `'lwrt'`, `'uplf'`, `'uprt'` | `references/catalogue/Brackets.md`, `Bx` |
@@ -80,12 +80,14 @@ choice is which of the three values to write.
 
 `al='rght'` is `\begin{align}`: the left-hand side of every line is pushed flush against the column, so
 the equals signs stand in one line and the terms before them end together. This is the value for a
-derivation and for a system of equations, and it is what the shipped aligned derivation and system of
-equations use.
+derivation, one relation carried down through several lines, and it is what the shipped aligned
+derivation uses.
 
 `al='cent'` centres each line's left-hand side in the width the longest of them needs, which reads
-better in a display of definitions where the left-hand sides are single symbols of different widths.
-The site's PhysicalConstants table and its Maxwell equations are set this way.
+better where the lines are separate equations or definitions rather than one carried-down relation.
+Of the site's six multi-line files, five, including its Maxwell equations, a system of four distinct
+equations, are set this way; only its one step-by-step derivation, the Gaussian integral, uses
+`al='rght'`, so a system of equations takes `al='cent'`, not `al='rght'`.
 
 `al='left'` leaves the material at the line origin and moves only what follows the aligner. Use it for
 a hanging line, a continuation that starts under the column rather than at it.

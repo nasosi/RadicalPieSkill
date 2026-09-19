@@ -172,7 +172,7 @@ Roles:
 | `'nmbr'` | A literal number. |
 | `'oper'` | A binary operator. Default style `'sym1'`. |
 | `'rltn'` | A binary relation. Default style `'sym1'`. |
-| `'unry'` | `∂`, `∇` and a charge or sign that hangs on a symbol. Default style `'sym1'`. A leading minus in front of an expression is `'oper'`. |
+| `'unry'` | A unary operator (the specification's own wording); `∂` and `∇` are the site's only ones. Default style `'sym1'`. A plus or minus sign, binary, leading or a charge, is `'oper'`, as the site writes every one of them. |
 | `'func'` | A standard function name such as sin or log: upright, with 3 mu on each side. |
 | `'pnct'` | Punctuation: no space in front of it, 3 mu behind it. |
 | `'elps'` | An ellipsis. |

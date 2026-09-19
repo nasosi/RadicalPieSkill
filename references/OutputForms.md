@@ -20,7 +20,9 @@ already has or from the editor's Settings menu, which is the exact text to use. 
 at 11 point" or "our house blue for the highlighted terms", which becomes an `F` and its `M` structures, a
 `V (n='fsiz')` and a `P`; `references/catalogue/Design.md` gives each of the four structures and
 `references/Examples.md` example 35 is a whole one. Or as nothing at all, which leaves `D {}` in every
-equation and the factory design in force.
+equation and the factory design in force. On a slide an empty `D {}` takes its size from the slide instead,
+as the PowerPoint table below gives it; the slide master is never edited for that, and an equation wanted at
+another size carries a `V (n='fsiz')` of its own, which the pipeline leaves as the caller wrote it.
 
 Settle the block once for the document and copy it, character for character, into every equation written
 for that document, before the main group of each. Two equations with different designs sit side by side on
@@ -71,6 +73,10 @@ The SVG command prints width, height and the baseline shift in points, the sum o
 applications, and the PDF again for looking at the equation, since an SVG comes back to an agent as
 text. About one second per SVG, two per PDF or EMF.
 
+Name an output file of its own: every pipeline refuses an output path that is one of its own inputs, in one
+line and before anything is launched, so `Render.py svg Eq.pie Eq.pie` no longer writes the rendering over the
+equation. An output file that exists and is not an input is overwritten, which is what a rerun does.
+
 Every form but the `.pie` file and the SVG carrier needs Radical Pie installed at the path the
 README gives. Where it is not, the command prints one line and exits 1: hand over the validated
 `.pie` file and say in the reply that the rendering was not made and the picture therefore not
@@ -89,7 +95,7 @@ any other tool, then run the pipeline with one `.pie` file per key:
 python scripts/Word.py embed Draft.docx Final.docx intro=Intro.pie momentum=Momentum.pie
 ```
 
-Four placeholder forms, following the recipe on Radical Pie's own Word page:
+Five placeholder forms, following the recipe on Radical Pie's own Word page:
 
 | Placeholder | What it becomes |
 | --- | --- |
@@ -97,13 +103,20 @@ Four placeholder forms, following the recipe on Radical Pie's own Word page:
 | `{{pie:key|display}}` alone in its paragraph | The equation centred on its own line, in the `Equation` paragraph style. |
 | `{{pie:key|numbered}}` alone in its paragraph | As display, plus `(1)`, `(2)` at the right margin from a `SEQ equation` field, and a bookmark `eq_key` over the number. |
 | `{{ref:key}}` in text | A `REF eq_key` field showing that number, so write "see equation ({{ref:momentum}})". |
+| `{{chapter}}` in a heading | A `SEQ chapter` field showing the chapter's number, which turns the `(x.y)` form on for the equations after it. |
 
-Radical Pie's own numbering goes one level deeper than the pipeline's flat `(1)`, `(2)`: an `(x.y)` style
-swaps the `SEQ equation` field for a second counter, `SEQ chapter \c`, whose `\c` switch reads the running
-chapter count without advancing it, for a document that numbers its equations per chapter. Inserted
-directly from the ribbon rather than through the pipeline, a new equation's initial base font size is that
-of the surrounding text, which a pipeline object never relies on since it always carries the design the
-caller hands over, `D {}` and the factory 11 point when none is given.
+Write `{{chapter}}` where each chapter's number belongs, in the chapter's own heading: "Chapter
+{{chapter}}. Waves" comes out as "Chapter 1. Waves". From the first marker on, a numbered equation reads
+`(1.1)`, `(1.2)`, `(2.1)`, the chapter part being a `SEQ chapter \c` field that reads the counter without
+advancing it and the equation part starting from one again in each chapter. A `{{ref:key}}` to such an
+equation shows the whole number, `1.2`, and the run prints it that way too. A document with no marker in it
+is numbered `(1)`, `(2)` as before, and so is an equation that stands before the first marker, because the
+chapter counter answers zero until a marker advances it. The numbers hold when Word updates its fields with
+F9.
+
+Inserted directly from the ribbon rather than through the pipeline, a new equation's initial base font size
+is that of the surrounding text, which a pipeline object never relies on since it always carries the design
+the caller hands over, `D {}` and the factory 11 point when none is given.
 
 Word lines a picture's bottom edge up with the text baseline, so Radical Pie lowers a newly embedded object
 by adjusting its character font position to sit correctly on the line instead, and types a space right
@@ -132,8 +145,12 @@ size. The pipeline drives the installed Word and Radical Pie invisibly, about tw
 per equation, and refuses the job before starting Word when a placeholder has no file, a file no
 placeholder, a display placeholder shares its paragraph, a reference names an equation that is not
 numbered, or a `{{pie:key}}` sits outside the document body, in a header, a footer, a footnote or a text
-box, naming the part it sits in. `embed` takes `--timeout <seconds>` (default 120) for a document with
-many objects, since each one costs Word and Radical Pie real time to create.
+box, naming the part it sits in. A draft that is not a Word document, missing or of another format under a
+`.docx` name, is refused in one line naming the file. A refusal writes no output file, and so does a failure
+half way through the run: the document appears at the output path when the run has succeeded, and an output
+file that was already there is left as it was until then. The run bounds itself at two minutes plus six
+seconds for each equation, which follows the count of objects since each one costs Word and Radical Pie real
+time to create; `embed` takes `--timeout <seconds>` for a machine slower than that allows.
 
 A finished document is checked the same way as a deck, with no Word running:
 
@@ -145,29 +162,74 @@ It prints one line per embedded object with its size and whether it was drawn, a
 count.
 
 **A PowerPoint deck.** Write the deck with a text shape where each equation goes, holding `{{pie:key}}`
-and nothing else, then run the pipeline with one `.pie` file per key:
+either as the shape's whole text or inside a sentence, then run the pipeline with one `.pie` file per key:
 
 ```
 python scripts/PowerPoint.py embed Draft.pptx Final.pptx maxwell=Maxwell.pie lorentz=Lorentz.pie
 ```
 
-Each shape is deleted and an equation object takes its left and top, so place the placeholder where the
-equation's top left corner belongs and size the shape to the space you are giving it. The object is a
-Radical Pie OLE object of the same class Word gets, editable on a double click through the add-in, and it
+A shape whose whole text is the placeholder is deleted and an equation object takes its left and top, so
+place such a placeholder where the equation's top left corner belongs and size the shape to the space you
+are giving it. A placeholder with text before or after it in the same paragraph becomes a gap in that
+sentence, with the equation standing on the sentence's baseline and the text continuing after it. Write one
+ordinary space either side of it, as beside any word: that space is the gap the equation takes, and the
+pipeline adds nothing to it. A placeholder written against a letter
+gets a thin space of its own instead, 0.16 of the text size. The run prints the form each one took,
+`shape`, `tab` or `spaces`.
+
+A single symbol the slide's own prose names is an inline equation too, one `.pie` file per symbol: write "the
+coefficient {{pie:a}} of the squared term" and "solve for {{pie:x}}", so the letters in the sentences come
+from Radical Pie like the letters in the equations. In a list such as a, b and c, each comma is the last
+symbol of its equation, as the next paragraph says.
+
+Punctuation that follows an inline equation goes inside the equation: write the comma, full stop,
+semicolon, colon or closing bracket as its last symbol, `Sb (ro='pnct') {s{","}}` as the `Sb` entry of
+`references/catalogue/Symbols.md` writes it, and let a space and the next word follow the placeholder. An
+opening bracket before the equation goes inside it the same way, where it takes the equation's own font and
+spacing. A mark left in the text stands against the object anyway, and its equation's line says which side
+lost its space, `no padding beside the space and before ','`. The object is
+a Radical Pie OLE object of the same class Word gets, editable on a double click through the add-in, and it
 carries the key as its shape name, which is what the selection pane and the check below show. PowerPoint's
 own installer adds one ribbon button, Radical Pie Equation, rather than Word's three, and opening it
-directly gives a new equation the base font size of body level 1 text in the current slide's layout master,
-the same size an empty `D {}` pipeline object gets in the table below. PowerPoint OLE embedding needs a
-very recent build of Microsoft Office (1.9); an older one may not support it at all.
+directly gives a new equation the base font size of body level 1 text in the current slide's layout, which is
+the size a whole-shape `D {}` object gets in the table below. PowerPoint OLE embedding needs a very recent
+build of Microsoft Office (1.9); an older one may not support it at all.
 
 Four things differ from the Word document, each measured against PowerPoint 16.
 
 | | Word | PowerPoint |
 | --- | --- | --- |
-| Placeholder | Inline, display or numbered, inside the text | A whole shape; no kinds, no numbering, no `{{ref:...}}` |
-| An empty `D {}` | Radical Pie's factory 11 point | The base font size of the slide layout's body text |
+| Placeholder | Inline, display or numbered, inside the text | A whole shape, or inline in a sentence; no kinds, no numbering, no `{{ref:...}}` |
+| Inline | Sits in the text and moves with it | Stands on the sentence's baseline as an object of its own, grouped with the shape |
+| An empty `D {}` | Radical Pie's factory 11 point | Inline, the size of the run it stands in; a whole shape, the layout's body text size, or 28 point where the layout has no body placeholder |
 | The run | Word is invisible | PowerPoint cannot be hidden; a minimised window is on screen |
 | Afterwards | The picture holds | An object can collapse to a blank, so the run is guarded |
+
+An inline equation carries rules of its own, because the object floats and the sentence does not. An
+equation that would come within a sixth of the text size of the ink of the line above or the line below
+makes the pipeline open the paragraph by what it would intrude, with a wider line spacing where that line
+belongs to the same paragraph and space after the earlier of two paragraphs where it does not; it prints one
+line per paragraph it opened. An inline equation of the same run standing on the neighbouring line counts as
+that line's ink, so tall equations on consecutive bullets clear each other. One that reaches
+past the top of its text frame or below its bottom opens nothing, because no text stands there and the box
+does not clip it. One equation-bearing line per paragraph is held open by a tab
+stop, and any further line of the same paragraph by a run of spaces with the object centred in it, because
+PowerPoint's tab stops belong to the paragraph rather than to the line. An equation that does not fit in the
+room its line has left moves to the next line, as a word that does not fit does, and the run says
+`moved to the next line` beside it. A centred or right-aligned
+paragraph is refused, as are two font sizes on the line, vertical or rotated text, a placeholder in a table
+cell or a group, and an equation wider than the text area itself; each refusal names the shape and all but
+the last come before PowerPoint starts. Each shape is grouped with the objects that stand in it, so moving
+the sentence moves its equations. One of the layout's own placeholders is served like any other text shape
+and left ungrouped, because PowerPoint refuses to group a placeholder; the run prints one line saying so.
+Shrink text on overflow is turned off on every shape that takes an inline gap, with a line of its own,
+because an equation is drawn once at the size of the run it stands in and cannot follow a later shrink. Give
+such a shape room for the opened paragraph, since its text no longer shrinks to fit. A shape whose text ends
+up taller than its box is refused, with the overflow in points and the size the shrink had been showing the
+text at; write that smaller size into the draft, shorten the text, or make the box taller, and run again.
+A refusal writes no output file, whether it came before PowerPoint started or half way through the run, and
+an output file that was already there is left as it was. A draft that is not a PowerPoint deck, missing or of
+another format under a `.pptx` name, is refused in one line naming the file.
 
 The collapse is the bug Radical Pie's own PowerPoint page warns of under "Bugs in PowerPoint". PowerPoint
 sizes each equation from a metafile it keeps beside the deck, and when a blank one arrives the object
@@ -205,7 +267,9 @@ copy of the document under a marker comment line, whatever it was called. It ref
 that already holds a file of either name it did not write, naming the file, before it exports anything, so
 an empty output directory is the safe choice. It then compiles twice with pdflatex (and lualatex when
 asked), stopping on the log's first error. The finished document is `Out/Main-pdflatex.pdf`, or
-`Out/Main-lualatex.pdf`, and its path is the one line the command prints. About 2.5 seconds per
+`Out/Main-lualatex.pdf`, and its path is the one line the command prints. A build that stops leaves no PDF at
+either path, so a PDF in the output directory is always the document of a build that succeeded. A document
+the build cannot read, missing or not text, is refused in one line naming it. About 2.5 seconds per
 equation plus a second per compile. Every `\pie{key}` needs a file and every file a placeholder,
 checked before anything launches.
 

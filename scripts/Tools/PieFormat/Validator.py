@@ -39,6 +39,8 @@ One rule is about how an equation travels rather than about how it is written: C
 refuses a text that ends the XML comment the SVG carrier holds an equation in. RefusalMessage is that
 whole gate as one string, which every pipeline's command line runs over its .pie files before it
 launches anything, because Radical Pie drops a structure it does not know instead of refusing the file.
+FirstViolation is the same gate for one equation handed over as text, which is what a pipeline's library
+entry point gets, and it gives the first violation alone for an error that names the key beside it.
 """
 
 import codecs
@@ -1799,6 +1801,25 @@ def ViolationLine(name, error):
     """One violation as every command line of this repository prints it."""
 
     return "{}:{}:{} {}: {} [{}]".format(name, error.line, error.column, error.path, error.message, error.section)
+
+
+def FirstViolation(text):
+    """The first violation of one equation's text as one line, or the empty string when the text validates.
+
+    What the library entry points of the pipelines refuse with, where the caller handed over text rather than a
+    file name: `Tools.Word.Docx.EmbedEquations`, `Tools.PowerPoint.Pptx.EmbedEquations`,
+    `Tools.Latex.Build.BuildDocument` and `Tools.Render.Export.Export` each name the key or the file and add
+    this. The command lines print every violation of every file through `RefusalMessage` before they get there.
+    """
+
+    errors = Validate(text)
+
+    if not errors:
+        return ""
+
+    error = errors[0]
+
+    return "{}:{} {}: {} [{}]".format(error.line, error.column, error.path, error.message, error.section)
 
 
 def RefusalMessage(fileNames):

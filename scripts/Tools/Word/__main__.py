@@ -3,9 +3,11 @@
 `python -m Tools.Word embed [--timeout <seconds>] <input.docx> <output.docx> <key>=<file.pie> ...` writes the
 document with every `{{pie:<key>}}` replaced by the equation in the named file and prints one line per
 embedded equation, `key kind number width height` with the sizes in points. The number is the one the
-`SEQ equation` field holds, and `-` for an equation that is not numbered. `--timeout` bounds both passes that
-start Word, defaulting to `EmbedEquations`'s own default of 120 seconds; a document with more objects than
-that allows needs a larger one, and the error names which pass ran out and how many objects it had finished.
+`SEQ equation` field holds, `<chapter>.<n>` in a document whose `{{chapter}}` markers name its chapters, and
+`-` for an equation that is not numbered. `--timeout` bounds both passes that
+start Word; without it the run takes `Docx.TimeoutBudget` of the number of placeholders, which is a base plus
+an allowance for each object. The error of a run that goes past it names which pass ran out and how many
+objects it had finished.
 
 `python -m Tools.Word check <document.docx>` starts nothing: it reads the package and prints one line per
 embedded object, `identity progId width height drawn-or-blank`, and a last line with the count of
@@ -14,16 +16,19 @@ caches before an activation draws it, or is of another class.
 
 Either verb prints the reason it failed on stderr and exits 1. `embed` validates every equation before Word
 starts and refuses the job with the validator's own lines, because Radical Pie drops a structure it does not
-know instead of refusing the file.
+know instead of refusing the file. An input that is not a Word package is one line naming the file, from the
+pipeline's own `CheckIsWordPackage`, which both verbs run before they read anything, and an output that is the
+input document or one of the equation files is one line before that. An output file that exists and is neither
+is overwritten, because a caller reruns a build.
 
 `Main` takes the name of the program that invoked it, because the usage line is a command the caller can run:
 the front door scripts/Word.py passes its own path, and the module invocation below passes itself.
 """
 
 import sys
-import zipfile
 from pathlib import Path
 
+from Tools.OutputPaths import SameFileRefusal
 from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Word import Docx
 from Tools.Word.Docx import CheckObjects, EmbedEquations, WordError
@@ -59,7 +64,7 @@ def ReadEquationFiles(arguments: list) -> dict:
 
 
 def Embed(arguments: list, program: str) -> int:
-    timeoutSeconds = Docx.DefaultTimeoutSeconds
+    timeoutSeconds = None
 
     if arguments[:1] == ["--timeout"]:
         if len(arguments) < 2:
@@ -72,6 +77,11 @@ def Embed(arguments: list, program: str) -> int:
         raise ValueError(Usage(program))
 
     files = ReadEquationFiles(arguments[2:])
+    sameFile = SameFileRefusal(arguments[1:2], [arguments[0]] + list(files.values()))
+
+    if sameFile:
+        raise WordError(sameFile)
+
     refusal = RefusalMessage(files.values())
 
     if refusal:
@@ -92,13 +102,7 @@ def Check(arguments: list, program: str) -> int:
     if len(arguments) != 1:
         raise ValueError(Usage(program))
 
-    documentPath = Path(arguments[0])
-
-    try:
-        records = CheckObjects(documentPath)
-    except zipfile.BadZipFile:
-        # A truncated download, or a file saved in another format under a .docx name.
-        raise WordError(f"{documentPath} is not a Word package: it is not a zip file") from None
+    records = CheckObjects(Path(arguments[0]))
 
     for record in records:
         status = "drawn" if record.drawn else "blank"

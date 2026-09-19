@@ -33,7 +33,7 @@ Gr
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"+"}}
+			Sb (ro='oper') {s{"+"}}
 		}
 	}
 	Sb (ro='unit') {s{"(aq)"}}
@@ -44,7 +44,7 @@ Gr
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	Sb (ro='unit') {s{"(aq)"}}

@@ -1256,8 +1256,8 @@ Gr
 			Sb (ro='nmbr') {s{"2"}}
 		}
 	}
-	Al (al='rght') {}
 	Sb (ro='rltn') {s{"="}}
+	Al (al='rght') {}
 	Br
 	{
 		Gr (ba='mddl')
@@ -1279,8 +1279,8 @@ Gr
 		}
 	}
 	Bg {}
-	Al (al='rght') {}
 	Sb (ro='rltn') {s{"="}}
+	Al (al='rght') {}
 	Sb {s{"a"}}
 	Sc
 	{
@@ -1305,8 +1305,8 @@ Gr
 		}
 	}
 	Bg {}
-	Al (al='rght') {}
 	Sb (ro='rltn') {s{"="}}
+	Al (al='rght') {}
 	Sb {s{"a"}}
 	Sc
 	{
@@ -1332,9 +1332,11 @@ Gr
 }
 ```
 
-The second and third lines begin with their aligner, so nothing precedes the column and the equals
-signs line up under the first one. A right aligner pushes what comes before it against the column,
-which is the usual choice for a derivation; a centre aligner centres it, as in example 5.
+Every line puts its aligner after the relation, so the equals sign closes the right-aligned span and the
+three signs stand in one column. A right aligner pushes what comes before it against the column, which is
+the usual choice for a derivation; a centre aligner centres it, as in example 5. The `Al` entry of
+`references/catalogue/Groups.md` measures what an aligner written in front of the relation costs a line
+that has no left-hand side.
 
 ## 21. A chemical equation
 
@@ -2818,7 +2820,7 @@ Gr
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"+"}}
+			Sb (ro='oper') {s{"+"}}
 		}
 	}
 	Sb (ro='unit') {s{"(aq)"}}
@@ -2829,15 +2831,16 @@ Gr
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	Sb (ro='unit') {s{"(aq)"}}
 }
 ```
 
-A charge is a `Sc` with a `'sups'` group holding the sign as `ro='unry'`, written after the
-element the way any superscript is.
+A charge is a `Sc` with a `'sups'` group holding the sign as `ro='oper'`, written after the
+element the way any superscript is: the site keeps every plus and minus sign in this role and
+reserves `'unry'` for `∂` and `∇`.
 
 A state of matter has no fixture behind it, so the role is chosen by what it does to the spacing
 around it. `ro='text'` on `(aq)` swallows the space on both sides of the `'oper'` that follows it, and
@@ -3065,7 +3068,7 @@ Gr (as=0.8125,t='anno',al='cent')
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	X
@@ -3084,7 +3087,7 @@ Gr (as=0.8125,t='anno',al='cent')
 		Gr (t='sups')
 		{
 			Bg {}
-			Sb (ro='unry') {s{"−"}}
+			Sb (ro='oper') {s{"−"}}
 		}
 	}
 	X

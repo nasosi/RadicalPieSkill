@@ -4,7 +4,7 @@ A skill for an LLM harness that writes, validates and emits [Radical Pie](https:
 covers the format's OpenDDL structure and roles, the SVG comment carrier Radical Pie and InkRadix pass equations through, and the recipes that
 turn a LaTeX construct into the Radical Pie structure it becomes.
 
-Version 1.0.0. Checked against Radical Pie 1.15 on Windows.
+Version 1.2.0. Checked against Radical Pie 1.15 on Windows.
 
 ## What you need
 

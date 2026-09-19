@@ -9,6 +9,10 @@ exit code 1.
 Every equation is validated before anything is started, and a key given twice is refused rather than
 resolved to the last file: both are mistakes the build used to carry into a document.
 
+An input that is one of the files the build writes into the output directory is refused before that, in one
+line naming both. The build's own refusal of a `Main.tex` or a `radicalpie.sty` it did not write stands as it
+was, and it is what protects the author's files of those names.
+
 `Main` takes the name of the program that invoked it, because the usage line is a command the caller can
 run: the front door scripts/Latex.py passes its own path, and the module invocation below passes itself.
 """
@@ -16,7 +20,8 @@ run: the front door scripts/Latex.py passes its own path, and the module invocat
 import sys
 from pathlib import Path
 
-from Tools.Latex.Build import BuildDocument, LatexError
+from Tools.Latex.Build import BuildDocument, DocumentName, ImageDirectoryName, LatexError, StyleFileName
+from Tools.OutputPaths import SameFileRefusal
 from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Render.Svg import RenderError
 
@@ -43,6 +48,22 @@ def ReadPairs(pairs: list) -> dict:
         files[key] = fileName
 
     return files
+
+
+def WrittenFiles(outputDir: str, files: dict) -> list:
+    """The files the build writes into the output directory, which no input of the run may be.
+
+    The two fixed names and one picture pair per equation. The engines' own PDFs and logs carry the fixed
+    document name too, and a `.tex` or a `.pie` named like one of those is not a document this build reads.
+    """
+
+    directory = Path(outputDir)
+    written = [directory / StyleFileName, directory / f"{DocumentName}.tex"]
+
+    for key in files:
+        written += [directory / ImageDirectoryName / f"{key}{suffix}" for suffix in (".pdf", ".svg")]
+
+    return written
 
 
 def Main(arguments: list, program: str = ModuleProgram) -> int:
@@ -73,6 +94,13 @@ def Main(arguments: list, program: str = ModuleProgram) -> int:
 
     try:
         files = ReadPairs(positional[3:])
+        sameFile = SameFileRefusal(WrittenFiles(outputDir, files), [texPath] + list(files.values()))
+
+        if sameFile:
+            print(sameFile, file=sys.stderr)
+
+            return 1
+
         refusal = RefusalMessage(files.values())
 
         if refusal:

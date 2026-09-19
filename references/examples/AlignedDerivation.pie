@@ -24,8 +24,8 @@ Gr
 			Sb (ro='nmbr') {s{"2"}}
 		}
 	}
-	Al (al='rght') {}
 	Sb (ro='rltn') {s{"="}}
+	Al (al='rght') {}
 	Br
 	{
 		Gr (ba='mddl')
@@ -47,8 +47,8 @@ Gr
 		}
 	}
 	Bg {}
-	Al (al='rght') {}
 	Sb (ro='rltn') {s{"="}}
+	Al (al='rght') {}
 	Sb {s{"a"}}
 	Sc
 	{
@@ -73,8 +73,8 @@ Gr
 		}
 	}
 	Bg {}
-	Al (al='rght') {}
 	Sb (ro='rltn') {s{"="}}
+	Al (al='rght') {}
 	Sb {s{"a"}}
 	Sc
 	{
