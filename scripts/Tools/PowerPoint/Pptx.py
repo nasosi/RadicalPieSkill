@@ -119,8 +119,15 @@ well as by the command line, because a caller that came in through `EmbedEquatio
 to pay a render and an insertion for an equation Radical Pie cannot read.
 
 The Word pipeline's names for the pieces both pipelines share are imported rather than repeated: the class
-and its CLSID, the `RP` body, the editor's window title, the package complaint, the process listing and the
-end-of-process wait.
+and its CLSID, the `RP` body, the editor's window title, the package complaint, the process listing, the
+end-of-process wait and the close of a Font Import report.
+
+A font Radical Pie 1.16 cannot resolve is drawn in Times, and the deck is written with it. The render that
+measures an inline equation draws the same Times the object will show (`Tools.Render.Svg`), and the activation
+pass answers the Font Import window the way the Word pipeline does: no Save while an import runs, the report
+is closed by the watch and recorded, and a drawing counts only after a Save posted once the import is over.
+The saved deck's `RP` streams are read for a slot written back as Times, and each `EmbeddedEquation` carries
+one warning line per slot drawn in Times (`Tools.PieFormat.Fonts.FontWarnings`, ADR-0015).
 """
 
 import hashlib
@@ -147,9 +154,11 @@ import win32gui
 from lxml import etree
 
 from Tools import Processes
+from Tools.PieFormat.Fonts import FontWarnings
 from Tools.PieFormat.Validator import FirstViolation
 from Tools.PowerPoint import Inline
 from Tools.Processes import AwaitProcessExit
+from Tools.Render.FontImport import FontImportTitle, FontImportWatch
 from Tools.Render.Svg import (
     Attempts,
     DialogText,
@@ -161,6 +170,7 @@ from Tools.Render.Svg import (
     WindowClass,
 )
 from Tools.Word.Docx import (
+    CloseFontImport,
     ComErrorText,
     EditorTitlePrefix,
     EndProcess,
@@ -169,6 +179,7 @@ from Tools.Word.Docx import (
     ObjectClassId,
     PackageComplaint,
     Pids,
+    PresentationArrived,
 )
 
 PowerPointImage = "POWERPNT.EXE"
@@ -460,7 +471,8 @@ class EmbeddedEquation:
     make room for it, `tight` names the padding a punctuation mark beside the placeholder took away, and
     `moved` says the gap went to the next line because the author's own line had no room. `shapeNotes` are
     what the run did to the text shape itself rather than to this equation, carried by the first equation of
-    that shape so the run prints each of them once.
+    that shape so the run prints each of them once. `fontWarnings` holds one line per font slot Radical Pie
+    drew in Times.
     """
 
     key: str
@@ -472,16 +484,21 @@ class EmbeddedEquation:
     tight: str = ""
     moved: str = ""
     shapeNotes: tuple = ()
+    fontWarnings: tuple = ()
 
 
 @dataclass(frozen=True)
 class DrawnObject:
-    """One object as pass three leaves it: the size Radical Pie drew it at and the corner it stands on."""
+    """One object as pass three leaves it: the size Radical Pie drew it at and the corner it stands on.
+
+    `reported` says its editor raised the Font Import report, which the watch closed.
+    """
 
     width: float
     height: float
     left: float
     top: float
+    reported: bool = False
 
 
 @dataclass(frozen=True)
@@ -558,6 +575,7 @@ def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSe
         drawn = RenderObjects(workPath, placeholders, plans, deadline)
         GroupObjects(workPath, placeholders, deadline)
         CheckDrawn(workPath, len(placeholders))
+        warnings = ReadFontWarnings(workPath, placeholders, plans, drawn)
         CheckOffsets(workPath, placeholders, plans)
     except BaseException:
         # A keyboard interrupt leaves no half-built deck behind either, so the sweep is on BaseException.
@@ -571,7 +589,7 @@ def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSe
     reported = set()
     embedded = []
 
-    for placeholder, plan, item in zip(placeholders, plans, drawn):
+    for placeholder, plan, item, found in zip(placeholders, plans, drawn, warnings):
         shape = (placeholder.slideNumber, placeholder.shapeName)
         notes = []
 
@@ -596,6 +614,7 @@ def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSe
                 plan.tight,
                 plan.moved,
                 tuple(notes),
+                found,
             )
         )
 
@@ -2116,12 +2135,12 @@ def RenderObjects(deckPath: Path, placeholders: list, plans: list, deadline: flo
             presentation.Windows(1).ViewType = PpViewNormal
 
             for placeholder, plan in zip(placeholders, plans):
-                width, height = RenderObject(session, presentation, deckPath, placeholder, deadline)
+                width, height, reported = RenderObject(session, presentation, deckPath, placeholder, deadline)
                 CheckDrawnWidth(width, plan, placeholder)
                 shape = presentation.Slides(placeholder.slideNumber).Shapes(placeholder.key)
                 shape.Left = plan.left
                 shape.Top = plan.top
-                drawn.append(DrawnObject(width, height, plan.left, plan.top))
+                drawn.append(DrawnObject(width, height, plan.left, plan.top, reported))
 
             CheckShapes(presentation, placeholders)
             presentation.Save()
@@ -2217,7 +2236,7 @@ def EndServers(running: set, deadline: float) -> None:
 
 
 def RenderObject(session, presentation, deckPath: Path, placeholder: Placeholder, deadline: float) -> tuple:
-    """Draw one object, retrying the activation once, and return the size PowerPoint ends up with."""
+    """Draw one object, retrying the activation once, and return `(width, height, reported)` as PowerPoint ends up."""
 
     failures = []
 
@@ -2237,7 +2256,7 @@ def RenderObject(session, presentation, deckPath: Path, placeholder: Placeholder
 
 
 def AttemptActivation(session, presentation, deckPath: Path, placeholder: Placeholder, deadline: float) -> tuple:
-    """Activate one object, save it from the editor, close the editor, and return the size it ends up with.
+    """Activate one object, save it from the editor, close the editor, and return `(width, height, reported)`.
 
     The window is taken to the object's own slide first. `OLEFormat.Activate` answers
     `0x80020009 / Invalid request. The window must be in slide or notes view.` for an object that is not on
@@ -2256,14 +2275,15 @@ def AttemptActivation(session, presentation, deckPath: Path, placeholder: Placeh
         QuietenEditor(window)
 
     try:
-        AwaitPresentation(slide, placeholder, pid, window, deadline)
+        reported = AwaitPresentation(slide, placeholder, pid, window, deadline)
     finally:
+        CloseFontImport(pid)
         PostToEditor(window, win32con.WM_CLOSE, 0)
         EndProcess(pid, min(ExitGraceSeconds, max(deadline - time.monotonic(), 0.0)))
 
     shape = slide.Shapes(placeholder.key)
 
-    return (shape.Width, shape.Height)
+    return (shape.Width, shape.Height, reported)
 
 
 def ActivateObject(shape) -> None:
@@ -2359,24 +2379,29 @@ def AwaitEditor(deckPath: Path, watch: ServerWatch, placeholder: Placeholder, de
     raise PowerPointError(f"Radical Pie did not show the editor window for the equation {placeholder.key}")
 
 
-def AwaitPresentation(slide, placeholder: Placeholder, pid: int, window: int, deadline: float) -> None:
+def AwaitPresentation(slide, placeholder: Placeholder, pid: int, window: int, deadline: float) -> bool:
     """Post File > Save to the editor until PowerPoint has a drawing of the equation for the object.
 
     PowerPoint takes the new width and the new height together, where Word takes the height first and the
     width only when the editor closes. A size that is one of the two undrawn ones is not the drawing: the
     Save that arrives before the layout has run puts the zero-frame metafile on the slide at 0.75 by 0.75
     points, and the object stays that size for good once the editor closes. Radical Pie leaving on its own
-    means it could not read the equation.
+    means it could not read the equation. No Save is posted while a font import runs, and the unresolved-font
+    report is closed before one is (`Tools.Render.FontImport`); the return says whether it was seen.
     """
 
+    watch = FontImportWatch(pid)
     lastPost = 0.0
+    firstPost = None
 
     while time.monotonic() < deadline:
-        RaiseOnServerDialog(TopLevelWindows(pid))
+        windows = TopLevelWindows(pid)
+        RaiseOnServerDialog(windows)
+        ready = watch.Ready(windows)
         shape = slide.Shapes(placeholder.key)
 
-        if (shape.Width, shape.Height) not in UndrawnShapeSizes:
-            return
+        if (shape.Width, shape.Height) not in UndrawnShapeSizes and PresentationArrived(firstPost):
+            return watch.reported
 
         # The size is read before the server is tested, so a render that lands as the server leaves counts.
         if AwaitProcessExit(pid, 0):
@@ -2384,9 +2409,10 @@ def AwaitPresentation(slide, placeholder: Placeholder, pid: int, window: int, de
                 f"Radical Pie closed the editor without drawing {placeholder.key}: {UnreadableEquation}"
             )
 
-        if time.monotonic() - lastPost >= RepostSaveSeconds:
+        if ready and time.monotonic() - lastPost >= RepostSaveSeconds:
             PostToEditor(window, win32con.WM_COMMAND, SaveCommand)
             lastPost = time.monotonic()
+            firstPost = firstPost or lastPost
 
         time.sleep(PollSeconds)
 
@@ -2421,10 +2447,13 @@ def PostToEditor(window: int, message: int, wparam: int) -> None:
 
 
 def RaiseOnServerDialog(windows: list) -> None:
-    """Turn a dialog of the Radical Pie server into a PowerPointError carrying its text, and close it."""
+    """Turn a dialog of the Radical Pie server into a PowerPointError carrying its text, and close it.
+
+    The Font Import window is the FontImportWatch's to answer in `AwaitPresentation`.
+    """
 
     for handle, className, title in windows:
-        if className == WindowClass:
+        if className == WindowClass or title == FontImportTitle:
             continue
 
         message = DialogText(handle)
@@ -2461,6 +2490,26 @@ def CheckDrawn(deckPath: Path, expectedCount: int) -> None:
         named = ", ".join(f"{report.name} on slide {report.slideNumber}" for report in collapsed)
 
         raise PowerPointError(f"these equations show the blank picture in the saved deck, so they collapsed: {named}")
+
+
+def ReadFontWarnings(deckPath: Path, placeholders: list, plans: list, drawn: list) -> list:
+    """The warning lines of each object whose `RP` came back with a named slot written as Times, `i16{2}`.
+
+    The editor an activation starts writes an unresolved slot back that way and showed no report in Word 16
+    (measured 2026-10-08), so the saved deck is the place this is read (ADR-0015). One tuple per placeholder,
+    empty for an object drawn in its own fonts.
+    """
+
+    warnings = []
+
+    with zipfile.ZipFile(deckPath) as package:
+        objects = {(part.slideNumber, part.name): part for part in ReadObjectParts(package)}
+
+        for placeholder, plan, item in zip(placeholders, plans, drawn):
+            written = ReadEquation(package, objects[(placeholder.slideNumber, placeholder.key)])
+            warnings.append(FontWarnings(plan.equation, written, item.reported))
+
+    return warnings
 
 
 def CheckOffsets(deckPath: Path, placeholders: list, plans: list) -> None:

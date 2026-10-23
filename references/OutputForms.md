@@ -29,12 +29,13 @@ for that document, before the main group of each. Two equations with different d
 the page in different sizes and faces, and a design that reaches only the display equations leaves the
 symbols mentioned in the prose looking like another document's.
 
-Render one equation of the set and look at it before writing the rest. A font name Radical Pie cannot
-resolve is dropped in silence and the styles fall back, so an equation that renders exactly as it does with
-`D {}` is an equation whose design did not take. Aptos, the default font of both Word and PowerPoint, is
-one such name until it is installed the ordinary way: it ships as a cloud font Office downloads on demand
-rather than an installed font file, so Radical Pie cannot see it and a design that names it falls back
-silently like any other unresolved font.
+Run `python scripts/Fonts.py check` on one equation of the set, then render it and look at it before
+writing the rest. A font name Radical Pie cannot resolve draws in Times and is saved as Times, as the `F`
+entry of `references/catalogue/Design.md` says. Every pipeline writes its output all the same, prints one
+`warning:` line per such slot on stderr, naming the slot, the name written and the closest installed
+names, and exits 3; ask the user what to do then, as that entry says. Aptos, the default font of both Word
+and PowerPoint, is one such name until it is installed the ordinary way: it ships as a cloud font Office
+downloads on demand rather than an installed font file, so Radical Pie cannot see it.
 
 The editor's own two design routes have no pipeline equivalent. Load Design from Equation reads another
 equation file's design parameters straight into the current one, a route open only inside the editor. Load
@@ -48,7 +49,7 @@ prints on a failure is the validator's own lines, so nothing starts on an equati
 **A `.pie` file.** The default. UTF-8 without a BOM, opening with `// Radical Pie Equation`. Radical
 Pie opens it by file argument, and `.pie` is associated with the editor.
 
-**The SVG carrier.** Radical Pie and InkRadix pass an equation as an SVG whose first comment holds the
+**The SVG carrier.** Radical Pie passes an equation as an SVG whose first comment holds the
 `.pie` text verbatim. Write one with
 
 ```
@@ -56,26 +57,30 @@ python scripts/WrapSvg.py MyEquation.pie MyEquation.svg
 ```
 
 and take an equation back out of any SVG that carries one, Radical Pie's own rendered exports
-included, by giving the same script the `.svg` first. Hand the carrier to Inkscape with InkRadix, or to
-Radical Pie, which replaces the placeholder box with rendered paths on save and keeps the comment.
+included, by giving the same script the `.svg` first. Hand the carrier to Radical Pie, to Inkscape, or to a later step. Radical Pie
+replaces the placeholder box with rendered paths on save and keeps the comment.
 
-**A rendered SVG, PDF or EMF.** The render pipeline drives the installed Radical Pie and writes the file
-Radical Pie itself saves, native data embedded:
+**A rendered SVG, PDF or EMF, or a PNG.** The render pipeline drives the installed Radical Pie and writes the file
+Radical Pie itself saves, native data embedded; `png` converts that SVG with Inkscape 1.x at 300 dpi on a white
+background, and the PNG carries no equation data:
 
 ```
 python scripts/Render.py svg MyEquation.pie MyEquation.svg
+python scripts/Render.py png MyEquation.pie MyEquation.png
 python scripts/Render.py pdf MyEquation.pie MyEquation.pdf
 python scripts/Render.py emf MyEquation.pie MyEquation.emf
 ```
 
 The SVG command prints width, height and the baseline shift in points, the sum of the SVG's own
-`viewBox` minimum y and its height; use the PDF for LaTeX and print, the EMF for Office
-applications, and the PDF again for looking at the equation, since an SVG comes back to an agent as
-text. About one second per SVG, two per PDF or EMF.
+`viewBox` minimum y and its height, and the PNG command prints its width and height in pixels; use the PNG for
+looking at the equation, since an SVG comes back to an agent as text, the PDF for LaTeX and print, and the EMF
+for Office applications. Where Inkscape is not installed, `png` prints one line saying so and exits 1, and the
+PDF is the form to look at. About one second per SVG, two per PDF or EMF, three to ten per PNG.
 
 Name an output file of its own: every pipeline refuses an output path that is one of its own inputs, in one
 line and before anything is launched, so `Render.py svg Eq.pie Eq.pie` no longer writes the rendering over the
-equation. An output file that exists and is not an input is overwritten, which is what a rerun does.
+equation. An output file that exists and is not an input is overwritten, which is what a rerun does, and a
+`Render.py` run that fails past the validator removes it, so a failed rerun leaves no older picture to look at.
 
 Every form but the `.pie` file and the SVG carrier needs Radical Pie installed at the path the
 README gives. Where it is not, the command prints one line and exits 1: hand over the validated
@@ -132,9 +137,10 @@ comes from Radical Pie. One file serves every mention of the symbol.
 
 A whole sentence can be one equation as well, which is how a theorem statement keeps its own symbols in the
 same fonts as its prose. Set the words as `Sb (ro='text')`, with the spaces written inside the strings, and
-a letter inside the sentence as `Sb (ro='text',st='ital')`. The role brings no typeface of its own: it draws
-from the same fonts as `'math'`, upright where no `st` says otherwise. What it changes is spacing, and the
-`Sb` entry of `references/catalogue/Symbols.md` gives the rule.
+a letter inside the sentence as `Sb (ro='text',st='ital')`. The role draws from the same fonts as
+`'math'`, upright where no `st` says otherwise, unless the design gives prose fonts of its own with
+`seps`, which `references/catalogue/Design.md` sets out under matching text and math fonts. What the role
+changes is spacing, and the `Sb` entry of `references/catalogue/Symbols.md` gives the rule.
 
 Each equation becomes a Radical Pie OLE object that the author double-clicks to edit in the editor. A key
 is a word (`[A-Za-z][A-Za-z0-9_]*`, at most 37 characters) and doubles as the bookmark name, so choose

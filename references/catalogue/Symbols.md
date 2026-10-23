@@ -41,6 +41,14 @@ holds one character.
 
 One `uint32` data list of one value: the Unicode value of the mark character.
 
+Radical Pie 1.16's Marks palette adds eight marks, each above and below: ring U+030A and U+0325, double
+ring U+EE73 and U+035A, bridge U+0346 and U+032A, inverted bridge U+EE71 and U+033A, square U+EE72 and
+U+033B, clockwise arrow U+20D5 and U+EE75, anticlockwise arrow U+20D4 and U+EE74, and clockwise and
+anticlockwise arrow U+EE76 and U+EE77. U+EE70 is four dots below, the partner of U+20DC. Each of them,
+and the older marks with them, draws a bolder form on a bold symbol. Where a mark sits follows `un` and
+not the code point: written with `un`, the above member of a pair draws under the character, and without
+it the below member draws over it (measured 2026-10-08).
+
 ```pie
 // Radical Pie Equation
 
@@ -134,6 +142,7 @@ the style drives the glyphs. Everything visible that is not a structure is an `S
 | --- | --- | --- | --- |
 | `ro` | uint32 | `'math'` | The role, below. |
 | `st` | uint32 | 0 | The style, below. 0 means the default style of the role. |
+| `of` | bool | false | Oldstyle figures, where the font has them. |
 | `pf` | bool | false | Proportional figures: digits keep their natural widths. |
 | `tf` | bool | false | Strict tabular figures: digits share a width and no space is trimmed. |
 | `sc` | bool | false | Small caps substitution. |
@@ -164,6 +173,12 @@ of a numerator. `tf` keeps the shared width and trims nothing, as another does o
 Set one only for a caller who asks for figures to line up or to sit naturally; the default suits an
 equation.
 
+`of` draws the symbol's digits as the font's oldstyle figures, to match prose set with them, and
+combines with `pf` and with `tf`. It needs a font that has them: measured 2026-10-08,
+Cambria, Calibri, Georgia, Candara, STIX Two Text, Lato and New Computer Modern drew oldstyle figures,
+while Times New Roman, the factory design's font, and Arial drew their lining figures unchanged. It works
+in the `'text'` role as in `'nmbr'`, and Radical Pie drops `of=false` on save.
+
 Roles:
 
 | Role | For |
@@ -176,7 +191,7 @@ Roles:
 | `'func'` | A standard function name such as sin or log: upright, with 3 mu on each side. |
 | `'pnct'` | Punctuation: no space in front of it, 3 mu behind it. |
 | `'elps'` | An ellipsis. |
-| `'text'` | Running prose. The math fonts, upright by default, with the operator spacing dropped. |
+| `'text'` | Running prose. Upright by default, with the operator spacing dropped; the math fonts, or the text styles of a design that sets `seps`. |
 | `'chem'` | A chemical element: upright, with space after a preceding number or variable. |
 | `'unit'` | A physical unit. |
 | `'arrw'` | An arrow character. Default style `'sym1'`. |
@@ -253,7 +268,9 @@ neighbour carries `ro='text'` loses the 4 mu it takes on each side: `a + b` meas
 upright `'math'` letters and 16.4213 pt with `'text'` letters. A `'rltn'` keeps its space either way,
 and so does a `'func'`. Words are separated by spaces written inside the string, which every role
 keeps, leading, internal and trailing, 2.7500 pt each at the default design. So a prose fragment is one
-`Sb` holding `" is a prime number that does not divide "`, and no `Sp` stands between its words.
+`Sb` holding `" is a prime number that does not divide "`, and no `Sp` stands between its words. A
+design that sets `V (n='seps') {b{true}}` gives the role fonts of its own, the four text styles of
+`references/catalogue/Design.md`, and the role's glyphs then part from the `'math'` ones.
 
 `'pnct'` takes no space in front of it and 3 mu behind it when a symbol follows, and nothing behind it
 at the end of a line. It also drops the half math unit of italic correction that an upright glyph gets

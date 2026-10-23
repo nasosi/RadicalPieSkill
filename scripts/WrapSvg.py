@@ -1,6 +1,6 @@
 """Moves an equation between a bare .pie file and the SVG comment carrier that Radical Pie reads.
 
-Radical Pie and InkRadix exchange an equation as an SVG whose first comment holds the .pie text
+Radical Pie passes an equation as an SVG whose first comment holds the .pie text
 verbatim. Radical Pie opens such a file, and on Save it replaces the placeholder with the rendered
 paths and keeps the comment, so the carrier is how an agent hands an equation to the editor or to
 Inkscape without launching anything.
@@ -10,7 +10,7 @@ Inkscape without launching anything.
 
 The carrier's width, height and viewBox describe an empty equation; Radical Pie overwrites all three
 when it renders. Extraction is Tools/PieFormat's ExtractPieFromSvg, so it also reads the SVG that
-Radical Pie has already rendered and the InkRadix element. Both directions write UTF-8 without a BOM
+Radical Pie has already rendered and the older datav1 element. Both directions write UTF-8 without a BOM
 and Unix line endings, which is what Radical Pie writes.
 
 An equation goes into the carrier only when the validator accepts it, so a wrap prints the validator's

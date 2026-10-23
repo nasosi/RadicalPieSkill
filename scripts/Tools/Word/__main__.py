@@ -14,6 +14,11 @@ embedded object, `identity progId width height drawn-or-blank`, and a last line 
 `RadicalPie.Application.1` objects among them. It exits non-zero when an object is still the blank Word
 caches before an activation draws it, or is of another class.
 
+An equation Radical Pie drew with a font slot in Times, because its design names a font Radical Pie cannot
+find, is embedded and its line printed all the same, and each such slot adds one line on stderr, `warning: the
+equation <key>: F <slot> <data list>: Radical Pie drew it in Times; the closest installed names are ...`;
+the document is written and `embed` exits 3 (`Tools.PieFormat.Fonts.FallbackExitCode`, ADR-0015).
+
 Either verb prints the reason it failed on stderr and exits 1. `embed` validates every equation before Word
 starts and refuses the job with the validator's own lines, because Radical Pie drops a structure it does not
 know instead of refusing the file. An input that is not a Word package is one line naming the file, from the
@@ -29,6 +34,7 @@ import sys
 from pathlib import Path
 
 from Tools.OutputPaths import SameFileRefusal
+from Tools.PieFormat.Fonts import FallbackExitCode
 from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Word import Docx
 from Tools.Word.Docx import CheckObjects, EmbedEquations, WordError
@@ -95,7 +101,12 @@ def Embed(arguments: list, program: str) -> int:
 
         print(f"{equation.key} {equation.kind} {number} {equation.width:g} {equation.height:g}")
 
-    return 0
+    warnings = [f"the equation {equation.key}: {line}" for equation in embedded for line in equation.fontWarnings]
+
+    for warning in warnings:
+        print(f"warning: {warning}", file=sys.stderr)
+
+    return FallbackExitCode if warnings else 0
 
 
 def Check(arguments: list, program: str) -> int:

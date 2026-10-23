@@ -27,9 +27,12 @@ Radical Pie writes the file after the dialog closes, taking about 1.4 s for a PD
 the export waits for a whole file rather than for the dialog to go: a PDF that ends in `%%EOF`, an EMF whose
 `EMR_HEADER` byte count equals its size on disk.
 
-The export goes to a fresh name in a temporary directory and is moved to `outputPath` afterwards. That keeps
-the "Confirm Save As" prompt, which no export path answers, out of the run, and it keeps the characters the
-tooling has to type inside the temporary directory's ASCII path.
+The export goes to a fresh name in a temporary directory and is written to `outputPath` once the run's result
+is known. That keeps the "Confirm Save As" prompt, which no export path answers, out of the run, it keeps the
+characters the tooling has to type inside the temporary directory's ASCII path, and it keeps an export that is
+not to be trusted away from the caller's path while a later launch replaces it. The temporary directory is
+removed afterwards as far as a virus scanner holding a file in it allows, so a finished export is never turned
+into a failure by its cleanup (`Tools.Render.Svg.WorkDirectory`).
 
 Under the parallel gate, forty workers and an agent rendering beside them, the export failed about once in a
 hundred runs and passed on the rerun (measured 2026-09-12): "Radical Pie exited with code 1 before the Save
@@ -37,11 +40,23 @@ Equation Copy dialog", and once the file name was typed into a dialog whose Radi
 which ended in a zero-size PDF. So the whole attempt is made again, once, with a fresh launch of its own; the
 attempt before it has terminated its process, and `Terminate` returns only when that process is gone. Two
 guards go with the retry: the file name is typed only into a dialog that still belongs to a live process, and
-an export that reaches the caller's path with nothing in it is a failed attempt rather than an output.
+an export that comes back with nothing in it is a failed attempt rather than an output.
 
 The equation is validated before the launch, which is what an entry point of a pipeline owes a caller that
 hands it text; the render loop is the exception, because the anchor atlas measures Radical Pie's crashes
 through it.
+
+Radical Pie 1.16's Font Import window is answered the way the render loop answers it (`Tools.Render.FontImport`):
+Save a Copy is posted only once an import has finished, and the unresolved-font report is closed by the watch
+and recorded, where it used to be closed as a stray window and fail the export with an empty message. The
+export is written either way. Its embedded design, the `.pie` text Radical Pie writes into the PDF as `%%`
+lines and into the EMF as a comment record, is read for `i16{2}` on a slot that named another font, and the
+returned `ExportedFile` carries one warning line per slot drawn in Times (`Tools.PieFormat.Fonts.FontWarnings`,
+ADR-0015). Every launch waits for every `slugfont.exe` on the machine first, once and for at most the caller's
+timeout, and an export whose launch imported a font the design names is exported again from a fresh launch,
+because the output of that first launch is not to be trusted: a showcase run was handed a blank PDF with exit 0
+on a font's first use (`Tools.Render.FontImport`). The sequence and its warnings are the render loop's own,
+`Tools.Render.Svg.TrustedLaunch` and `LaunchWarnings`.
 
 The dialog takes the foreground for about 0.2 s and nothing here can stop it. The window Radical Pie is
 launched into is minimised and unfocused, but the dialog is created afterwards by Radical Pie itself, which
@@ -53,22 +68,29 @@ because the name is typed and the Save pressed with posted messages.
 """
 
 import ctypes
-import shutil
 import subprocess
-import tempfile
 import time
 from ctypes import wintypes
+from dataclasses import dataclass
 from pathlib import Path
 
 import win32con
 import win32gui
 
 from Tools.PieFormat.Validator import FirstViolation
+from Tools.Render.FontImport import (
+    AwaitSlugFonts,
+    FontImportTitle,
+    FontImportWatch,
+    SlotsAwaitingImport,
+)
 from Tools.Render.Svg import (
     Attempts,
     AwaitDocument,
     DialogText,
     Launch,
+    Launched,
+    LaunchWarnings,
     LayoutSettleSeconds,
     PollSeconds,
     PostClose,
@@ -76,6 +98,8 @@ from Tools.Render.Svg import (
     RetrySettleSeconds,
     Terminate,
     TopLevelWindows,
+    TrustedLaunch,
+    WorkDirectory,
 )
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
@@ -97,19 +121,27 @@ Backspace = 0x08
 SMTO_ABORTIFHUNG = 0x0002
 
 
-def ExportPdf(pieText: str, outputPath, timeoutSeconds: float = 30) -> Path:
-    """Export `pieText` as PDF to `outputPath` and return it."""
+@dataclass(frozen=True)
+class ExportedFile:
+    """An export: where it was written, and one warning line per font slot Radical Pie drew in Times."""
+
+    path: Path
+    fontWarnings: tuple = ()
+
+
+def ExportPdf(pieText: str, outputPath, timeoutSeconds: float = 30) -> ExportedFile:
+    """Export `pieText` as PDF to `outputPath`."""
 
     return Export(pieText, outputPath, ".pdf", timeoutSeconds)
 
 
-def ExportEmf(pieText: str, outputPath, timeoutSeconds: float = 30) -> Path:
-    """Export `pieText` as an enhanced metafile to `outputPath` and return it."""
+def ExportEmf(pieText: str, outputPath, timeoutSeconds: float = 30) -> ExportedFile:
+    """Export `pieText` as an enhanced metafile to `outputPath`."""
 
     return Export(pieText, outputPath, ".emf", timeoutSeconds)
 
 
-def Export(pieText: str, outputPath, extension: str, timeoutSeconds: float) -> Path:
+def Export(pieText: str, outputPath, extension: str, timeoutSeconds: float) -> ExportedFile:
     """Open `pieText` in Radical Pie and save a copy of it in the format `extension` names.
 
     The equation is validated here, before anything is launched, and the refusal names the output file and the
@@ -121,7 +153,14 @@ def Export(pieText: str, outputPath, extension: str, timeoutSeconds: float) -> P
     The text is otherwise used as it stands: a missing `// Radical Pie Equation` header is not added, because
     Radical Pie's own parser does not require it. A failed attempt is made again once, from a fresh launch, and
     a second failure raises one error carrying both attempts' messages. Each attempt gets the whole of
-    `timeoutSeconds`, so an export that fails twice takes twice as long to say so.
+    `timeoutSeconds`, so an export that fails twice takes twice as long to say so. A font Radical Pie cannot
+    resolve is drawn in Times, the export is written, and the result carries the warning; it is no failure and
+    is not retried.
+
+    A design naming a font with no slug yet is exported a second time, retry included, once the launch that
+    exported it has imported it, and the second export is the one written (`Svg.TrustedLaunch`). Nothing is
+    written to `outputPath` before the last launch has ended; the design the export carries is then read for a
+    Times write-back and becomes the warnings of the result (`Svg.LaunchWarnings`).
     """
 
     outputPath = Path(outputPath)
@@ -129,6 +168,18 @@ def Export(pieText: str, outputPath, extension: str, timeoutSeconds: float) -> P
 
     if violation:
         raise RenderError(f"the equation for {outputPath} does not validate, so nothing was started: {violation}")
+
+    launched = TrustedLaunch(pieText, lambda: RetriedExport(pieText, outputPath, extension, timeoutSeconds))
+    warnings = LaunchWarnings(pieText, launched, launched.output.decode("utf-8", "replace"))
+
+    outputPath.parent.mkdir(parents=True, exist_ok=True)
+    outputPath.write_bytes(launched.output)
+
+    return ExportedFile(outputPath, warnings)
+
+
+def RetriedExport(pieText: str, outputPath: Path, extension: str, timeoutSeconds: float) -> Launched:
+    """At most `ExportAttempts` attempts, each a fresh launch, the first that succeeds returned."""
 
     failures = []
 
@@ -144,32 +195,52 @@ def Export(pieText: str, outputPath, extension: str, timeoutSeconds: float) -> P
     raise RenderError(f"Radical Pie exported nothing in {ExportAttempts} attempts: {Attempts(failures)}")
 
 
-def AttemptExport(pieText: str, outputPath: Path, extension: str, timeoutSeconds: float) -> Path:
-    """One launch, one Save a Copy, one move to `outputPath`. The process is gone when this returns.
+def AttemptExport(pieText: str, outputPath: Path, extension: str, timeoutSeconds: float) -> Launched:
+    """One launch, one Save a Copy, and the bytes it wrote. The process is gone when this returns.
 
-    The export goes to a fresh temporary directory of this attempt's own, so a retry never reads the file a
-    failed attempt left behind. The size of what arrives at `outputPath` is checked because a run of
-    2026-09-12 handed the caller a zero-size PDF.
+    Every `slugfont.exe` on the machine is waited out first, for at most `timeoutSeconds`, before the launch and
+    before its own timeout starts, and the slots awaiting their import are read after that wait, as the render
+    loop's attempt does. The export goes to a fresh temporary directory of this attempt's own, so a retry never
+    reads the file a failed attempt left behind, and that directory is removed as far as a virus scanner holding a
+    file in it allows (`Svg.WorkDirectory`). An empty export is a failed attempt, because a run of
+    2026-09-12 handed the caller a zero-size PDF. `outputPath` only names the export in that message.
     """
 
-    with tempfile.TemporaryDirectory(prefix="RadicalPieExport") as workDirectory:
-        sourcePath = Path(workDirectory) / "Equation.pie"
+    note = AwaitSlugFonts(timeoutSeconds)
+    awaiting = SlotsAwaitingImport(pieText)
+
+    with WorkDirectory("RadicalPieExport") as workDirectory:
+        sourcePath = workDirectory / "Equation.pie"
         sourcePath.write_bytes(pieText.encode("utf-8"))
+        exportPath = workDirectory / f"Export{extension}"
 
-        exportPath = Path(workDirectory) / f"Export{extension}"
-        DriveRadicalPie(sourcePath, exportPath, extension, timeoutSeconds)
+        try:
+            reported = DriveRadicalPie(sourcePath, exportPath, extension, timeoutSeconds, bool(awaiting))
+        except RenderError as error:
+            if not note:
+                raise
 
-        outputPath.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(exportPath), str(outputPath))
+            raise RenderError(f"{error}; {note}") from None
 
-    if outputPath.stat().st_size == 0:
-        raise RenderError(f"the exported {extension[1:].upper()} at {outputPath} is zero bytes")
+        exported = exportPath.read_bytes()
 
-    return outputPath
+    if not exported:
+        raise RenderError(f"the exported {extension[1:].upper()} for {outputPath} is zero bytes")
+
+    return Launched(exported, reported, awaiting, (note,) if note else ())
 
 
-def DriveRadicalPie(sourcePath: Path, exportPath: Path, extension: str, timeoutSeconds: float) -> None:
-    """Open `sourcePath`, save a copy to `exportPath`. The process never outlives this."""
+def DriveRadicalPie(
+    sourcePath: Path,
+    exportPath: Path,
+    extension: str,
+    timeoutSeconds: float,
+    awaitImport: bool = False,
+) -> bool:
+    """Open `sourcePath`, save a copy to `exportPath`, and say whether the watch closed a Font Import report.
+
+    The process never outlives this. `awaitImport` is the watch's (`FontImport.FontImportWatch`).
+    """
 
     deadline = time.monotonic() + timeoutSeconds
     process = Launch(sourcePath)
@@ -178,26 +249,60 @@ def DriveRadicalPie(sourcePath: Path, exportPath: Path, extension: str, timeoutS
         window = AwaitDocument(process, f"{sourcePath.name} - Radical Pie", deadline, timeoutSeconds)
 
         # A command that lands while the first layout is still running crashes Radical Pie 1.15 with an
-        # access violation (ARCHITECTURE.md, the render loop's settle). Save a Copy waits the same way.
+        # access violation (ARCHITECTURE.md, the render loop's settle), and one that lands while a font import
+        # runs crashes 1.16 the same way (Tools.Render.FontImport). Save a Copy waits for both.
+        watch = FontImportWatch(process.pid, awaitImport)
         time.sleep(LayoutSettleSeconds)
+        AwaitFontImport(process, window, watch, deadline, timeoutSeconds)
 
         win32gui.PostMessage(window, win32con.WM_COMMAND, SaveACopyCommand, 0)
 
-        dialog = AwaitDialog(process, window, deadline, timeoutSeconds)
+        dialog = AwaitDialog(process, window, watch, deadline, timeoutSeconds)
         edit = FindFileNameBox(dialog)
 
         CheckDialogIsLive(process, dialog)
         TypeFileName(edit, f'"{exportPath}"')
-        AwaitTypedName(process, window, edit, f'"{exportPath}"', deadline, timeoutSeconds)
+        AwaitTypedName(process, window, watch, edit, f'"{exportPath}"', deadline, timeoutSeconds)
 
         win32gui.PostMessage(win32gui.GetDlgItem(dialog, SaveButtonId), BM_CLICK, 0, 0)
 
-        AwaitExport(process, window, exportPath, extension, deadline, timeoutSeconds)
+        AwaitExport(process, window, watch, exportPath, extension, deadline, timeoutSeconds)
+
+        return watch.reported
     finally:
         Terminate(process)
 
 
-def AwaitDialog(process: subprocess.Popen, window: int, deadline: float, timeoutSeconds: float) -> int:
+def AwaitFontImport(
+    process: subprocess.Popen,
+    window: int,
+    watch: FontImportWatch,
+    deadline: float,
+    timeoutSeconds: float,
+) -> None:
+    """Wait until no font import runs and none can still start. The watch closes the report on the way."""
+
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            raise RenderError(f"Radical Pie exited with code {process.returncode} before the export began")
+
+        RaiseOnStrayWindow(process, window, watch)
+
+        if watch.Ready(TopLevelWindows(process.pid)):
+            return
+
+        time.sleep(PollSeconds)
+
+    raise RenderError(f"a font import was still running after {timeoutSeconds:g}s")
+
+
+def AwaitDialog(
+    process: subprocess.Popen,
+    window: int,
+    watch: FontImportWatch,
+    deadline: float,
+    timeoutSeconds: float,
+) -> int:
     """The Save a Copy dialog, once the posted menu command has opened it."""
 
     while time.monotonic() < deadline:
@@ -208,7 +313,7 @@ def AwaitDialog(process: subprocess.Popen, window: int, deadline: float, timeout
             if title == DialogTitle:
                 return handle
 
-        RaiseOnStrayWindow(process, window)
+        RaiseOnStrayWindow(process, window, watch)
         time.sleep(PollSeconds)
 
     raise RenderError(f"Radical Pie did not open the {DialogTitle} dialog within {timeoutSeconds:g}s")
@@ -262,6 +367,7 @@ def TypeFileName(edit: int, name: str) -> None:
 def AwaitTypedName(
     process: subprocess.Popen,
     window: int,
+    watch: FontImportWatch,
     edit: int,
     name: str,
     deadline: float,
@@ -280,7 +386,7 @@ def AwaitTypedName(
         if typed == name:
             return
 
-        RaiseOnStrayWindow(process, window)
+        RaiseOnStrayWindow(process, window, watch)
         time.sleep(PollSeconds)
 
     raise RenderError(f"the file name was still {typed!r} after {timeoutSeconds:g}s, expected {name!r}")
@@ -289,6 +395,7 @@ def AwaitTypedName(
 def AwaitExport(
     process: subprocess.Popen,
     window: int,
+    watch: FontImportWatch,
     exportPath: Path,
     extension: str,
     deadline: float,
@@ -300,7 +407,7 @@ def AwaitExport(
         if process.poll() is not None:
             raise RenderError(f"Radical Pie exited with code {process.returncode} before writing the export")
 
-        RaiseOnStrayWindow(process, window)
+        RaiseOnStrayWindow(process, window, watch)
 
         try:
             raw = exportPath.read_bytes()
@@ -328,16 +435,20 @@ def IsComplete(raw: bytes, extension: str) -> bool:
     return len(raw) >= 52 and raw[40:44] == b" EMF" and int.from_bytes(raw[48:52], "little") == len(raw)
 
 
-def RaiseOnStrayWindow(process: subprocess.Popen, window: int) -> None:
+def RaiseOnStrayWindow(process: subprocess.Popen, window: int, watch: FontImportWatch) -> None:
     """Turn any window that is neither the document nor the Save a Copy dialog into a RenderError.
 
     The one seen in practice is "Confirm Save As", the overwrite prompt, which the temporary export name
     keeps away; an unreadable equation raises its own message box before the document window ever appears,
-    where the render loop's own guard catches it.
+    where the render loop's own guard catches it. A Font Import window is the watch's to answer: progress is
+    left alone, and the report is closed and recorded.
     """
 
-    for handle, className, title in TopLevelWindows(process.pid):
-        if handle == window or title == DialogTitle:
+    windows = TopLevelWindows(process.pid)
+    watch.Ready(windows)
+
+    for handle, className, title in windows:
+        if handle == window or title in (DialogTitle, FontImportTitle):
             continue
 
         message = DialogText(handle)

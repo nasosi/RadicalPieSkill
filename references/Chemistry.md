@@ -224,6 +224,9 @@ Orthoxylene equation writes and which renders as a hexagon with every dashed lin
 2026-09-19 with `'prd1'` on both `'uppr'` bonds instead: the left-hand one drew its dashed line outside
 the ring.
 
+Every double bond kind draws two strokes of equal length. No bond kind draws a shortened inner stroke, so a
+request for one is answered with the equal-stroke bond, and the answer names the shortfall.
+
 Capitalising the first letter of a bond kind makes the bond long, `'Sing'` against `'sing'`. Reach for
 it when the drawing needs room: the site's Isopropyl Alcohol equation, line 11, uses three long
 bonds so the two methyl groups clear the hydroxyl, and the site's FDG equation uses long bonds and a

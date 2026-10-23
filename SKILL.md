@@ -1,6 +1,6 @@
 ---
 name: radical-pie
-description: Write, validate and emit Radical Pie equations, the OpenDDL `.pie` format the Radical Pie equation editor saves, including the SVG comment carrier that Radical Pie and InkRadix exchange and the mapping from LaTeX constructs to Radical Pie structures. Use this whenever the user mentions Radical Pie, a `.pie` file, InkRadix, or the Radical Pie Word or PowerPoint add-in, and whenever an equation has to reach Word, SVG, Inkscape or LaTeX through Radical Pie, including when the user only says "equation" or "formula" alongside any of those. Do not use it for plain LaTeX or MathML work that never touches Radical Pie.
+description: Write, validate and emit Radical Pie equations, the OpenDDL `.pie` format the Radical Pie equation editor saves, including the SVG comment carrier that Radical Pie passes equations through and the mapping from LaTeX constructs to Radical Pie structures. Use this whenever the user mentions Radical Pie, a `.pie` file, or the Radical Pie Word or PowerPoint add-in, and whenever an equation has to reach Word, SVG, Inkscape or LaTeX through Radical Pie, including when the user only says "equation" or "formula" alongside any of those. Do not use it for plain LaTeX or MathML work that never touches Radical Pie.
 ---
 
 # Radical Pie equations
@@ -71,9 +71,9 @@ annotation groups (`Gr (t='anno')`), and foreground drawing structures; only the
 ## Writing an equation
 
 1. Decide the mathematics first, in LaTeX or in words, and settle what each token is: variable,
-   number, operator, relation, function name, unit, text. Where the request leaves a placement open,
-   an arrow's end, the term a note points at, take the convention the references give, list every such
-   decision in the reply, and ask the caller only when the caller has said to ask.
+   number, operator, relation, function name, unit, text. Where the request leaves a placement open, an arrow's
+   end, the term a note points at, take the convention the references give, list every such decision in the reply,
+   and ask the caller only when told to or when a font is not found (`references/catalogue/Design.md`, `F`).
 2. Pick the structures with `references/LatexRecipes.md`, then read the catalogue family file of each one you
    have not used: it lists every property's type, default and allowed values, with a validated example.
 3. Write the file: the line `// Radical Pie Equation`, then `D {}`, then the main group, indented with tabs as
@@ -84,11 +84,11 @@ annotation groups (`Gr (t='anno')`), and foreground drawing structures; only the
    violation as `file:line:col path: message [section]`. The path is the route through the structure tree, such as
    `Gr/Fr/Gr(t='dnom')`, and the section names the specification part the rule comes from. Fix by the path, and read
    that structure's catalogue entry; `references/Pitfalls.md` covers the mistakes those messages report.
-5. Render it where Radical Pie is installed, `python scripts/Render.py pdf MyEquation.pie MyEquation.pdf`, a form you
-   can look at, and recheck the request clause by clause against the picture: each clause is visible or named as not
-   done and why, then emit in the document's form. Where the render is off, read the hints file of the domain it is
-   off in. Append one line to `RadicalPieFeedback.md` beside the output when the skill fell short, by the rules in
-   `references/Feedback.md`.
+5. Render it where Radical Pie is installed, `python scripts/Render.py png MyEquation.pie MyEquation.png`, open the
+   PNG (render `pdf` where Inkscape is missing), and recheck the request clause by clause against the picture: each
+   clause is visible or named as not done and why, then emit in the document's form. Where the render is off, read the
+   hints file of the domain it is off in. Append one line to `RadicalPieFeedback.md` beside the output when the skill
+   fell short, by the rules in `references/Feedback.md`.
 
 ## Roles and styles
 
@@ -138,7 +138,7 @@ and a capital Greek letter is upright, `st='grek'`. The bold pair is `st='bigk'`
 `references/OutputForms.md` gives every form in full, with the Word placeholder table and each pipeline's checks.
 
 - **A `.pie` file**, the default, handed over as it stands. **The SVG carrier**, either direction: `python scripts/WrapSvg.py Eq.pie Eq.svg`.
-- **A rendered SVG, PDF or EMF**, written by Radical Pie: `python scripts/Render.py pdf Eq.pie Eq.pdf`.
+- **A rendered SVG, PDF or EMF**, written by Radical Pie, or a PNG of the SVG: `python scripts/Render.py pdf Eq.pie Eq.pdf`.
 - **A Word document** of OLE objects: `python scripts/Word.py embed Draft.docx Out.docx eq=Eq.pie`. **A PowerPoint deck** of the same objects: `python scripts/PowerPoint.py embed Draft.pptx Out.pptx eq=Eq.pie`.
 - **A LaTeX document**, a `\pie{key}` each: `python scripts/Latex.py build Draft.tex Out/ eq=Eq.pie`.
 

@@ -1,11 +1,13 @@
-"""Every design parameter a `V` structure can name, with the range Radical Pie 1.15 gives it.
+"""Every design parameter a `V` structure can name, with the range Radical Pie gives it, and the switches.
 
-The specification's V section lists the domains and no parameter name at all, so this table is a
-measurement and not a reading. It was taken from the executable's own parameter tables and then held
-to the executable: each domain's names were written into one design, rendered through the render
-pipeline, and read back out of the comment Radical Pie saves. All 347 survived the round trip, a name
-the table does not hold is dropped from the design on save, and so is a name written in the wrong
-domain, which is why a misspelling is silent and the validator refuses one (2026-09-13).
+The 1.15 specification's V section listed the domains and no parameter name at all, so this table is a
+measurement and not a reading; the 1.16 specification prints the names of the common domain, domain 0, and
+Tests/PieFormat/ValidatorMutationTest.py holds the table's domain 0 and switches to that list. It was taken
+from the executable's own parameter tables and then held to the executable: each domain's names were written
+into one design, rendered through the render pipeline, and read back out of the comment Radical Pie saves.
+All 347 of 1.15 survived the round trip, a name the table does not hold is dropped from the design on save,
+and so is a name written in the wrong domain, which is why a misspelling is silent and the validator refuses
+one (2026-09-13).
 
 The bounds are the ones the Equation Design and Drawing Design dialogs enforce. Radical Pie does not
 enforce them on a file: `V (d='intg',n='slnt') {f{90.0}}`, against a maximum of 20, rendered an SVG
@@ -25,7 +27,14 @@ and `rgt0` to `rgt4`, one per rail on each side of the equation. Written under `
 domain codes the specification lists and on domain 0. So a `.pie` file cannot move an anchor or a rail:
 those two categories are the editor's alone, and the positions AnchorAtlas.md measures are the factory
 ones for every file. That leaves 348 records, and `'symb'` spends two of them on the name `'elsp'` at
-two different settings, so the 374 the dialogs offer reach a file as these 347 names.
+two different settings, so the 374 the dialogs offer reach a file as 347 names.
+
+Radical Pie 1.16 adds one, `'escl'` in domain 0, the External font scale of the Common pane, which scales
+the surrounding text's size into the size a new equation embedded in Word or PowerPoint starts at. Its record
+in the released RadicalPie.exe 1.16.0, at file offset 0x1cadb8 between `'fsiz'` and `'axis'`, gives the
+range 0.5 to 2.0. Measured 2026-10-16: `V (n='escl') {f{1.2}}` is kept on save and changes nothing in the
+render, `f{1.0}`, the factory value, is dropped, 0.0, -1.0, 0.4, 2.5 and 1000.0 are kept unclamped, and an
+`i32`, `double`, string or bool value and the name under `'symb'` are dropped. That makes 348 names.
 
 The suffixes 0 and 1 on a pair of names are the two sizes a structure is set at and not two sides of
 it. Measured 2026-09-13: `V (d='symb',n='osp0') {f{12.0}}` widened the space on both sides of a top
@@ -36,6 +45,7 @@ the reverse.
 Domains = {
     0: {
         "fsiz": (1.0, 1000.0),
+        "escl": (0.5, 2.0),
         "axis": (0.0, 1.0),
         "cptl": (0.0, 2.0),
         "slnt": (0.0, 45.0),
@@ -426,3 +436,9 @@ Domains = {
         "aspy": (0.0, 4.0),
     },
 }
+
+# The design switches, which take a bool where every parameter above takes a number. Radical Pie 1.16 adds
+# one, `'seps'` in domain 0, "Use separate styles for general text": `V (n='seps') {b{true}}` sends every
+# symbol in the 'text' role to the four text maps, the editor writes it only when it is on, and it drops
+# `b{false}` and `f{1.0}` on save (measured 2026-10-08, Skill/radical-pie-workspace/beta-1.16/Findings.md B3).
+Switches = {0: ("seps",)}

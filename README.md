@@ -1,10 +1,11 @@
 # Radical Pie skill
 
 A skill for an LLM harness that writes, validates and emits [Radical Pie](https://radicalpie.com) equations in the editor's own `.pie` format. It
-covers the format's OpenDDL structure and roles, the SVG comment carrier Radical Pie and InkRadix pass equations through, and the recipes that
+covers the format's OpenDDL structure and roles, the SVG comment carrier Radical Pie passes equations through, and the recipes that
 turn a LaTeX construct into the Radical Pie structure it becomes.
 
-Version 1.2.0. Checked against Radical Pie 1.15 on Windows.
+Version 1.3.1. Checked against Radical Pie 1.16 on Windows. This version of the skill needs Radical Pie 1.16: the designs and
+symbols it writes use the font names, the text styles and the characters 1.16 added.
 
 ## What you need
 
@@ -52,9 +53,12 @@ ends every program it starts, on success and on failure.
 
 ## What the pipelines need
 
-- Windows, and Radical Pie 1.15 at `C:\Program Files\RadicalPie\RadicalPie.exe`. Every pipeline drives it, and the path is fixed in
-  `scripts/Tools/Render/Svg.py`: an installation anywhere else means editing that line. Without the program the validator and the SVG carrier still
+- Windows, and Radical Pie 1.16 at `C:\Program Files\RadicalPie\RadicalPie.exe`. Every pipeline drives it, and the install folder is fixed
+  in one line, `RadicalPieDirectory` in `scripts/Tools/PieFormat/Fonts.py`, which gives the render pipeline the executable and the font check the
+  fonts Radical Pie ships: an installation anywhere else means editing that line. Without the program the validator and the SVG carrier still
   work and nothing else does.
+- Inkscape 1.x, optional, for `Render.py png`, the PNG an agent looks at: at `C:\Program Files\Inkscape\bin\inkscape.exe`, the line
+  `InkscapeExecutable` in `scripts/Tools/Render/Png.py`, or as `inkscape.exe` on the PATH. The SVG, PDF and EMF forms work without it.
 - Word with the Radical Pie add-in, for a Word document. PowerPoint with the add-in, for a deck.
 - MiKTeX with `pdflatex` on the PATH, for a LaTeX document; `lualatex` as well for `--engine lualatex`.
 - The Python packages in `requirements.txt`: pywin32, python-docx, lxml and olefile.

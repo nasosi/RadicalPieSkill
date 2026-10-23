@@ -54,4 +54,5 @@ model it.
   which `references/OutputForms.md` gives in full beside the Word pipeline.
 - **Update Design and Update Font Size**, the two commands that apply the current default design, or the
   surrounding text's font size, to every equation in a Word selection, and generate alternative text for
-  them. Restyling a document is that selection and those buttons, not a rewrite of the embedded files.
+  them. Update Design keeps each equation's base font size, so a document whose text sizes changed takes
+  Update Font Size as well. Restyling a document is that selection and those buttons, not a rewrite of the embedded files.

@@ -11,6 +11,11 @@ for a tall equation prints a line of its own after those, `opened slide <n>, the
 and what was set. What the run did to a text shape itself prints last, `shape slide <n>, the shape <name>:`
 and what it did, which is turning autofit off and leaving the shape out of a group.
 
+An equation Radical Pie drew with a font slot in Times, because its design names a font Radical Pie cannot
+find, is embedded and its lines printed all the same, and each such slot adds one line on stderr, `warning:
+the equation <key> on slide <n>: F <slot> <data list>: Radical Pie drew it in Times; the closest installed
+names are ...`; the deck is written and `embed` exits 3 (`Tools.PieFormat.Fonts.FallbackExitCode`, ADR-0015).
+
 `python -m Tools.PowerPoint check <deck.pptx>` reads a finished deck with no COM and prints one line per
 Radical Pie object, `slide <n> <name> <width> by <height> pt <state>`, where the state is `drawn`, `blank`
 for an empty equation, whose picture is the blank one by right, or `collapsed`. One collapsed object exits 1.
@@ -31,6 +36,7 @@ import sys
 from pathlib import Path
 
 from Tools.OutputPaths import SameFileRefusal
+from Tools.PieFormat.Fonts import FallbackExitCode
 from Tools.PieFormat.Validator import RefusalMessage
 from Tools.PowerPoint.Pptx import CheckDeck, CollapsedState, EmbedEquations, PowerPointError
 
@@ -91,7 +97,16 @@ def Embed(arguments: list, program: str) -> int:
         for note in equation.shapeNotes:
             print(f"shape {note}")
 
-    return 0
+    warnings = [
+        f"the equation {equation.key} on slide {equation.slideNumber}: {line}"
+        for equation in embedded
+        for line in equation.fontWarnings
+    ]
+
+    for warning in warnings:
+        print(f"warning: {warning}", file=sys.stderr)
+
+    return FallbackExitCode if warnings else 0
 
 
 def Check(arguments: list, program: str) -> int:

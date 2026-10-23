@@ -36,21 +36,21 @@ as a variable.
 
 ## 2. A number and a fraction, with a saved design
 
-`25\frac{x}{2}`, the file Radical Pie itself wrote for it.
+`25\frac{x}{2}`, the file Radical Pie 1.15 wrote for it, its fonts renamed to the names 1.16 resolves.
 
 ```pie
 // Radical Pie Equation
 
 D
 {
-	F (i=8) {s{"NewCM10-Book"}}
-	F (i=9) {s{"NewCM10-BookItalic"}}
-	F (i=10) {s{"NewCM10-Bold"}}
-	F (i=11) {s{"NewCM10-BoldItalic"}}
-	F (i=12) {s{"NewCMMath-RadicalPieGreek-Book"}}
-	F (i=13) {s{"NewCMMath-RadicalPieGreek-Bold"}}
-	F (i=14) {s{"NewCMMath-Book"}}
-	F (i=15) {s{"NewCMMath-Bold"}}
+	F (i=8) {s{"New Computer Modern 10 Book"}}
+	F (i=9) {s{"New Computer Modern 10 Book Italic"}}
+	F (i=10) {s{"New Computer Modern 10 Bold"}}
+	F (i=11) {s{"New Computer Modern 10 Bold Italic"}}
+	F (i=12) {s{"New Computer Modern Math Radical Pie Greek Book"}}
+	F (i=13) {s{"New Computer Modern Math Radical Pie Greek Bold"}}
+	F (i=14) {s{"New Computer Modern Math Book"}}
+	F (i=15) {s{"New Computer Modern Math Bold"}}
 	M (t='uprt') {u8{8,0,1,7}}
 	M (t='ital') {u8{9,0,2,7}}
 	M (t='bold') {u8{10,0,3,7}}
@@ -95,10 +95,12 @@ Gr
 }
 ```
 
-This is what Radical Pie saves when the document carries a design: eight fonts, a style map for each of
-the 21 styles, the sixteen palette colours and the font size. A generated equation writes `D {}`
-instead and inherits the design of whatever opens it. Note `25` as one `Sb` with `ro='nmbr'`: adjacent
-characters that share a role and a style belong in one symbol.
+This is what Radical Pie saves when the document carries a design: eight fonts, a style map for 21 of
+the styles, the sixteen palette colours and the font size. 1.15 named each font by its file
+name without the extension, which 1.16 resolves too and saves as the font's full name, so the names here
+are the full names.
+A generated equation writes `D {}` instead and renders at the factory design. Note `25` as one `Sb` with
+`ro='nmbr'`: adjacent characters that share a role and a style belong in one symbol.
 
 ## 3. A binomial coefficient
 
@@ -3326,14 +3328,16 @@ Gr
 }
 ```
 
-`F (i=1)` names the font by its family name and the four `M` structures point the upright, italic, bold and
-bold italic styles at it; a style the design does not name keeps the font the factory design gives it, so
-the Greek, the symbols and the big operators still come from Radical Pie's own faces. Naming one index in a
-map is enough, because Radical Pie fills the three fallback slots from the factory design when it reads the
-file. `V (n='fsiz') {f{12.0}}` sets the body size in points, against a factory default of 11, and the `P`
-replaces all sixteen palette colours at once, which is what lets `pi=6` mean this document's blue. Hand a
-design over as a block like this one and copy it into every equation the document holds; nothing outside
-the file carries it, and an equation with an empty `D {}` renders at the factory design instead.
+`F (i=1)` names the font by its full name, which for Cambria is the family name too, and the four `M`
+structures point the upright, italic, bold and bold italic styles at it; a style the design does not name
+keeps the font the factory design gives it, so the Greek, the symbols and the big operators still come from
+Radical Pie's own faces. Each map names Cambria alone, and a map draws from no font it does not list, so a
+character Cambria lacks in those four styles draws the missing-glyph box; add fallbacks to the maps when
+the text holds one. `V (n='fsiz') {f{12.0}}` sets the body size in points, against a factory default of
+11, and the `P` replaces all sixteen palette colours at once, which is what lets `pi=6` mean this
+document's blue. Hand a design over as a block like this one and copy it into every equation the document
+holds; nothing outside the file carries it, and an equation with an empty `D {}` renders at the factory
+design instead.
 
 ## 36. A worked long division
 

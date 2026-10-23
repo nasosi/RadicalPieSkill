@@ -6,6 +6,11 @@ equation, writes `radicalpie.sty`, copies the document and compiles it with pdfl
 lualatex` compiles with lualatex as well, over the same pictures. The reason it failed goes to stderr with
 exit code 1.
 
+An equation Radical Pie drew with a font slot in Times, because its design names a font Radical Pie cannot
+find, is built in all the same, and each such slot adds one line on stderr, `warning: the equation <key>: F
+<slot> <data list>: Radical Pie drew it in Times; the closest installed names are ...`; the documents are
+compiled and the build exits 3 (`Tools.PieFormat.Fonts.FallbackExitCode`, ADR-0015).
+
 Every equation is validated before anything is started, and a key given twice is refused rather than
 resolved to the last file: both are mistakes the build used to carry into a document.
 
@@ -22,6 +27,7 @@ from pathlib import Path
 
 from Tools.Latex.Build import BuildDocument, DocumentName, ImageDirectoryName, LatexError, StyleFileName
 from Tools.OutputPaths import SameFileRefusal
+from Tools.PieFormat.Fonts import FallbackExitCode
 from Tools.PieFormat.Validator import RefusalMessage
 from Tools.Render.Svg import RenderError
 
@@ -121,7 +127,14 @@ def Main(arguments: list, program: str = ModuleProgram) -> int:
     for engine in engines:
         print(result.outputs[engine])
 
-    return 0
+    warnings = [
+        f"the equation {equation.key}: {line}" for equation in result.equations for line in equation.fontWarnings
+    ]
+
+    for warning in warnings:
+        print(f"warning: {warning}", file=sys.stderr)
+
+    return FallbackExitCode if warnings else 0
 
 
 if __name__ == "__main__":

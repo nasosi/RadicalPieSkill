@@ -19,7 +19,7 @@ No properties.
 | --- | --- | --- |
 | `V` | any | One design parameter. |
 | `F` | 0 to 15 | One font. |
-| `M` | 0 to 22 | One style mapping. |
+| `M` | 0 to 26 | One style mapping. |
 | `P` | 0 or 1 | The palette. |
 
 A document carries one design by carrying the same `D` block in every equation of it. Settle the block
@@ -56,26 +56,126 @@ installed fonts at indexes 8 to 15, an `M` for each of the 21 styles it uses, a 
 assembling one from parts, because its maps mix the font indexes the design names with low indexes no `F`
 in the file names, and which font such a slot resolves to is not readable from the file.
 
+### Matching text and math fonts
+
+A document whose sentences hold symbols, a theorem statement or a definition, reads best with the words in
+a text face and the letters in a math face, as LaTeX sets them. The design below does that with Cambria:
+`V (n='seps') {b{true}}` turns the text styles on, the four math styles and the four Greek ones point at
+Cambria Math, which draws the mathematical italic and bold alphabets for plain letters, and the four text
+styles point at the four faces of Cambria. Each map lists its own fallbacks, the Radical font behind the
+math font and the Radical font and Cambria Math behind each text face, because a map draws from no font
+it does not list. Another family goes in by its math font and its four faces under the names
+`python scripts/Fonts.py find` prints: for STIX, `"STIX Two Math Regular"` with `"STIX Two Text Regular"`,
+`"STIX Two Text Italic"`, `"STIX Two Text Bold"` and `"STIX Two Text Bold Italic"`.
+
+```pie
+// Radical Pie Equation
+
+D
+{
+	F (i=9) {s{"Cambria Math"}}
+	F (i=10) {s{"Cambria"}}
+	F (i=11) {s{"Cambria Italic"}}
+	F (i=12) {s{"Cambria Bold"}}
+	F (i=13) {s{"Cambria Bold Italic"}}
+	M (t='uprt') {u8{9,0}}
+	M (t='ital') {u8{9,0}}
+	M (t='bold') {u8{9,0}}
+	M (t='bitl') {u8{9,0}}
+	M (t='grek') {u8{9,0}}
+	M (t='itgk') {u8{9,0}}
+	M (t='bdgk') {u8{9,0}}
+	M (t='bigk') {u8{9,0}}
+	M (t='uprx') {u8{10,0,9}}
+	M (t='itax') {u8{11,0,9}}
+	M (t='bolx') {u8{12,0,9}}
+	M (t='bitx') {u8{13,0,9}}
+	V (n='seps') {b{true}}
+}
+Gr
+{
+	Bg {}
+	Sb (ro='text',st='bold') {s{"Lemma."}}
+	Sb (ro='text') {s{" For every real "}}
+	Sb {s{"x"}}
+	Sb (ro='pnct') {s{","}}
+	Sb {s{"x"}}
+	Sc
+	{
+		Gr (t='sups')
+		{
+			Bg {}
+			Sb (ro='nmbr') {s{"2"}}
+		}
+	}
+	Sb (ro='rltn') {s{"≥"}}
+	Sb (ro='nmbr') {s{"0"}}
+	Sb (st='uprt') {s{"."}}
+}
+```
+
 ## F — font
 
-One font of a design, named by the index the style maps refer to. The specification gives `F` no
-substructures; one of the operator's fixtures writes the font name as a string data list inside it,
-and the validator takes one data list, a string name or the registry number Radical Pie writes back,
-and refuses an empty one.
+One font of a design, in the slot the style maps refer to by its index. Radical Pie 1.16 reads one data
+list inside it: a string naming the font, an `int16` naming a font it knows by number, or the `uint8`
+numbers Radical Pie 1.15 wrote. Any other type, and an `F` with no data list, raises the invalid-data
+dialog, and of two data lists the first wins (measured 2026-10-08). The validator refuses an empty one.
 
-Name a font by its family name in a string, `F (i=1) {s{"Cambria"}}`. Radical Pie looks the name up in its
-own font registry, imports the font from the machine if it has to, and writes the registry's number back
-in place of the name when it saves: the line above came back as `F (i=1) {u8{16}}`, and Arial came back as
-6. The documentation's own fixtures carry that numeric form, `F (i=15) {u8{42}}`, which means a different
-font on every machine, so write the name and keep the named file as the source.
+Name a font in a string by its full name, name ID 4 of the font file's `name` table, in any case:
+`F (i=1) {s{"New Computer Modern 10 Book"}}`. The stem of a `.ttf` or `.otf` font file, the file name
+without its extension, resolves as well, and Radical Pie writes it back as the font's full name:
+`F (i=1) {s{"NewCM10-Book"}}` comes back as `s{"New Computer Modern 10 Book"}` and `s{"arialbd"}` as
+`i16{8}`, Arial Bold. Write the full name, which every machine with the font resolves whatever its file
+is called. Measured 2026-10-16 on Radical Pie 1.16.0: the file name with its extension,
+`"NewCM10-Book.ttf"`, and the stem of a font collection, `"msgothic"` for `msgothic.ttc`, do not resolve.
+A family name resolves only where it is the full name as well, as `"Cambria"`, `"Georgia"`, `"Arial"`
+and `"Consolas"` are: `"Lato Regular"`, `"STIX Two Text Regular"` and `"Montserrat Thin"` resolved, while
+`"Lato"`, `"STIX Two Text"`, `"STIX Two Math"` and `"New Computer Modern 10"` did not (2026-10-08).
 
-A name the registry cannot answer is dropped from the design in silence, with no dialog and no error, and
-every style mapped to that index falls back to the font it had. Measured 2026-09-13: "Cambria", "Arial",
-"Georgia" and "Calibri" each changed the glyphs, while "Consolas", "Times New Roman", "STIX Two Text" and
-"Cambria Math" rendered exactly as an empty design did. Render an equation once after naming a font and
-compare it against the same equation with `D {}`; if nothing moved, the name did not resolve.
+A name that does not resolve draws in Times New Roman, and Radical Pie writes the slot back as
+`i16{2}`, Times by number. The name is gone from every file the editor has saved, so the slot stays
+Times from then on, on every machine, until the design is written again with a name that resolves.
+The fallback is upright Times New Roman in every style: an italic map whose font does not resolve draws
+upright letters, the same outlines as `i16{2}` and not those of `i16{3}`, Times New Roman Italic
+(measured 2026-10-21 on Radical Pie 1.16.0).
 
-Index 0 is the built-in Radical font, over 1400 mathematical and scientific symbols cut to the metrics
+Radical Pie knows 84 fonts by number, 0 to 83, and writes a known font back as `i16` and its number in
+place of the name it was given: 2 Times New Roman, 6 Arial, 21 Cambria, 25 Cambria Math, 48 STIX Two
+Math, 49 STIX Two Text. The specification's `F` entry and the tooling behind `scripts/Fonts.py` hold the
+whole list. Any other font is written back under its full name. `F (i=1) {i16{-1}}` empties the slot, and so does a number
+past 83; every map that named the slot is rewritten without it. `i16{0}` puts the Radical font in the
+slot, which draws every letter as the missing-glyph box. A `uint8` is read in the numbering of Radical
+Pie 1.15 and written back as its 1.16 number: `u8{16}`, Cambria in 1.15, comes back as `i16{25}`,
+Cambria Math, and draws the same glyphs.
+
+Two commands find the string to write and check a design, run from this skill folder:
+
+```
+python scripts/Fonts.py find <words>
+python scripts/Fonts.py check Eq.pie
+```
+
+`find` lists the installed fonts whose names hold the words, each with the full name to write in the `F`,
+the file stem that resolves to it where the two differ, and whether Radical Pie has imported it yet. `check` says for each slot of the file's design whether
+it resolves, still needs importing, or will fall back to Times, and exits non-zero when a slot will fall
+back.
+
+When `check` reports a slot that will not draw in its font, or a pipeline warns that Radical Pie drew a
+slot in Times, ask the user before delivering: say which font was not found, offer the closest names
+`Fonts.py` printed, and ask whether to use one of them, name another font, or keep Times. Do not choose
+for the user, and hand over nothing drawn in Times until the user has answered.
+
+Radical Pie imports a font the first time an equation names it, building the font's glyph cache in a
+second process; the render pipelines wait for that import and then take the render from a second launch
+of Radical Pie, so the first output with a new font takes the import's time and one more launch. Opened in
+the editor instead, an equation that names a font not yet imported is drawn in Times and saved with
+`i16{2}` (measured 2026-10-08: the SVG was saved 0.35 s before the cache file was written).
+
+Symbol, MT Extra, Webdings and Wingdings 1 to 3, fonts older than Unicode, draw their glyphs at the
+Unicode code points of what the glyphs show, `"Wingdings"` its scissors at U+2702 (measured 2026-10-08),
+and the release notes say the same of the Euclid and Mathematica fonts.
+
+Index 0 is the built-in Radical font, about 1500 mathematical and scientific symbols cut to the metrics
 of Times and STIX, with no letters, no digits and no everyday sign such as the percent or the ampersand.
 No design replaces it: `F (i=0)` is dropped on save, and the validator refuses it.
 
@@ -98,14 +198,29 @@ each drew the missing glyph box under the Radical font and under the factory des
 asteroid symbol before relying on it, and draw a chemical equation arrow with `Ar` or write it as a
 bond character instead.
 
-The private use area U+EE00..U+EE65 is where the font keeps what Unicode has no code point for, in six
-families: eight radius symbols at U+EE00, mirrored and inverted geometric shapes at U+EE08 and U+EE52,
-twenty-four set relations at U+EE10, the twelve chemical bonds at U+EE30 that the `Sb` entry of
-`references/catalogue/Symbols.md` teaches, arrows at U+EE40 and U+EE56, and two spaces, U+EE50 a double em
-of exactly 36 math units and U+EE51 a thick space of 5 math units, which rendered 22 and 3.0556 pt wide at
-11 pt with no path at all. The 1.14 arrows are U+EE4E, U+EE4F and U+EE5A to U+EE65, and the card suits
+The private use area U+EE00..U+EE77 is where the font keeps what Unicode has no code point for: eight
+radius symbols at U+EE00, mirrored and inverted geometric shapes at U+EE08 and U+EE52, twenty-four set
+relations at U+EE10, the operators U+EE28 and U+EE29, an and and an or with a circle inside, and U+EE2A,
+the complete shuffle product beside Unicode's shuffle product U+29E2, the relation U+EE2B, a double
+nested greater-than with an underbar, the twelve chemical bonds at U+EE30 that the `Sb` entry of
+`references/catalogue/Symbols.md` teaches, arrows at U+EE40 and U+EE56, two spaces, U+EE50 a double em of
+exactly 36 math units and U+EE51 a thick space of 5 math units, which rendered 22 and 3.0556 pt wide at
+11 pt with no path at all, and the combining marks U+EE70 to U+EE77, which belong in an `Mk`. The four
+characters U+EE28 to U+EE2B and the marks are new in 1.16, and each drew under the factory design and
+under the Radical font alone (measured 2026-10-08). The 1.14 arrows are U+EE4E, U+EE4F and U+EE5A to
+U+EE65, and the card suits
 U+2660..2667 and musical notes U+2669..266C of the same release sit inside U+2600..26FF, which font 0
 covers, so all of them draw with no design font.
+
+Radical Pie 1.16 adds eighteen symbols at their Unicode code points besides those four: U+2215 division
+slash, U+226C between, U+22B9 Hermitian conjugate matrix and U+22BA intercalate; U+29C9 two joined
+squares, U+29CE right triangle above left triangle, U+29CF left triangle beside vertical bar, U+29D0
+vertical bar beside right triangle, U+29E2 shuffle product, U+29E3 equals sign and slanted parallel,
+U+29E4 the same with a tilde above and U+29E5 identical to and slanted parallel; U+2AA3 double nested
+less-than with underbar, U+2ACD and U+2ACE the square left and right open box operators; and U+2BBA,
+U+2BBB and U+2BBC, two overlapping squares white, white and black, and black. The Radical Font page of
+1.15 left each of these cells empty, and each drew under the Radical font alone on Radical Pie 1.16.0
+(measured 2026-10-16), so all of them draw with no design font.
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -128,37 +243,55 @@ Gr
 
 ## M — map
 
-Maps one symbol style to the fonts that draw it. A design carries at most one `M` per style, one for each
-of the 22 styles listed under `Sb` in `references/catalogue/Symbols.md`, and Radical Pie 1.15 keeps 21 of
-them: a design carrying all 22 comes back from a save with `M (t='grek')` gone and the other 21 intact,
-which is the specification's maximum of 21 (measured 2026-09-14). Greek upright therefore cannot be
-remapped by a file the editor has re-saved.
+Maps one symbol style to the fonts that draw it. A design carries at most one `M` per style, and Radical
+Pie 1.16 has 26 styles: the 22 listed under `Sb` in `references/catalogue/Symbols.md` and four text
+styles that no `Sb` names, `'uprx'` text upright, `'itax'` text italic, `'bolx'` text bold and `'bitx'`
+text bold italic. A design carrying all 26 comes back from a save with all 26, and the Greek upright map
+takes effect like the others (measured 2026-10-08).
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |
-| `t` | uint32 | required | The style, one of the style values listed under `Sb` in `references/catalogue/Symbols.md`. |
+| `t` | uint32 | required | The style, one of the style values listed under `Sb` in `references/catalogue/Symbols.md` or one of the four text styles. |
 
 One `uint8` data list of one to four font indexes. The first is the primary font of the style and the rest
 are its fallbacks, tried in order for a character the primary does not hold. An index of 255 means no font
-in that slot; 255 in the first slot crashes Radical Pie with an access violation, and so does a first
-index naming a slot no font fills, the factory design filling 0 to 8. The validator refuses both.
+in that slot. A first index naming a slot of 1 to 15 that no font fills, the factory design filling 0 to 8,
+is rewritten to `u8{0}`, the Radical font alone, which draws every letter as the missing-glyph box. A first
+index of 20 or 255 crashes Radical Pie with an access violation, and 16 to 19 are unmeasured. The validator
+refuses a first index that names no filled slot.
 
-A map that names fewer than four indexes keeps the factory design's own fallbacks in the slots it leaves
-out: `M (t='uprt') {u8{1}}` came back from a save as `u8{1,1,7,5}` and `M (t='doub') {u8{1}}` as
-`u8{1,255,255,255}` (measured 2026-09-13). Naming one index is enough to move a style to another font and
-keep its fallbacks.
+A map draws from the fonts it lists and from no other. `M (t='uprt') {u8{9}}` draws a character font 9
+lacks as the missing-glyph box, exactly as `u8{9,255,255,255}` does, and comes back from a save as
+`u8{9}` (measured 2026-10-08). List every fallback the style needs, the Radical font `0` among them for
+the mathematical signs, as the maps Radical Pie writes do.
 
 One of the operator's fixtures carries a map for every style it uses, `M (t='ital') {u8{9,0,2,7}}` pointing the
 italic style at the font it names at index 9, and `M (t='scpt') {u8{14,6,255,255}}` filling only two
 slots. Take the maps of a design across together with its `F` structures; a map on its own names an
 index that means nothing in another file.
 
+The text styles take effect only under the switch `V (n='seps') {b{true}}`, a bool in the common domain.
+With it set, an upright, italic, bold or bold italic symbol in the `'text'` role draws from `'uprx'`,
+`'itax'`, `'bolx'` or `'bitx'`, and every other role keeps the math maps; without it, every role takes
+the math maps and the text maps are ignored (measured 2026-10-08). Radical Pie writes the switch only
+when it is on, and its Font Manager writes the four text maps either way. Matching text and math fonts,
+under `D` above, is a design that uses it.
+
+A math font, one holding the Mathematical Alphanumeric Symbols U+1D400..1D7FF such as Cambria Math,
+STIX Two Math, Noto Sans Math or New Computer Modern Math, changes what some styles draw. Mapped to math
+italic, bold, bold italic, Greek italic, Greek bold, Greek bold italic or monospace, it draws each plain
+letter the file writes in its mathematical form, an italic `x` as U+1D465 and an italic `h` as U+210E,
+the Planck constant, so the file keeps writing plain letters. Upright and Greek upright draw the plain
+glyphs. The text styles `'itax'` and `'bolx'` substitute as well (measured 2026-10-08), so a text map
+points at a text font. A font Radical Pie 1.15 imported does not substitute until it is imported again,
+which deleting its `.slug` file under `%LOCALAPPDATA%\RadicalPie` brings about on its next use.
+
 ```pie
 // Radical Pie Equation
 
 D
 {
-	F (i=14) {s{"NewCMMath-Book"}}
+	F (i=14) {s{"New Computer Modern Math Book"}}
 	M (t='doub') {u8{14,6,255,255}}
 }
 Gr
@@ -212,19 +345,21 @@ so the file wins.
 | `d` | uint32 | 0 | The domain. |
 | `n` | uint32 | required | The parameter name, a four-character literal. |
 
-The specification gives `V` no substructures; one of the operator's fixtures writes the parameter
-value as a float data list inside it, and the validator takes one data list holding one number and
-refuses an empty list or a value that is not a number.
+The value is one data list holding one value inside the `V`: a float, `f{12.0}`, for every parameter,
+and a bool for the switch `'seps'`. An integer or double data list is dropped like a misspelt name:
+`V (n='fsiz') {i32{24}}` rendered at the factory 11 pt (measured 2026-10-16). The validator refuses an
+empty list and a value of the wrong type.
 
-The specification prints no parameter name at all. Radical Pie holds 347 of them, and the validator holds
-the same table with the range each one is given, so run a name past the validator rather than guessing at
-it: a name the domain does not hold, and a name written in the right spelling but the wrong domain, are
-dropped from the design Radical Pie saves without a dialog and without an error, and the equation renders
-as though the line had never been written. A value outside the parameter's range is not clamped either;
-`V (d='intg',n='slnt') {f{90.0}}`, against a maximum of 20, rendered an SVG whose width was `INF`. The
-count per domain: 13 common, 11 `'symb'`, 13 `'mark'`, 36 `'brck'`, 13 `'scpt'`, 20 `'frac'`, 19 `'rdcl'`,
-8 `'divs'`, 36 `'wide'`, 8 `'stck'`, 5 `'boxx'`, 5 `'strk'`, 17 `'arrw'`, 19 `'chrm'`, 13 `'iter'`,
-29 `'intg'`, 7 `'mtrx'`, 27 `'line'`, 15 `'jost'`, 3 `'shap'`, 6 `'anno'` and 24 `'bond'`.
+The specification prints the names of the common domain only, `0`. Radical Pie holds 348 names across
+the domains, and the validator holds the same table with the range each one is given, so run a name past
+the validator rather than guessing at it: a name the domain does not hold, and a name written in the right
+spelling but the wrong domain, are dropped from the design Radical Pie saves without a dialog and without
+an error, and the equation renders as though the line had never been written. A value outside the
+parameter's range is not clamped either; `V (d='intg',n='slnt') {f{90.0}}`, against a maximum of 20,
+rendered an SVG whose width was `INF`. The count per domain: 14 common, 11 `'symb'`, 13 `'mark'`, 36
+`'brck'`, 13 `'scpt'`, 20 `'frac'`, 19 `'rdcl'`, 8 `'divs'`, 36 `'wide'`, 8 `'stck'`, 5 `'boxx'`, 5
+`'strk'`, 17 `'arrw'`, 19 `'chrm'`, 13 `'iter'`, 29 `'intg'`, 7 `'mtrx'`, 27 `'line'`, 15 `'jost'`, 3
+`'shap'`, 6 `'anno'` and 24 `'bond'`.
 
 Units follow the parameter. A bound of 1000 is points, and only `'fsiz'` has it; a bound of 45 or 75 is
 degrees; a bound of 18 counts math units, an eighteenth of an em each, an em being the font size; the rest
@@ -248,6 +383,7 @@ The parameters worth reaching for by name, each measured or written by Radical P
 | Domain | Name | Range | What it changes |
 | --- | --- | --- | --- |
 | `0` | `'fsiz'` | 1 to 1000 | The base font size in points. The factory value is 11. |
+| `0` | `'escl'` | 0.5 to 2 | The External font scale: a new equation embedded in Word or PowerPoint starts at the surrounding text's size times this, to match a document font of another height. The factory value is 1, and the render is unchanged. |
 | `0` | `'slnt'` | 0 to 45 | The italic slant angle in degrees. |
 | `0` | `'axis'` | 0 to 1 | The math axis height, the line a minus sign and a fraction rule sit on. |
 | `0` | `'cptl'` | 0 to 2 | The capital height. |

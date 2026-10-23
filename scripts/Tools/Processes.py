@@ -23,10 +23,24 @@ launch routes the tooling uses accept the assignment by pid, `OpenProcess` with
 `RadicalPie.Application.1`, which is the editor an activation opens, and the `POWERPNT.EXE` and `WINWORD.EXE`
 that `DispatchEx` starts. Only a pid a pipeline registers as its own is assigned, so the Radical Pie of
 another agent and the Word the operator is typing in are never touched.
+
+The job also carries `JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK`, so a child a registered process starts does not
+join it. The child that matters is the `slugfont.exe` Radical Pie 1.16 starts to import a font: in the job, a
+killed interpreter ended it mid-build and left a 0-byte slug that crashes every later editor naming the font.
+Measured 2026-10-08: with the flag, an interpreter killed while `msjh.slug` stood at 0 bytes took its Radical
+Pie within 0.03 s and the `slugfont.exe` finished the 40 MB slug 12.7 s later; Word, PowerPoint and the editor
+of a Word activation, each assigned by pid, still went within 0.03 s of the kill.
+
+`ChildPids` reads one process snapshot for the children of a given image under one parent, which is how the
+pipelines see the `slugfont.exe` a Radical Pie 1.16 starts to import a font (`Tools.Render.FontImport`), and
+`ImagePids` reads the processes of an image whatever their parent, which is how a pipeline waits out every
+`slugfont.exe` on the machine before it launches a Radical Pie.
 """
 
+import ctypes
 import threading
 import time
+from ctypes import wintypes
 
 import pywintypes
 import win32api
@@ -68,7 +82,9 @@ def Adopt(pid: int) -> None:
     if Job is None:
         Job = win32job.CreateJobObject(None, "")
         limits = win32job.QueryInformationJobObject(Job, win32job.JobObjectExtendedLimitInformation)
-        limits["BasicLimitInformation"]["LimitFlags"] |= win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        limits["BasicLimitInformation"]["LimitFlags"] |= (
+            win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | win32job.JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK
+        )
         win32job.SetInformationJobObject(Job, win32job.JobObjectExtendedLimitInformation, limits)
 
     try:
@@ -148,3 +164,68 @@ def KillProcess(pid: int) -> None:
         pass
     finally:
         win32api.CloseHandle(handle)
+
+
+class ProcessEntry(ctypes.Structure):
+    """`PROCESSENTRY32W`, one row of a process snapshot."""
+
+    _fields_ = [
+        ("dwSize", wintypes.DWORD),
+        ("cntUsage", wintypes.DWORD),
+        ("th32ProcessID", wintypes.DWORD),
+        ("th32DefaultHeapID", ctypes.c_void_p),
+        ("th32ModuleID", wintypes.DWORD),
+        ("cntThreads", wintypes.DWORD),
+        ("th32ParentProcessID", wintypes.DWORD),
+        ("pcPriClassBase", ctypes.c_long),
+        ("dwFlags", wintypes.DWORD),
+        ("szExeFile", ctypes.c_wchar * 260),
+    ]
+
+
+SnapProcesses = 0x2
+
+kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+kernel32.CreateToolhelp32Snapshot.restype = wintypes.HANDLE
+kernel32.CreateToolhelp32Snapshot.argtypes = (wintypes.DWORD, wintypes.DWORD)
+kernel32.Process32FirstW.argtypes = (wintypes.HANDLE, ctypes.POINTER(ProcessEntry))
+kernel32.Process32NextW.argtypes = (wintypes.HANDLE, ctypes.POINTER(ProcessEntry))
+kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+
+
+def ChildPids(parentPid: int, image: str) -> set:
+    """The running processes of one image name whose parent is `parentPid`, read from one process snapshot.
+
+    Radical Pie 1.16 starts `slugfont.exe` as its own child to convert a font, which is how a pipeline tells
+    the Font Import progress window from the unresolved-font report that looks the same (`Tools.Render.FontImport`).
+    A snapshot keeps the parent pid of a process whose parent has exited, so the `slugfont.exe` of a Radical Pie
+    that has gone is still found under its pid.
+    """
+
+    return {pid for pid, parent, name in Snapshot() if parent == parentPid and name.lower() == image.lower()}
+
+
+def ImagePids(image: str) -> set:
+    """The running processes of one image name, whoever started them, read from one process snapshot."""
+
+    return {pid for pid, _, name in Snapshot() if name.lower() == image.lower()}
+
+
+def Snapshot() -> list:
+    """Every running process as (pid, parent pid, image name), from one `CreateToolhelp32Snapshot`."""
+
+    snapshot = kernel32.CreateToolhelp32Snapshot(SnapProcesses, 0)
+    entry = ProcessEntry()
+    entry.dwSize = ctypes.sizeof(entry)
+    found = []
+
+    try:
+        more = kernel32.Process32FirstW(snapshot, ctypes.byref(entry))
+
+        while more:
+            found.append((entry.th32ProcessID, entry.th32ParentProcessID, entry.szExeFile))
+            more = kernel32.Process32NextW(snapshot, ctypes.byref(entry))
+    finally:
+        kernel32.CloseHandle(snapshot)
+
+    return found

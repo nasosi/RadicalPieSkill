@@ -13,6 +13,9 @@ placeholder took, `shape`, `tab` or `spaces`, ending in `no padding before ','` 
 the placeholder took the gap's padding on its side away, and one line for each paragraph it opened to make room
 for a tall equation. `check` prints one line per object, `slide <n> <name> <width> by <height> pt <state>`, and
 exits 1 when one has collapsed.
+
+An output drawn with a font slot in Times, because the design names a font Radical Pie cannot find, is written
+all the same, with one `warning:` line per slot on stderr and exit 3.
 """
 
 import sys

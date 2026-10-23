@@ -9,6 +9,9 @@ one implementation. `embed` drives the installed Word and Radical Pie and ends b
 
 `embed` prints one line per equation, `key kind number width height`. `check` prints one line per embedded
 object and a last line with the count of RadicalPie.Application.1 objects, and exits 1 on an undrawn one.
+
+An output drawn with a font slot in Times, because the design names a font Radical Pie cannot find, is written
+all the same, with one `warning:` line per slot on stderr and exit 3.
 """
 
 import sys

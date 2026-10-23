@@ -1,8 +1,8 @@
 # Known Limitations
 
-What cannot be fixed on the skill's side, measured against Radical Pie 1.15 and Office 16. Nothing in
-this list is feedback: `references/Feedback.md` says to read it before writing a line, and a lesson that
-is already here is dropped.
+What cannot be fixed on the skill's side, measured against Radical Pie 1.15 and 1.16 and Office 16.
+Nothing in this list is feedback: `references/Feedback.md` says to read it before writing a line, and a
+lesson that is already here is dropped.
 
 - **Every render opens a window.** Radical Pie has no headless mode, so each render, export and embed puts
   the editor on the desktop for a second or two and closes it again. One program at a time may drive it,
@@ -24,13 +24,15 @@ is already here is dropped.
   object, which Radical Pie's own PowerPoint page records as a PowerPoint bug. The pipeline detects it and
   refuses the deck; nothing in a `.pie` file prevents it.
 - **The editor crashes on the files the validator refuses.** An anchor index a nested structure does not
-  own, a drawing connector with one anchor, `Zg (d=3)`, and a style map whose first index names an unfilled
-  font slot each exit Radical Pie with an access violation rather than an error. Refusing the file before
-  it is opened is the whole defence available from outside the program.
+  own, a drawing connector with one anchor, `Zg (d=3)`, and a style map's first font index of 20 or 255 each
+  exit Radical Pie with an access violation rather than an error; a first index of 16 to 19 is unmeasured, and
+  the validator refuses it as well. Refusing the file before it is opened is the whole defence available from
+  outside the program.
+- **A damaged font cache crashes the editor.** A 0-byte `.slug` file in `%LOCALAPPDATA%\RadicalPie`, left
+  when the font import is stopped part way, crashes Radical Pie with an access violation whenever a file
+  names that font, until the file is deleted; Radical Pie rebuilding its font list does not repair it.
 - **A render can time out on a busy machine.** The pipeline waits for the editor's window and for the file
   it writes on a timer rather than a signal, and tries twice. Both attempts can be spent under load, and
   the message says so; the file is not at fault.
-- **Two of the editor's own results a file cannot control.** Radical Pie 1.15 drops `M (t='grek')` when it
-  loads and saves a design, so a Greek upright mapping does not survive a round trip through the editor.
-  A design value outside the dialog's range is not clamped when it arrives in a file, and
+- **A design value outside the dialog's range is not clamped.** It arrives in a file as written, and
   `V (n='slnt') {f{90.0}}` renders an equation of infinite width.

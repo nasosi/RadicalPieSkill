@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.3.1 — 2026-10-22
+
+- `python scripts/Render.py png Eq.pie Eq.png` renders the equation to a PNG at 300 dpi, through Inkscape 1.x,
+  which the skill needs for this form only, and the skill looks at the PNG to check a render.
+- A render that fails leaves no output file, so an older picture under the same name is never mistaken for
+  the new one.
+
+## 1.3.0 — 2026-10-21
+
+- The skill targets Radical Pie 1.16 and needs it. A design names a font by its full name, as
+  `"New Computer Modern 10 Book"`; the stem of a `.ttf` or `.otf` file, `"NewCM10-Book"`, resolves too and
+  is saved as the full name. The file name with its extension and the stem of a collection do not resolve.
+  `references/catalogue/Design.md` gives the rule and the numbers 1.16 writes back for the fonts it knows.
+- `python scripts/Fonts.py find <words>` lists the installed fonts with the full name to write in `F` and the
+  file stem that resolves to it. `python scripts/Fonts.py check Eq.pie` says for each font slot of a design
+  whether this machine resolves it, to which installed file, whether it still has to be imported, or that
+  Radical Pie would draw it in Times, with the closest names.
+- A font Radical Pie cannot find is drawn in Times, and 1.16 saves it as Times for good. Render, Word,
+  PowerPoint and LaTeX write their output with that slot in Times, print one `warning:` line per slot naming
+  the closest installed names, and exit 3. The skill then asks the user whether to use one of those names,
+  name another font, or keep Times.
+- The first render with a font Radical Pie has not used before is right. The SVG, PDF and EMF pipelines wait
+  for the import and take the output from a second launch, so an export no longer crashes, fails with an empty
+  message or comes back blank when the design names a new font. If the second launch fails, the first
+  launch's output is written with a warning saying so.
+- A design can set prose in a text family and the mathematics in a math font: the four text styles
+  `'uprx'`, `'itax'`, `'bolx'` and `'bitx'` under `V (n='seps') {b{true}}`, with a recipe for Cambria
+  Math and Cambria.
+- A math font mapped to the italic, bold, Greek or monospace styles draws the mathematical alphabets for
+  plain letters. The old Symbol, MT Extra, Webdings and Wingdings fonts draw at their Unicode code points.
+  A style map draws from the fonts it lists and from no other, so a map lists its own fallbacks.
+- `Sb (of)` draws oldstyle figures. `Mk` gains the eight marks of the 1.16 palette, and
+  `references/catalogue/Design.md` lists the eighteen symbols 1.16 adds at Unicode code points, the shuffle
+  product U+29E2 among them. The private use area of the Radical font now runs to U+EE77.
+- The validator follows 1.16: an `F` holds one string, a known font's `int16` id (-1 to 83) or a 1.15 `uint8`
+  number; up to 26 maps; `V (n='escl')`, the External font scale, 0.5 to 2. A design value is a float data
+  list, since Radical Pie drops an integer or double one.
+- A render waits, up to its timeout, for a font import another Radical Pie on the machine is running, and
+  warns when it starts with one still running. A font import that is running when the interpreter is killed
+  now finishes, where it used to leave a broken font file that crashed Radical Pie.
+- A font database Radical Pie is rewriting or has left unreadable no longer discards a finished output. The
+  closest-name suggestions compare family names only, so a missing "Minion Pro Italic" is offered nothing
+  rather than "Inter Italic".
+- A new known limitation: a damaged font cache crashes the editor.
+- `references/Chemistry.md` says every double bond kind draws two equal strokes and that a request for a
+  shortened inner stroke is answered with the equal-stroke bond and the shortfall named. The SVG carrier is
+  described as Radical Pie's own, to hand to Radical Pie, Inkscape or a later step.
+
 ## 1.2.0 — 2026-09-19
 
 - Word numbers equations per chapter. A `{{chapter}}` in a heading shows the chapter's number, and the

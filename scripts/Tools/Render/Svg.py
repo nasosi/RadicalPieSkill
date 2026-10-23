@@ -30,10 +30,24 @@ out, saves and exports from a minimised window and takes the same time doing it:
 and about 2 s for an export, the same as from a visible one. Minimised is the state kept because the gate runs
 the render tests in parallel, and forty visible windows are forty windows over what the operator is reading.
 
-A design that names a font the machine has not converted yet puts up one more window, "Font Import", while
-the conversion runs. It is progress and not a prompt, and it is the one window here that is left alone:
-closing it, which is what a modal dialog earns, cancels the import and fails the render (measured
-2026-09-13).
+Radical Pie 1.16 puts up one more window, "Font Import", for two things: the progress of a font conversion
+and the report of a font it cannot resolve, which it then draws in Times (`Tools.Render.FontImport` tells the
+two apart). The loop posts no Save until an import has finished, and closes the report before it saves. The
+render is written either way, and a render that comes back with a named slot written as `i16{2}`, Times, or
+that raised the report, carries one warning line per such slot in `SvgInfo.fontWarnings`, naming the slot,
+what the design wrote and the closest installed names (`Tools.PieFormat.Fonts.FontWarnings`), so no caller is
+handed an equation drawn in Times without being told (ADR-0015). The termination lets the `slugfont.exe` of the
+process finish its slug first, even when the process itself has already gone, and closes a report still up
+before the document window.
+
+Each launch first waits for every `slugfont.exe` on the machine, once and for at most the caller's timeout,
+and a launch that starts with one still running carries a line saying so into its warnings or its error. A
+render whose launch imported a font the design names is rendered again from a fresh launch, because the output
+of that first launch is not to be trusted (`Tools.Render.FontImport`). `TrustedLaunch` and `LaunchWarnings`
+hold that sequence for this module and for `Tools.Render.Export` alike: the output is written to the caller's
+path once the run's result is known, a repeat launch that fails leaves the first output with a warning, a slot
+whose font is still not imported after the last launch gets a warning of its own, and a run that fails with a
+slug still empty leads its error with the font check's line for that slug.
 
 An equation Radical Pie cannot lay out crashes it rather than refusing it, and the crash is a rendering
 outcome the callers read: both the Save the loop posts and the close that ends the process are posted through
@@ -49,13 +63,21 @@ access violation, before it ever saved (measured 2026-09-12). So a failed attemp
 fresh launch: `Terminate` returns only when the first process is gone, a settle follows it, and a second
 failure raises one RenderError carrying both attempts' messages. A caller that reads a crash as its
 measurement asks for one attempt instead, which the anchor probes of `Scripts/AnchorAtlas.py` do.
+
+Two ends of a run raise nothing a caller cannot read. The temporary directory is removed as far as it can be
+(`WorkDirectory`), because a virus scanner holding a file in it made the removal raise PermissionError after a
+good render. A process still there after its kill raises RenderError rather than the wait's TimeoutExpired, and
+stays registered.
 """
 
 import re
+import shutil
 import subprocess
+import sys
 import tempfile
 import time
-from dataclasses import dataclass
+from contextlib import contextmanager
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import pywintypes
@@ -64,8 +86,20 @@ import win32gui
 import win32process
 
 from Tools import Processes
+from Tools.PieFormat import Fonts
+from Tools.Render.FontImport import (
+    AwaitingReports,
+    AwaitSlugFont,
+    AwaitSlugFonts,
+    FontImportTitle,
+    FontImportWatch,
+    FontImportWindows,
+    ImportedSince,
+    Importing,
+    SlotsAwaitingImport,
+)
 
-Executable = Path(r"C:\Program Files\RadicalPie\RadicalPie.exe")
+Executable = Fonts.RadicalPieDirectory / "RadicalPie.exe"
 
 WindowClass = "RadicalPie"
 SaveCommand = 260
@@ -79,13 +113,6 @@ StubTemplate = (
 
 # Every process of this application owns these two invisible top-level windows; they are not dialogs.
 InputMethodClasses = frozenset({"IME", "MSCTFIME UI"})
-
-# The window a design puts up while it imports a font the machine has not converted yet. It is the progress
-# window the Font Manager page describes and not a prompt: it closes itself when the `.slug` under
-# %localappdata%\RadicalPie is written, and the render finishes normally after it. Measured 2026-09-13: a
-# design naming Cambria, Consolas or Times New Roman raised it on this machine, and closing it, which is
-# what every other window of the process earns, cancelled the import and failed the render.
-FontImportTitle = "Font Import"
 
 PollSeconds = 0.02
 RepostSaveSeconds = 0.25
@@ -106,11 +133,17 @@ class RenderError(RuntimeError):
 
 @dataclass(frozen=True)
 class SvgInfo:
-    """The geometry of a rendered equation, in points, as the SVG element states it."""
+    """The geometry of a rendered equation, in points, as the SVG element states it.
+
+    `fontWarnings` holds one line per font slot Radical Pie drew in Times or may have, and one per thing about
+    the launches that may have drawn a slot in Times; it is empty when every slot drew in its own font
+    (`LaunchWarnings`).
+    """
 
     width: float
     height: float
     viewBox: tuple
+    fontWarnings: tuple = ()
 
     @property
     def baselineShift(self) -> float:
@@ -121,6 +154,21 @@ class SvgInfo:
         """
 
         return self.viewBox[1] + self.viewBox[3]
+
+
+@dataclass(frozen=True)
+class Launched:
+    """One launch's output, from the render loop or the export, and what is known about the launch.
+
+    `reported` says the watch closed the Font Import report, `awaiting` holds the slots of the design whose font
+    had no slug when the launch started (`FontImport.SlotsAwaitingImport`), and `notes` the warning lines about
+    the launches themselves.
+    """
+
+    output: bytes
+    reported: bool = False
+    awaiting: frozenset = frozenset()
+    notes: tuple = ()
 
 
 def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30, attempts: int = RenderAttempts) -> SvgInfo:
@@ -138,30 +186,104 @@ def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30, attemp
     So a caller that hands text to this function has validated it: the command line does, and so does every
     pipeline's library entry point.
 
+    A font the design names and Radical Pie cannot resolve is drawn in Times and the SVG is written all the
+    same; the returned SvgInfo carries a warning line per such slot, read from the written-back design's
+    `i16{2}` for a slot that named another font, or from the Font Import report the render loop closed
+    (ADR-0015). Neither is retried. The write-back is read whether or not the report was seen, because the
+    report rises 0.06 to 0.2 s after the document title (2026-10-08).
+
     `attempts` is how many launches a render that fails gets. The atlas is the caller that asks for one: it
     renders about forty-five equations a run that it expects to crash the executable, and the retry doubled the
     launches for every one of them.
+
+    A design naming a font with no slug yet is rendered a second time, with the same `attempts`, once the launch
+    that rendered it has imported it, and the second render is the one returned (`TrustedLaunch`). The SVG is
+    written to `outputPath` once, after the last launch.
     """
 
     outputPath = Path(outputPath)
-    stub = StubTemplate.format(pieText).encode("utf-8")
 
-    with tempfile.TemporaryDirectory(prefix="RadicalPieRender") as workDirectory:
-        workPath = Path(workDirectory) / "Equation.svg"
-        rendered = DriveRadicalPie(workPath, stub, timeoutSeconds, attempts)
+    with WorkDirectory("RadicalPieRender") as workDirectory:
+        workPath = workDirectory / "Equation.svg"
+        launched = TrustedLaunch(pieText, lambda: DriveRadicalPie(workPath, pieText, timeoutSeconds, attempts))
+
+    warnings = LaunchWarnings(pieText, launched, launched.output.decode("utf-8"))
 
     outputPath.parent.mkdir(parents=True, exist_ok=True)
-    outputPath.write_bytes(rendered)
+    outputPath.write_bytes(launched.output)
 
-    return ReadSvgInfo(rendered)
+    return replace(ReadSvgInfo(launched.output), fontWarnings=warnings)
 
 
-def DriveRadicalPie(filePath: Path, stub: bytes, timeoutSeconds: float, attempts: int = RenderAttempts) -> bytes:
-    """Render `filePath` in at most `attempts` launches. No process outlives this.
+@contextmanager
+def WorkDirectory(prefix: str):
+    """A fresh temporary directory, removed afterwards as far as it can be.
 
-    The retry is a fresh launch and never a second command to a process that is on its way out: the attempt
-    it follows has already terminated its own, and the settle stands between the two. Each attempt gets the
-    whole of `timeoutSeconds`, so a render that fails twice takes twice as long to say so.
+    A virus scanner that still holds a file in it makes the removal raise PermissionError, which turned a
+    finished render into exit 1 and dropped its output, so nothing the removal raises reaches the caller and a
+    directory that resists it is left in the temporary folder. The PNG form and the export use it too.
+    """
+
+    path = Path(tempfile.mkdtemp(prefix=prefix))
+
+    try:
+        yield path
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def TrustedLaunch(pieText: str, launch) -> Launched:
+    """What `launch`, one pipeline's launch with its retry, returns, taken again when that launch imported a font.
+
+    A launch that imported a font the design names is not trusted for its output (`FontImport.ImportedSince`),
+    so it is followed by one more, which starts with the slug in place and reads for itself which slots still
+    await their import. A repeat that fails leaves the first output, with a line naming the failure. A first
+    launch that fails raises its error, led by the font check's line for each slug still empty after the waits,
+    which crashes Radical Pie and names the file to delete.
+    """
+
+    try:
+        first = launch()
+    except RenderError as error:
+        damaged = [Fonts.Describe(report) for report in AwaitingReports(pieText) if report.state == Fonts.DamagedSlug]
+
+        if not damaged:
+            raise
+
+        raise RenderError("; ".join(damaged + [str(error)])) from None
+
+    if not ImportedSince(pieText, first.awaiting):
+        return first
+
+    try:
+        return launch()
+    except RenderError as error:
+        note = (
+            "the output comes from the launch that imported a font of the design, which may draw it in Times,"
+            f" because the launch repeated with the font in place failed: {error}"
+        )
+
+        return replace(first, notes=first.notes + (note,))
+
+
+def LaunchWarnings(pieText: str, launched: Launched, writtenText: str) -> tuple:
+    """The warning lines of a pipeline's output: the font lines, then the launches' own.
+
+    `writtenText` is the design as the output carries it (`Fonts.FontWarnings`). The slots read here, after the
+    last launch, are the ones whose font is still not imported, and each gets a line unless the write-back
+    already names it.
+    """
+
+    return Fonts.FontWarnings(pieText, writtenText, launched.reported, SlotsAwaitingImport(pieText)) + launched.notes
+
+
+def DriveRadicalPie(filePath: Path, pieText: str, timeoutSeconds: float, attempts: int = RenderAttempts) -> Launched:
+    """Render `pieText` through `filePath` in at most `attempts` launches, returning the first that succeeds.
+
+    No process outlives this. The retry is a fresh launch and never a second command to a process that is on
+    its way out: the attempt it follows has already terminated its own, and the settle stands between the two.
+    Each attempt gets the whole of `timeoutSeconds`, so a render that fails twice takes twice as long to say
+    so. The Font Import report is no failure: the attempt closes it and completes.
     """
 
     failures = []
@@ -171,31 +293,46 @@ def DriveRadicalPie(filePath: Path, stub: bytes, timeoutSeconds: float, attempts
             time.sleep(RetrySettleSeconds)
 
         try:
-            return AttemptRender(filePath, stub, timeoutSeconds)
+            return AttemptRender(filePath, pieText, timeoutSeconds)
         except RenderError as error:
             failures.append(str(error))
 
     raise RenderError(f"Radical Pie rendered nothing in {attempts} attempts: {Attempts(failures)}")
 
 
-def AttemptRender(filePath: Path, stub: bytes, timeoutSeconds: float) -> bytes:
-    """One launch: open `filePath` in Radical Pie, save it, return the rendered bytes. The process is gone after.
+def AttemptRender(filePath: Path, pieText: str, timeoutSeconds: float) -> Launched:
+    """One launch: open `filePath` holding `pieText`, save it, and return what it wrote. No process after.
 
     The stub goes on disk here rather than at the caller, because an attempt that crashed after its first
     Save left a degenerate SVG in the file and the attempt that follows starts from the document it expects.
+    A `slugfont.exe` still writing a slug, this pipeline's own from the attempt before or anyone else's, is
+    waited out before the launch, for at most `timeoutSeconds`, and the launch's own timeout starts after it.
+    The slots awaiting their import are read after that wait, because a slug is empty while it is built, and
+    the watch awaits an import when there is one (`FontImport.FontImportWatch`).
     """
 
+    stub = StubTemplate.format(pieText).encode("utf-8")
     filePath.write_bytes(stub)
+    note = AwaitSlugFonts(timeoutSeconds)
+    awaiting = SlotsAwaitingImport(pieText)
 
     deadline = time.monotonic() + timeoutSeconds
-    process = Launch(filePath)
 
     try:
-        window = AwaitDocument(process, f"{filePath.name} - Radical Pie", deadline, timeoutSeconds)
+        process = Launch(filePath)
 
-        return AwaitRender(process, window, filePath, stub, deadline, timeoutSeconds)
-    finally:
-        Terminate(process)
+        try:
+            window = AwaitDocument(process, f"{filePath.name} - Radical Pie", deadline, timeoutSeconds)
+            rendered, reported = AwaitRender(process, window, filePath, stub, deadline, timeoutSeconds, bool(awaiting))
+        finally:
+            Terminate(process)
+    except RenderError as error:
+        if not note:
+            raise
+
+        raise RenderError(f"{error}; {note}") from None
+
+    return Launched(rendered, reported, awaiting, (note,) if note else ())
 
 
 def Attempts(failures: list) -> str:
@@ -263,11 +400,15 @@ def AwaitRender(
     stub: bytes,
     deadline: float,
     timeoutSeconds: float,
-) -> bytes:
+    awaitImport: bool = False,
+) -> tuple:
     # A Save that lands while the first layout is still running crashes Radical Pie 1.15 with an access
     # violation on equations that fetch stretched or built-in glyphs (measured 2026-09-10, ARCHITECTURE.md:
     # one crash in three at 20 ms after the title, none from 100 ms on). The settle keeps the first Save
-    # clear of that window; the reposts that follow were never seen to crash.
+    # clear of that window; the reposts that follow were never seen to crash. The watch then holds every Save
+    # while a font import runs, and closes the report, which the returned flag records; told to await an
+    # import, it holds the first Save until one has been seen.
+    watch = FontImportWatch(process.pid, awaitImport)
     time.sleep(LayoutSettleSeconds)
 
     lastPost = 0.0
@@ -277,7 +418,15 @@ def AwaitRender(
         if process.poll() is not None:
             raise RenderError(f"Radical Pie exited with code {process.returncode} before saving the render")
 
-        RaiseOnDialog(TopLevelWindows(process.pid))
+        windows = TopLevelWindows(process.pid)
+        RaiseOnDialog(windows)
+
+        if not watch.Ready(windows):
+            if watch.state == Importing:
+                observed = "a font import was still running"
+
+            time.sleep(PollSeconds)
+            continue
 
         if time.monotonic() - lastPost >= RepostSaveSeconds:
             PostCommand(window, SaveCommand)
@@ -292,7 +441,7 @@ def AwaitRender(
             # posted before layout can also write the stub's geometry back reformatted, which still measures
             # positive and must be rejected the same way.
             if info.width > 0 and info.height > 0 and info != ReadSvgInfo(stub):
-                return rendered
+                return rendered, watch.reported
 
             observed = f"the saved SVG measures {info.width}pt by {info.height}pt, so the equation was not laid out"
 
@@ -416,8 +565,8 @@ def RaiseOnDialog(windows: list) -> None:
     Unparseable input raises "This file cannot be opened because it does not contain valid Radical Pie
     equation data." in a `#32770` message box that blocks the application until it is dismissed.
 
-    The Font Import window is the one exception: it is progress and not a prompt, so it is left alone and
-    the poll that follows finds it gone.
+    The Font Import window is the one exception: it is progress or the unresolved-font report, which the
+    render loop's FontImportWatch tells apart and answers.
     """
 
     for handle, className, title in windows:
@@ -447,10 +596,27 @@ def DialogText(handle: int) -> str:
 
 
 def Terminate(process: subprocess.Popen) -> None:
-    """Close the window, then kill what is left. The process is gone when this returns."""
+    """Close the window, then kill what is left. The process is gone when this returns.
+
+    A process still there `ExitGraceSeconds` after the kill raises RenderError and stays in the registry of
+    `Tools.Processes`, where the leak check finds it. The message leads with the error the caller's `finally`
+    is carrying, when there is one, because the error raised here takes its place.
+
+    A `slugfont.exe` the process started finishes its slug first, also when the process has already exited,
+    since an orphaned one keeps writing; and a Font Import report is closed before the document window, which
+    it keeps disabled; closing the report is what the probe of 2026-10-08 measured to enable the document window
+    again within 30 ms.
+    """
+
+    AwaitSlugFont(process.pid)
 
     if process.poll() is None:
-        for handle, className, _ in TopLevelWindows(process.pid):
+        windows = TopLevelWindows(process.pid)
+
+        for handle in FontImportWindows(windows):
+            PostClose(handle)
+
+        for handle, className, _ in windows:
             if className == WindowClass:
                 PostClose(handle)
 
@@ -464,6 +630,17 @@ def Terminate(process: subprocess.Popen) -> None:
 
         time.sleep(PollSeconds)
 
+    # Read before the kill: inside the `except` below, the exception being handled is the wait's own.
+    carried = sys.exc_info()[1]
     process.kill()
-    process.wait(timeout=ExitGraceSeconds)
+
+    try:
+        process.wait(timeout=ExitGraceSeconds)
+    except subprocess.TimeoutExpired:
+        lead = f"{carried}; " if carried else ""
+
+        raise RenderError(
+            f"{lead}Radical Pie (pid {process.pid}) did not exit within {ExitGraceSeconds:g}s of being killed"
+        ) from None
+
     Processes.Release(process.pid)

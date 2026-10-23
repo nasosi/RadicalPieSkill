@@ -87,6 +87,8 @@ Ending a session costs one handled COM failure, which pytest's faulthandler prin
 `Quit`, so the release of the reference that called it reaches a process that has gone; releasing without
 `Quit` leaves Word running with the document open, so there is no order that avoids it. The exception is
 handled and nothing leaks.
+COM stays initialised on the main thread between sessions: one `pythoncom.CoUninitialize` tore the
+apartment down under the session's COM objects (measured 2026-10-09, `WordSession.__enter__`).
 
 Every process this module starts it ends, and holds it in the registry of `Tools.Processes` until its exit has
 been seen, which is what the live tests are checked against. What it ends is the Word instance it created and
@@ -112,6 +114,18 @@ was, whether or not a document already stood there.
 Every equation is validated at the entry point, before Word starts, and not only by the command line: a caller
 that came in through `EmbedEquations` with text of its own used to have an equation Radical Pie cannot read
 embedded, drawn as the empty equation and reported as a success.
+
+Radical Pie 1.16's Font Import window is answered in the third pass the way the render loop answers it
+(`Tools.Render.FontImport`): no Save is posted to the editor while a font import runs, and the unresolved-font
+report is closed by the watch and recorded, where the window used to be closed as a dialog and the step failed
+with an empty message. The editor is closed after its `slugfont.exe` has finished and after any report still
+up, which keeps the editor window disabled, has been closed. An editor started as the OLE server showed the
+import's progress and no report (measured 2026-10-08, `Corpus/Pie/rpie.pie` in Word 16) and wrote each
+unresolved slot back into the object as `i16{2}`, so pass four also reads every object's `RP` stream, and an
+object drawn with a slot in Times is embedded all the same and its `EmbeddedEquation` carries one warning line
+per such slot (`Tools.PieFormat.Fonts.FontWarnings`, ADR-0015). A drawing is taken only once a Save has been
+posted after the import, because the object's size can change from the blank before any Save, and a picture
+taken then is the one drawn before the font arrived.
 """
 
 import io
@@ -137,8 +151,10 @@ from docx import Document as OpenDocument
 from lxml import etree
 
 from Tools import Processes
+from Tools.PieFormat.Fonts import FontWarnings
 from Tools.PieFormat.Validator import FirstViolation
 from Tools.Processes import AwaitProcessExit, KillProcess
+from Tools.Render.FontImport import AwaitSlugFont, FontImportTitle, FontImportWatch, FontImportWindows
 from Tools.Render.Svg import Attempts, DialogText, PostClose, SaveCommand, TopLevelWindows, WindowClass
 
 ObjectClass = "RadicalPie.Application.1"
@@ -257,6 +273,7 @@ EditorTitlePrefix = "Radical Pie - Equation in "
 PollSeconds = 0.05
 GuardSeconds = 0.3
 RepostSaveSeconds = 0.25
+SaveArrivalSeconds = 0.25
 ExitGraceSeconds = 10.0
 ServerExitGraceSeconds = 2.0
 
@@ -303,7 +320,8 @@ class EmbeddedEquation:
     """One embedded equation: its key and kind, the paragraph it sits in, its number, its size in points.
 
     The number is the integer the `SEQ equation` field came out with, and the string `'<chapter>.<n>'` in a
-    document whose chapters the markers name.
+    document whose chapters the markers name. `fontWarnings` holds one line per font slot Radical Pie drew
+    in Times.
     """
 
     key: str
@@ -312,6 +330,7 @@ class EmbeddedEquation:
     number: Union[int, str, None]
     width: float
     height: float
+    fontWarnings: tuple = ()
 
 
 def TimeoutBudget(objectCount: int) -> float:
@@ -326,7 +345,8 @@ def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSe
     Both paths may be relative to the caller's working directory, which is not the one Word hands them to
     its own file open, so they are resolved here and every pass below sees an absolute path.
 
-    Returns one `EmbeddedEquation` per placeholder, in document order. The `.pie` text is embedded as the
+    Returns one `EmbeddedEquation` per placeholder, in document order, each with the warnings of a font slot
+    Radical Pie drew in Times; such an object is embedded and drawn all the same. The `.pie` text is embedded as the
     caller wrote it, design block included: an equation with no design carries the `D {}` the caller put
     there. Every placeholder needs an equation and every equation needs a placeholder, both checked before
     Word starts, along with the grammar of the keys, the paragraph a display equation is alone in, and the
@@ -368,8 +388,9 @@ def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSe
     try:
         numbers = InsertObjects(workPath, placeholders, references, deadline)
         blankPictureSize = ReplaceEquationStreams(workPath, bodies)
-        sizes = RenderObjects(workPath, keys, deadline)
+        drawn = RenderObjects(workPath, keys, deadline)
         CheckPictures(workPath, len(keys), blankPictureSize)
+        warnings = ReadFontWarnings(workPath, keys, equations, [reported for _, _, reported in drawn])
     except BaseException:
         # A keyboard interrupt leaves no half-built document behind either, so the sweep is on BaseException.
         workPath.unlink(missing_ok=True)
@@ -379,8 +400,8 @@ def EmbedEquations(inputPath: Path, outputPath: Path, equations: dict, timeoutSe
     os.replace(workPath, outputPath)
 
     return [
-        EmbeddedEquation(placeholder.key, placeholder.kind, placeholder.paragraphIndex, number, width, height)
-        for placeholder, number, (width, height) in zip(placeholders, numbers, sizes)
+        EmbeddedEquation(placeholder.key, placeholder.kind, placeholder.paragraphIndex, number, width, height, found)
+        for placeholder, number, (width, height, _), found in zip(placeholders, numbers, drawn, warnings)
     ]
 
 
@@ -1126,7 +1147,10 @@ def RebuildEmbedding(embedding: bytes, body: bytes) -> bytes:
 
 
 def RenderObjects(documentPath: Path, keys: list, deadline: float) -> list:
-    """Pass three: activate each object so Radical Pie draws it, and return the sizes in points."""
+    """Pass three: activate each object so Radical Pie draws it, and return `(width, height, reported)` each.
+
+    The sizes are in points; `reported` says the editor raised the Font Import report, which the watch closed.
+    """
 
     sizes = []
 
@@ -1152,7 +1176,7 @@ def RenderObjects(documentPath: Path, keys: list, deadline: float) -> list:
 
 
 def RenderObject(session, documentPath: Path, document, index: int, key: str, deadline: float) -> tuple:
-    """Draw one object, retrying the activation once, and return the size Word ends up with.
+    """Draw one object, retrying the activation once, and return the size Word ends up with and the report flag.
 
     Under load of 2026-09-12 the server closed the editor without drawing an equation it draws on the rerun,
     and one object in sixteen came out of the pass with the 284-byte blank picture still cached. So a failed
@@ -1178,7 +1202,7 @@ def RenderObject(session, documentPath: Path, document, index: int, key: str, de
 
 
 def AttemptActivation(session, documentPath: Path, document, index: int, key: str, deadline: float) -> tuple:
-    """Activate one object, save it from the editor, close the editor, and return the size Word ends up with.
+    """Activate one object, save it from the editor, close the editor, and return `(width, height, reported)`.
 
     The editor is the session's from the moment it is found until it has been seen to exit, which is what
     lets the guard thread end it when the timeout ends the pass in the middle of an activation.
@@ -1196,15 +1220,29 @@ def AttemptActivation(session, documentPath: Path, document, index: int, key: st
     QuietenEditor(window)
 
     try:
-        AwaitPresentation(document, index, blank, pid, window, key, deadline)
+        reported = AwaitPresentation(document, index, blank, pid, window, key, deadline)
     finally:
+        CloseFontImport(pid)
         PostToEditor(window, win32con.WM_CLOSE, 0)
         EndProcess(pid, min(ExitGraceSeconds, max(deadline - time.monotonic(), 0.0)))
         session.ReleaseEditor(pid)
 
     shape = document.InlineShapes(index)
 
-    return (shape.Width, shape.Height)
+    return (shape.Width, shape.Height, reported)
+
+
+def CloseFontImport(pid: int) -> None:
+    """Let the editor's `slugfont.exe` finish its slug, then close a Font Import report the editor still shows.
+
+    The report keeps the editor window disabled, and closing it enables that window again (measured 2026-10-08,
+    `Tools.Render.FontImport`), so the close posted to the editor afterwards reaches a window that takes it.
+    """
+
+    AwaitSlugFont(pid)
+
+    for handle in FontImportWindows(TopLevelWindows(pid)):
+        PostToEditor(handle, win32con.WM_CLOSE, 0)
 
 
 def QuietenEditor(window: int) -> None:
@@ -1302,40 +1340,59 @@ def AwaitEditor(documentPath: Path, running: set, key: str, deadline: float) -> 
     )
 
 
-def AwaitPresentation(document, index: int, blank: tuple, pid: int, window: int, key: str, deadline: float) -> None:
+def AwaitPresentation(document, index: int, blank: tuple, pid: int, window: int, key: str, deadline: float) -> bool:
     """Post File > Save to the editor until Word has a picture of its own for the object.
 
     Word reports the new presentation as a size that differs from the blank 5.25 by 6.75 points, the height
-    first. Radical Pie leaving on its own means it could not read the equation.
+    first. Radical Pie leaving on its own means it could not read the equation. No Save is posted while a font
+    import runs, and the unresolved-font report is closed before one is; the return says whether it was seen.
     """
 
+    watch = FontImportWatch(pid)
     lastPost = 0.0
+    firstPost = None
 
     while time.monotonic() < deadline:
-        RaiseOnServerDialog(TopLevelWindows(pid))
+        windows = TopLevelWindows(pid)
+        RaiseOnServerDialog(windows)
+        ready = watch.Ready(windows)
         shape = document.InlineShapes(index)
 
-        if (shape.Width, shape.Height) != blank:
-            return
+        if (shape.Width, shape.Height) != blank and PresentationArrived(firstPost):
+            return watch.reported
 
         # The size is read before the server is tested, so a render that lands as the server leaves counts.
         if AwaitProcessExit(pid, 0):
             raise WordError(f"Radical Pie closed the editor without drawing {key}: {UnreadableEquation}")
 
-        if time.monotonic() - lastPost >= RepostSaveSeconds:
+        if ready and time.monotonic() - lastPost >= RepostSaveSeconds:
             PostToEditor(window, win32con.WM_COMMAND, SaveCommand)
             lastPost = time.monotonic()
+            firstPost = firstPost or lastPost
 
         time.sleep(PollSeconds)
 
     raise WordError(f"Radical Pie drew no picture for the equation {key} before the timeout")
 
 
+def PresentationArrived(firstPost: Optional[float]) -> bool:
+    """True once a Save has been posted long enough ago for its presentation to have reached the client.
+
+    The saved presentation reached Word about 30 ms after a posted Save (2026-09-10); SaveArrivalSeconds is eight
+    times that, for an object whose size had already left the blank before the Save.
+    """
+
+    return firstPost is not None and time.monotonic() - firstPost >= SaveArrivalSeconds
+
+
 def RaiseOnServerDialog(windows: list) -> None:
-    """Turn a dialog of the Radical Pie server into a WordError carrying its text, and close it."""
+    """Turn a dialog of the Radical Pie server into a WordError carrying its text, and close it.
+
+    The Font Import window is the FontImportWatch's to answer in `AwaitPresentation`.
+    """
 
     for handle, className, title in windows:
-        if className == WindowClass:
+        if className == WindowClass or title == FontImportTitle:
             continue
 
         message = DialogText(handle)
@@ -1361,6 +1418,24 @@ def CheckPictures(documentPath: Path, expectedCount: int, blankPictureSize: int)
                     f"{picturePart} is {size} bytes, no larger than the {blankPictureSize}-byte blank picture,"
                     " so that object was not drawn"
                 )
+
+
+def ReadFontWarnings(documentPath: Path, keys: list, equations: dict, reportedFlags: list) -> list:
+    """Pass four: the warning lines of each object whose `RP` came back with a named slot written as Times.
+
+    One tuple per object in document order, empty for an object drawn in its own fonts.
+    """
+
+    warnings = []
+
+    with zipfile.ZipFile(documentPath) as package:
+        for key, (embeddingPart, _), reported in zip(keys, ReadObjectParts(package), reportedFlags):
+            with olefile.OleFileIO(io.BytesIO(package.read(embeddingPart))) as container:
+                written = container.openstream(EquationStream).read().decode("utf-8")
+
+            warnings.append(FontWarnings(equations[key], written, reported))
+
+    return warnings
 
 
 class WordSession:
@@ -1394,6 +1469,14 @@ class WordSession:
         self.stop = threading.Event()
 
     def __enter__(self):
+        # COM is initialised on this thread and never uninitialised, as `PowerPointSession` does. Importing
+        # `pythoncom` initialises the main thread's apartment, `pythoncom.CoInitialize` does not add to that
+        # count, and one `pythoncom.CoUninitialize` tears the apartment down: measured 2026-10-09, "import + 2
+        # init + 1 uninit -> 0", a fresh initialisation. The session's COM objects outlived the teardown, and
+        # the gate's serial half on Radical Pie 1.16 failed in `TestChapterMarkersNumberTheEquationsInTheChapter
+        # Form`, with `0x800706b5` after the third insertion or with an access violation inside
+        # `dynamic._LazyAddAttr_` in `EnsureEquationStyle`, depending on the tests before it; with the two
+        # uninitialisations removed it passed, 70 of 70 (2026-10-09).
         pythoncom.CoInitialize()
         running = Pids(WordImage)
 
@@ -1411,7 +1494,6 @@ class WordSession:
             self.application.Options.SmartCutPaste = False
         except pythoncom.com_error as error:
             self.application = None
-            pythoncom.CoUninitialize()
             self.Terminate()
 
             raise WordError(f"Word did not start: {ComErrorText(error)}") from None
@@ -1439,7 +1521,6 @@ class WordSession:
                 pass
 
         self.application = None
-        pythoncom.CoUninitialize()
         self.Terminate()
 
         if exceptionType is None and self.timedOut:

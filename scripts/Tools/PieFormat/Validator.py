@@ -35,6 +35,16 @@ first index to a slot that holds a font, CheckGroupConnector refuses an X in a g
 type 'anno', and CollectAnchorTargets refuses a repeated name. CheckBondArrays and CheckDesignParameter
 cover the other direction, the values Radical Pie reads and then drops without a word.
 
+Three rules follow Radical Pie 1.16, measured on 2026-10-08 (Skill/radical-pie-workspace/beta-1.16/Findings.md):
+CheckFontData holds an F to one data list, a non-empty name, a known font's id or -1, or a 1.15 font number
+that still has a font, because 1.16 refuses an int32 font with the invalid-data dialog and empties the slot
+for the rest; CheckDesignSwitch holds `'seps'` to a bool; and CheckStyleMapFonts now names the two outcomes
+of a map on an empty slot, the Radical font's missing-glyph boxes up to slot 15 and a crash past it. Whether
+a name resolves to an installed font is not the validator's question: Fonts.py answers it from this
+machine's font database. Measured on the released 1.16.0 on 2026-10-16, CheckDesignParameter holds a design
+parameter to a float data list, since an integer or a double one is dropped like a string, and the common
+domain gains `'escl'`, the External font scale.
+
 One rule is about how an equation travels rather than about how it is written: CheckCarrierComment
 refuses a text that ends the XML comment the SVG carrier holds an equation in. RefusalMessage is that
 whole gate as one string, which every pipeline's command line runs over its .pie files before it
@@ -48,6 +58,8 @@ import re
 from pathlib import Path
 
 from . import OpenDdl, Schema
+from .DesignParameters import Switches as DesignSwitches
+from .Fonts import KnownFonts, LegacyFonts
 
 
 class PieError:
@@ -934,16 +946,18 @@ def CheckBracketContent(structure, path, errors):
 
 
 def CheckDesignParameter(structure, path, errors):
-    """V: the name must exist in the domain, and its one value must be a number in the dialog's range.
+    """V: the name must exist in the domain, and its one value must be a float in the dialog's range.
 
     Measured 2026-09-13 (V — Value Structure, Docs/ARCHITECTURE.md format facts): Radical Pie drops a
     parameter whose name it does not know, and one written in the wrong domain, from the design it saves
     without a word, so a misspelling here has no other reader. It does not clamp a value either:
     `V (d='intg',n='slnt') {f{90.0}}` against a maximum of 20 rendered an SVG of width `INF`.
 
-    A value that is not a number is dropped the same way: `V (n='fsiz') {s{"24.0"}}`, a doubled font
-    size, rendered the geometry of the same equation under an empty design and was saved as `D { }`
-    (measured 2026-09-14). The count of the values is Schema's own rule on V's data list.
+    A value in any data list but a float one is dropped the same way, and the specification says every
+    common value is floating-point but `'seps'`: `V (n='fsiz') {s{"24.0"}}`, a doubled font size, rendered the
+    geometry of the same equation under an empty design and was saved as `D { }` (measured 2026-09-14), and
+    so did `{i32{24}}`, `{double{24.0}}` and `{float64{24.0}}` against `{f{24.0}}`, which doubled the
+    equation (Radical Pie 1.16.0, 2026-10-16). The count of the values is Schema's own rule on V's data list.
     """
 
     domain = structure.properties.get("d", 0)
@@ -952,6 +966,10 @@ def CheckDesignParameter(structure, path, errors):
 
     # CheckProperties reports an unknown domain and a missing or wrongly typed name.
     if parameters is None or not isinstance(name, str):
+        return
+
+    if name in DesignSwitches.get(domain, ()):
+        CheckDesignSwitch(structure, name, path, errors)
         return
 
     if name not in parameters:
@@ -972,20 +990,20 @@ def CheckDesignParameter(structure, path, errors):
         if not isinstance(child, OpenDdl.DataList):
             continue
 
-        for value in DataListValues(child):
-            if not isinstance(value, (int, float)) or isinstance(value, bool):
-                errors.append(
-                    PieError(
-                        child.line,
-                        child.column,
-                        Join(path, child),
-                        "the design parameter {!r} takes a number, found {}; Radical Pie drops a "
-                        "parameter it cannot read".format(name, ValueTypeOf(value)),
-                        Schema.VSection,
-                    )
+        if child.primitiveType != "float":
+            errors.append(
+                PieError(
+                    child.line,
+                    child.column,
+                    Join(path, child),
+                    "the design parameter {!r} takes a float, f{{...}}, found a data list of type {}; Radical Pie "
+                    "drops a parameter it cannot read".format(name, child.primitiveType),
+                    Schema.VSection,
                 )
-                continue
+            )
+            continue
 
+        for value in DataListValues(child):
             if not minimum <= value <= maximum:
                 errors.append(
                     PieError(
@@ -1000,13 +1018,105 @@ def CheckDesignParameter(structure, path, errors):
                 )
 
 
+def CheckDesignSwitch(structure, name, path, errors):
+    """V: a design switch takes one bool.
+
+    Measured 2026-10-08 (V — Value Structure, Findings.md B3): `V (n='seps') {b{true}}` turns separate text
+    styles on and `V (n='seps') {f{1.0}}` is dropped from the design Radical Pie 1.16 saves, leaving them off.
+    """
+
+    for child in structure.children:
+        if isinstance(child, OpenDdl.DataList) and child.primitiveType != "bool":
+            errors.append(
+                PieError(
+                    child.line,
+                    child.column,
+                    Join(path, child),
+                    "the design switch {!r} takes a bool, b{{true}} or b{{false}}, found a {} data list; "
+                    "Radical Pie drops it".format(name, child.primitiveType),
+                    Schema.VSection,
+                )
+            )
+
+
+def CheckFontData(structure, path, errors):
+    """F: one data list, a non-empty name, a known font's id or -1, or a 1.15 font number.
+
+    Measured 2026-10-08 against Radical Pie 1.16 (F — Font Structure, Findings.md B1): `F (i=1) {i32{21}}`,
+    `u16` and `i8` data lists and an F with no data list raise the invalid-data dialog; of two data lists the
+    first is read and the second dropped; an int16 past the 84 known fonts empties the slot like -1 does; a
+    uint8 is read as the 1.15 font of that number. `s{""}`, `u8{44}` (1.15's Mathematica6 Bold), `u8{51}` and
+    `u8{200}` each empty the slot, written back as `i16{-1}` (measured 2026-10-08). Schema refuses the other
+    types; this holds the count and the values.
+    """
+
+    lists = [child for child in structure.children if isinstance(child, OpenDdl.DataList)]
+
+    if not lists:
+        errors.append(
+            PieError(
+                structure.line,
+                structure.column,
+                path,
+                "F needs one data list, a string, an int16 or a uint8, found none; Radical Pie refuses the file",
+                Schema.FSection,
+            )
+        )
+
+    if len(lists) > 1:
+        errors.append(
+            PieError(
+                lists[1].line,
+                lists[1].column,
+                Join(path, lists[1]),
+                "F takes one data list, found {}; Radical Pie reads the first and drops the rest".format(len(lists)),
+                Schema.FSection,
+            )
+        )
+
+    for child in lists[:1]:
+        for value in child.values:
+            message = FontValueMessage(child.primitiveType, value)
+
+            if message:
+                errors.append(PieError(child.line, child.column, Join(path, child), message, Schema.FSection))
+
+
+def FontValueMessage(primitiveType, value):
+    """Why one value of an F data list is refused, or None."""
+
+    if primitiveType == "string" and value == "":
+        return "the name of a font must not be the empty string"
+
+    if primitiveType == "int16" and isinstance(value, int) and not -1 <= value < len(KnownFonts):
+        return "a known font's id is 0 to {}, or -1 for an empty slot, found {}; Radical Pie empties the slot".format(
+            len(KnownFonts) - 1, value
+        )
+
+    if primitiveType != "uint8" or not isinstance(value, int):
+        return None
+
+    if not 0 <= value < len(LegacyFonts):
+        return "a 1.15 font number is 0 to {}, found {}; Radical Pie empties the slot".format(
+            len(LegacyFonts) - 1, value
+        )
+
+    if LegacyFonts[value] == Schema.NoFontIndex:
+        return "the 1.15 font number {} has no Radical Pie 1.16 font, and Radical Pie empties the slot".format(value)
+
+    return None
+
+
 def FilledFontSlots(design):
     """The font slots that hold a font: the factory design's own, and the slot of every F written here.
 
     A design merges into the factory design, so a slot the file does not name still holds the factory's
-    font (Docs/ARCHITECTURE.md, format facts). The F structures of this design add to those slots; the
-    later indexes of a style map are its fallbacks and may name any slot, filled or not, because Radical
-    Pie fills them from the factory chain itself (`M (t='uprt') {u8{1}}` is saved as `u8{1,1,7,5}`).
+    font (Docs/ARCHITECTURE.md, format facts). The F structures of this design add to those slots, and an F
+    holding `i16{-1}` empties its slot, the factory's included: `F (i=9) {i16{-1}}` with `M (t='uprt')
+    {u8{9}}` came back as `u8{0}` (measured 2026-10-08 against Radical Pie 1.16). The later indexes of a style
+    map are its fallbacks and may name any slot, filled or not. In 1.16 a map holds only the fallbacks it
+    writes: `u8{9}` behaves like `u8{9,255,255,255}`, where 1.15 filled the rest from the factory chain
+    (Skill/radical-pie-workspace/beta-1.16/Findings.md B9).
     """
 
     slots = set(range(Schema.HighestFactoryFontSlot + 1))
@@ -1017,7 +1127,14 @@ def FilledFontSlots(design):
 
         index = child.properties.get("i")
 
-        if isinstance(index, int) and not isinstance(index, bool):
+        if not isinstance(index, int) or isinstance(index, bool):
+            continue
+
+        lists = [item for item in child.children if isinstance(item, OpenDdl.DataList) and item.values]
+
+        if lists and lists[0].primitiveType == "int16" and lists[0].values[0] == Schema.EmptyFontId:
+            slots.discard(index)
+        else:
             slots.add(index)
 
     return slots
@@ -1026,15 +1143,18 @@ def FilledFontSlots(design):
 def CheckStyleMapFonts(structure, slots, path, errors):
     """M: the first index of a style map names a slot that holds a font, which 255 never does.
 
-    Measured 2026-09-13 (M — Map Structure): `M (t='uprt') {u8{255}}` and `M (t='uprt') {u8{255,8,0,1}}`
-    each crashed Radical Pie with the access violation 3221225477 before it rendered anything, while
-    `M (t='uprt') {u8{8,255,255,255}}`, the shape the operator's design fixture writes, rendered.
+    Measured 2026-09-13 against Radical Pie 1.15 (M — Map Structure) and again by the vendor suite against
+    1.16 on 2026-10-08: `M (t='uprt') {u8{255}}` crashes Radical Pie with the access violation 3221225477
+    before it renders anything, while `M (t='uprt') {u8{8,255,255,255}}`, the shape the operator's design
+    fixture writes, renders.
 
-    Measured 2026-09-14, one render per slot on a design holding the map alone: slots 1, 7 and 8 render,
-    each in its own face, and slots 9 and 20 crash with the same access violation. 300, which is slot 44
-    after the uint8 wrap, drew every glyph as the missing-glyph box instead (2026-09-13). So a first
-    index no font fills is a crash or a page of boxes, and the slots that hold one without an F of their
-    own are 0 to Schema.HighestFactoryFontSlot.
+    Measured 2026-10-08 against 1.16, one render per slot on a design holding the map alone: slots 1, 7 and 8
+    render in their own faces; an empty slot up to 15, 9 or one an F empties with `i16{-1}`, is rewritten to
+    `u8{0}`, the Radical font, which draws "Rag" as three missing-glyph boxes, 30.5508 pt wide against 22.6016
+    under the factory design; and slot 20, past the fifteen the font table holds, still crashes with the access
+    violation. 1.15 crashed on slot 9 as well (2026-09-14). So a first index no font fills is a page of boxes
+    or a crash, and the slots that hold a font without an F of their own are 0 to
+    Schema.HighestFactoryFontSlot.
     """
 
     for child in structure.children:
@@ -1065,15 +1185,20 @@ def CheckStyleMapFonts(structure, slots, path, errors):
 
         own = sorted(slot for slot in slots if slot > Schema.HighestFactoryFontSlot)
         adds = "adds none" if not own else "adds {}".format(", ".join(str(slot) for slot in own))
+        outcome = (
+            "which crashes Radical Pie"
+            if index > Schema.HighestFontSlot
+            else "so Radical Pie draws the style from the Radical font, every letter a missing-glyph box"
+        )
 
         errors.append(
             PieError(
                 child.line,
                 child.column,
                 Join(path, child),
-                "the first index of a style map is its primary font, and no font fills slot {}, which "
-                "crashes Radical Pie; the factory design fills slots 0 to {} and this design {}".format(
-                    index, Schema.HighestFactoryFontSlot, adds
+                "the first index of a style map is its primary font, and no font fills slot {}, {}; the "
+                "factory design fills slots 0 to {} and this design {}".format(
+                    index, outcome, Schema.HighestFactoryFontSlot, adds
                 ),
                 Schema.MSection,
             )
@@ -1555,6 +1680,9 @@ def CheckStructure(node, path, errors):
 
     if node.identifier == "V":
         CheckDesignParameter(node, path, errors)
+
+    if node.identifier == "F":
+        CheckFontData(node, path, errors)
 
     # A style map reads the font slots of the design around it, which is why D and not M dispatches it.
     if node.identifier == "D":

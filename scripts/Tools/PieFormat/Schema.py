@@ -15,8 +15,10 @@ unconstrained here. Every data-list value is held to the range of its primitive 
 a Unicode character value to the last code point (`UnicodeValueStructures`), and the values the
 specification does enumerate to its tables: `Ar`'s arrow and charm types and `Bd`'s bond types, bond
 group types, angle group types and angle types. Three exceptions are measurements and
-not readings. `V`'s `n` is DesignParameters.Domains, the 347 design parameter names the executable holds,
-with the range each is given, because Radical Pie drops a name it does not know without a word (ADR-0008).
+not readings. `V`'s `n` is DesignParameters.Domains, the 348 design parameter names the executable holds,
+with the range each is given, because Radical Pie drops a name it does not know without a word (ADR-0008);
+the specification of 1.16 prints the common domain's names, and Tests/PieFormat/ValidatorMutationTest.py
+holds the table's common domain to them.
 `Gr`'s `ba`: the Group menu offers three baseline alignments and the editor writes 'frst' and 'mddl' for
 two of them, so those three are the allowed values; Radical Pie itself accepts any value there and renders
 the default (ADR-0006). `Ar`'s two data-list enumerations, `ArrowTypes` and `CharmTypes`, are narrower for
@@ -272,6 +274,14 @@ SymbolStyles = (
     "bisn",
 )
 
+# The four styles Radical Pie 1.16 adds for general text, which a design maps and a symbol does not name: with
+# `V (n='seps') {b{true}}` every symbol in the 'text' role takes these maps whatever its 'st', and without it
+# the math maps (measured 2026-10-08, Skill/radical-pie-workspace/beta-1.16/Findings.md B3). The 1.16 style
+# table holds the 22 symbol styles and these four, and the Font Manager writes all 26 maps.
+TextStyles = ("uprx", "itax", "bolx", "bitx")
+
+MapStyles = SymbolStyles + TextStyles
+
 # The specification's domain list holds the first twenty-one of these and omits 'bond'.
 # Corpus/Site/Chemistry/FDG.pie lines 5 to 7 write three bond parameters, 'wgap', 'hlln' and 'dlln', in
 # that domain (Docs/ARCHITECTURE.md, format facts the specification does not state). The names inside
@@ -284,10 +294,17 @@ NoFontIndex = 255
 
 # The highest font slot that resolves to a font with no F in the design, measured 2026-09-14 through the
 # render pipeline: `M (t='uprt') {u8{n}}` in a design holding nothing else renders for n of 1, 7 and 8,
-# each in a different face, and crashes Radical Pie with the access violation 3221225477 for n of 9 and
-# 20. Validator.CheckDesignFonts holds a style map's first index to these slots and the ones the design's
-# own F structures fill.
+# each in a different face. Radical Pie 1.15 crashed with the access violation 3221225477 for n of 9 and 20;
+# 1.16 draws 9 from the Radical font and still crashes on 20 (2026-10-08). Validator.CheckDesignFonts holds
+# a style map's first index to these slots and the ones the design's own F structures fill.
 HighestFactoryFontSlot = 8
+
+# The highest slot an F can fill, which F — Font Structure states; a style map naming a higher one crashes
+# Radical Pie 1.16 (slot 20, measured 2026-10-08).
+HighestFontSlot = 15
+
+# The int16 an F holds for an empty slot, which F — Font Structure states.
+EmptyFontId = -1
 
 # The range of every integer primitive OpenDDL spells, which Radical Pie reads with the width the type
 # names: a value outside it wraps. `M (t='uprt') {u8{-1}}` is the refused `u8{255}` after the wrap and
@@ -740,9 +757,9 @@ Structures = {
             substructures=[
                 SubstructureRule("V", 0, None, DSection),
                 SubstructureRule("F", 0, 15, DSection),
-                # A design holds up to 22 M structures, one per style; the specification's maximum of
-                # 21 is one short (probed 2026-09-10, Docs/ARCHITECTURE.md).
-                SubstructureRule("M", 0, 22, DSection),
+                # A design holds one M per style, 26 in Radical Pie 1.16, which writes all 26 (measured
+                # 2026-10-08, Findings.md B3); the specification still says 0 to 21.
+                SubstructureRule("M", 0, len(MapStyles), DSection),
                 SubstructureRule("P", 0, 1, DSection),
             ],
         ),
@@ -768,13 +785,18 @@ Structures = {
             # and no design replaces it: `F (i=0) {s{"Arial"}}` was dropped from the design Radical Pie
             # saved and the styles mapped to slot 0 drew from the Radical font as before (measured
             # 2026-09-13 through the render pipeline, ADR-0008), so the writer's font is lost in silence.
-            properties=[PropertyRule("i", "int32", 0, FSection, minimum=1, maximum=15)],
-            # F — Font Structure gives F no substructures. Corpus/Pie/rpie.pie writes the font name as
-            # a string data list inside it, and each of the 202 font structures in the corpus holds
-            # exactly one data list, a string or a uint8 index (corpus census 2026-09-10), holding one
-            # value: `F (i=8) {s{}}` is dropped from the design Radical Pie saves without a word, so a
-            # style mapped to slot 8 draws from whatever filled it before (measured 2026-09-14).
-            substructures=[SubstructureRule("anyPrimitive", 1, 1, FSection, valueMinimum=1, valueMaximum=1)],
+            properties=[PropertyRule("i", "int32", 0, FSection, minimum=1, maximum=HighestFontSlot)],
+            # The 1.16 specification gives F a string, the font's name ID 4, or an int16, a known font's id or
+            # -1 for an empty slot, each 0 to 1. Radical Pie 1.16 also reads a uint8 in the 1.15 numbering,
+            # raises the invalid-data dialog for an int32, a uint16, an int8 and an F with no data list, and
+            # reads only the first of two (measured 2026-10-08, Findings.md B1). Validator.CheckFontData
+            # holds F to exactly one of the three, holding one value: `F (i=8) {s{}}` is dropped from the
+            # design without a word (measured 2026-09-14).
+            substructures=[
+                SubstructureRule("string", 0, 1, FSection, valueMinimum=1, valueMaximum=1),
+                SubstructureRule("int16", 0, 1, FSection, valueMinimum=1, valueMaximum=1),
+                SubstructureRule("uint8", 0, 1, FSection, valueMinimum=1, valueMaximum=1),
+            ],
         ),
         Rule(
             "Fr",
@@ -870,7 +892,7 @@ Structures = {
             "M",
             "design",
             MSection,
-            properties=[PropertyRule("t", "uint32", None, MSection, allowedValues=SymbolStyles, required=True)],
+            properties=[PropertyRule("t", "uint32", None, MSection, allowedValues=MapStyles, required=True)],
             # The first index is the primary font of the style and the rest are its fallbacks, which is why
             # 255, the "no font" index of Corpus/Pie/aaa.pie, belongs in a later slot and not the first:
             # `M (t='uprt') {u8{255}}` and `M (t='uprt') {u8{255,8,0,1}}` each crashed Radical Pie with the
@@ -994,6 +1016,10 @@ Structures = {
                 # writes it on a symbol; the Symbols documentation page calls it "Shift math axis for
                 # capitals".
                 PropertyRule("ma", "bool", False, SbSection),
+                # Oldstyle figures, new in Radical Pie 1.16 and missing from the specification: drawn in the
+                # fonts that have them, combined with 'pf' and 'tf', and dropped on save when false (measured
+                # 2026-10-08, Findings.md B7).
+                PropertyRule("of", "bool", False, SbSection),
             ],
             substructures=[
                 SubstructureRule("string", 1, 1, SbSection, valueMinimum=1, valueMaximum=1),
@@ -1057,9 +1083,10 @@ Structures = {
             ],
             # V — Value Structure gives V no substructures. Corpus/Pie/test11.pie writes the parameter
             # value as a float data list inside it, and each of the 26 value structures in the corpus
-            # holds exactly one data list (corpus census 2026-09-10) holding one value; any primitive
-            # type is accepted here because the document says nothing about which types a design
-            # parameter can take, and Validator.CheckDesignParameter holds the value to a number.
+            # holds exactly one data list (corpus census 2026-09-10) holding one value. Any primitive
+            # type is accepted here, because a switch such as 'seps' takes a bool, and
+            # Validator.CheckDesignParameter holds a parameter to a float and a switch to a bool; the
+            # 1.16 document says every common value is floating-point but 'seps'.
             # `V (n='fsiz') {f{}}` is dropped from the design Radical Pie saves (measured 2026-09-14).
             substructures=[SubstructureRule("anyPrimitive", 1, 1, VSection, valueMinimum=1, valueMaximum=1)],
         ),

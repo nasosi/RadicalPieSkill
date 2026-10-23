@@ -8,6 +8,9 @@ one implementation. It drives the installed Radical Pie and the MiKTeX engines o
 
 Prints `key width height shift` in points per equation, then the path of each compiled PDF. Exits 1 with the
 reason on stderr when an equation fails to render or the engine stops on an error.
+
+An output drawn with a font slot in Times, because the design names a font Radical Pie cannot find, is written
+all the same, with one `warning:` line per slot on stderr and exit 3.
 """
 
 import sys

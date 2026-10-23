@@ -20,6 +20,10 @@ like any other, so the shift alone puts it right. A key holding an underscore su
 `\includegraphics` and the `\csname` lookup. Each engine gets its own job name, because both write their
 `.pdf`, `.aux` and `.log` into the same directory and the second would otherwise overwrite the first.
 
+An equation whose design names a font Radical Pie cannot find is drawn with that slot in Times in both the
+picture and the measurement, and the build goes on; its `Equation` carries one warning line per such slot,
+the export's and then any the SVG render adds (`Tools.PieFormat.Fonts.FontWarnings`, ADR-0015).
+
 Every process this module starts it ends: Radical Pie is owned by the render pipeline, and each engine run
 is a `subprocess.run` with a timeout, `-interaction=nonstopmode` and `-halt-on-error`, so no run can stop on
 a console prompt and none outlives its call. A failed compilation is reported as the log's first error line.
@@ -111,7 +115,10 @@ class Placeholder:
 
 @dataclass(frozen=True)
 class Equation:
-    """One exported equation: the picture the document includes, and the geometry it was measured at."""
+    """One exported equation: the picture the document includes, and the geometry it was measured at.
+
+    `fontWarnings` holds one line per font slot Radical Pie drew in Times.
+    """
 
     key: str
     width: float
@@ -119,6 +126,7 @@ class Equation:
     shift: float
     pdfPath: Path
     svgPath: Path
+    fontWarnings: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -312,11 +320,12 @@ def Keys(placeholders: list) -> list:
 def ExportEquation(key: str, pieText: str, imageDirectory: Path) -> Equation:
     """The picture and the measurement of one equation, two Radical Pie runs, one after the other."""
 
-    pdfPath = ExportPdf(pieText, imageDirectory / f"{key}.pdf")
+    exported = ExportPdf(pieText, imageDirectory / f"{key}.pdf")
     svgPath = imageDirectory / f"{key}.svg"
     info = RenderSvg(pieText, svgPath)
+    warnings = exported.fontWarnings + tuple(line for line in info.fontWarnings if line not in exported.fontWarnings)
 
-    return Equation(key, info.width, info.height, info.baselineShift, pdfPath, svgPath)
+    return Equation(key, info.width, info.height, info.baselineShift, exported.path, svgPath, warnings)
 
 
 def StyleText(equations: list) -> str:
