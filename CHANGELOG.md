@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2 — 2026-10-31
+
+- Word and PowerPoint embeds start every Radical Pie editor minimised, so none is drawn over the desktop;
+  an embed used to open one visible editor per equation, and in Word keep it there for up to seconds.
+
 ## 1.3.1 — 2026-10-22
 
 - `python scripts/Render.py png Eq.pie Eq.png` renders the equation to a PNG at 300 dpi, through Inkscape 1.x,

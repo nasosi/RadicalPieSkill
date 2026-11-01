@@ -4,9 +4,10 @@ What cannot be fixed on the skill's side, measured against Radical Pie 1.15 and 
 Nothing in this list is feedback: `references/Feedback.md` says to read it before writing a line, and a
 lesson that is already here is dropped.
 
-- **Every render opens a window.** Radical Pie has no headless mode, so each render, export and embed puts
-  the editor on the desktop for a second or two and closes it again. One program at a time may drive it,
-  the foreground window and the clipboard being shared.
+- **Every render opens a window.** Radical Pie has no headless mode, so each render, export and embed starts
+  the editor minimised and unfocused and closes it again: it stands on the taskbar for a second or two and
+  never over the desktop or the window being typed in. One program at a time may drive it, the foreground
+  window and the clipboard being shared.
 - **PowerPoint cannot be hidden.** Word runs invisibly under COM; PowerPoint does not, and its window is
   on the screen, minimised at best, for the length of an embed.
 - **A killed interpreter leaves the working copy of a deck behind.** The pipelines end every program they

@@ -10,9 +10,10 @@ an allowance for each object. The error of a run that goes past it names which p
 objects it had finished.
 
 `python -m Tools.Word check <document.docx>` starts nothing: it reads the package and prints one line per
-embedded object, `identity progId width height drawn-or-blank`, and a last line with the count of
-`RadicalPie.Application.1` objects among them. It exits non-zero when an object is still the blank Word
-caches before an activation draws it, or is of another class.
+embedded object, `identity progId width height status`, with the status `drawn`, `blank` or `zero-frame
+(undrawn)`, and a last line with the count of `RadicalPie.Application.1` objects among them. It exits non-zero
+when an object is still the blank Word caches before an activation draws it, holds the zero-frame metafile, or
+is of another class.
 
 An equation Radical Pie drew with a font slot in Times, because its design names a font Radical Pie cannot
 find, is embedded and its line printed all the same, and each such slot adds one line on stderr, `warning: the
@@ -116,7 +117,7 @@ def Check(arguments: list, program: str) -> int:
     records = CheckObjects(Path(arguments[0]))
 
     for record in records:
-        status = "drawn" if record.drawn else "blank"
+        status = "drawn" if record.drawn else "zero-frame (undrawn)" if record.zeroFrame else "blank"
 
         print(f"{record.identity} {record.progId} {record.width:g} {record.height:g} {status}")
 

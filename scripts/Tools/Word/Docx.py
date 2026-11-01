@@ -72,15 +72,35 @@ Measured on 2026-09-11 against the same two programs, and the reason for each st
   starts while the activation runs, one of the operator's or one another test launched, is new in the process
   listing in exactly the same way, and taking the lowest new pid reported an equation the pipeline had drawn a
   minute earlier as one Radical Pie could not read.
-- The editor window opens visible, about 1080 by 720 points, and does not take the foreground: the window that
-  had it kept it through a whole pass. The pipeline minimises the editor as soon as it appears, which is what
-  one process can do to another's window, and Radical Pie draws and saves the equation minimised.
+- The editor window opens visible, about 1080 by 720 pixels, and does not take the foreground: the window that
+  had it kept it through a whole pass. Radical Pie draws and saves the equation minimised.
 
 Measured on 2026-09-12, with forty test workers and an agent rendering beside this pass: the activation step
 fails about once in a hundred objects and succeeds on the rerun, the server closing the editor without drawing
 an equation it drew a minute earlier, and once leaving one picture out of sixteen the 284-byte blank. So the
 third pass activates a failed object a second time, with a server of its own, and only a second failure fails
 the document; the fourth pass is unchanged and still refuses a picture no larger than the blank.
+
+Measured on 2026-10-31 against Word 16 and Radical Pie 1.16, ten equations embedded with `scripts/Word.py
+embed` and every `RadicalPie` window read by a sampler as fast as it could, and the reason both Word passes
+run inside a `Tools.Word.EditorHook`:
+
+- Pass one opens an editor for every object `AddOLEObject` inserts and leaves it on screen until the document
+  closes, all of them at one position: the first of ten was on screen 4.6 s and the last 1.2 s.
+- Pass three's editor was on screen 0.35 to 0.38 s each, from its show to the minimise the pass sent once
+  `AwaitEditor` had found it, which polls the process listing.
+- The editor is created hidden with the title `Radical Pie`, renamed `Radical Pie - Equation in <file name>`
+  and shown 31 to 94 ms after its creation, at the position it was created at.
+- `ShowWindowAsync` with `SW_SHOWMINNOACTIVE` sent on the name change, while the editor is still hidden,
+  shows it minimised, and the server's own show leaves it so: the show and the minimise carry the same event
+  time, the sampler found no editor on screen in either pass, and the equations came out at the sizes they
+  had before, 23 by 23 and 16.5 by 9 points. Moving the hidden editor off the screen kept it off as well;
+  the pipeline minimises instead, the state Radical Pie has drawn in since 2026-09-11.
+- `OLEFormat.DoVerb` with `OLEIVERB_HIDE` (-3) or `OLEIVERB_INPLACEACTIVATE` (-5) is answered with E_FAIL and
+  starts the server with its editor hidden, and a Save posted to the hidden editor delivers the 632-byte
+  zero-frame metafile Radical Pie answers with before its layout has run. Word sizes that object 1 by 1 point
+  (15 by 15 twips) and the fourth pass used to accept it as a drawing; it now refuses a picture whose frame
+  is zero, and the third pass keeps posting Save while the object stands at 1 by 1.
 
 Ending a session costs one handled COM failure, which pytest's faulthandler prints as
 `Windows fatal exception: code 0x800706be` with a stack in `WordSession.__exit__`. Word exits inside
@@ -132,6 +152,7 @@ import io
 import os
 import re
 import shutil
+import struct
 import subprocess
 import tempfile
 import threading
@@ -156,6 +177,7 @@ from Tools.PieFormat.Validator import FirstViolation
 from Tools.Processes import AwaitProcessExit, KillProcess
 from Tools.Render.FontImport import AwaitSlugFont, FontImportTitle, FontImportWatch, FontImportWindows
 from Tools.Render.Svg import Attempts, DialogText, PostClose, SaveCommand, TopLevelWindows, WindowClass
+from Tools.Word.EditorHook import EditorHook
 
 ObjectClass = "RadicalPie.Application.1"
 ObjectClassId = "{4EE860BB-53CE-44F3-BC6B-434146CAB233}"
@@ -236,6 +258,13 @@ EmuPerPoint = 12700
 # cache in `ReplaceEquationStreams`. `check` opens a document nothing here just embedded, with no such pass
 # to measure from, so it takes the measured constant instead.
 BlankPictureSize = 284
+
+# The size Word gives an object whose presentation is the zero-frame metafile Radical Pie answers with before
+# its layout has run, and where that metafile keeps its frame: an `EMR_HEADER` record, then `rclBounds`, then
+# `rclFrame` as four 32-bit integers at byte 24 (measured 2026-10-31, the module docstring).
+ZeroFrameSize = (1.0, 1.0)
+EmfHeaderType = 1
+EmfFrameOffset = 24
 
 # The budget for a whole run when the caller names none, base plus an allowance for each object. Measured on
 # 2026-09-19 against Word 16 and Radical Pie 1.15: a one-object document took 17.4 seconds end to end and a
@@ -654,7 +683,9 @@ def InsertObjects(documentPath: Path, placeholders: list, references: list, dead
     chapters = ReadChapters(documentPath)
     forms = NumberForms(placeholders, chapters)
 
-    with WordSession(deadline) as session:
+    # Every object `AddOLEObject` inserts opens an editor that stays until the document closes, so the hook
+    # outlives the session.
+    with EditorHook(EditorTitlePrefix + documentPath.name), WordSession(deadline) as session:
         application = session.application
         done = 0
 
@@ -1039,6 +1070,7 @@ class ObjectRecord:
     width: float
     height: float
     drawn: bool
+    zeroFrame: bool
 
 
 def CheckObjects(documentPath: Path) -> list:
@@ -1046,9 +1078,10 @@ def CheckObjects(documentPath: Path) -> list:
 
     The identity is the key of the `eq_<key>` bookmark the numbered kind leaves in the object's own
     paragraph, and the paragraph index `ReadPlaceholders` would have given the placeholder for the other two
-    kinds, which leave no bookmark. `drawn` is `CheckPictures`'s own rule, a picture over `BlankPictureSize`
-    rather than the blank Word caches on insertion, against the measured constant rather than a size read
-    live from this same document, because nothing here inserted an object to measure the blank of.
+    kinds, which leave no bookmark. `drawn` is `CheckPictures`'s own rule, `IsDrawnPicture`: a picture over
+    `BlankPictureSize` rather than the blank Word caches on insertion, and not the zero-frame metafile, against
+    the measured constant rather than a size read live from this same document, because nothing here inserted
+    an object to measure the blank of.
     """
 
     CheckIsWordPackage(documentPath)
@@ -1068,7 +1101,7 @@ def CheckObjects(documentPath: Path) -> list:
             objectElement = element.getparent()
             paragraph = next(objectElement.iterancestors(ParagraphTag))
             picture = objectElement.find(f".//{ImageDataTag}")
-            pictureSize = len(package.read(relationships[picture.get(RelationshipId)])) if picture is not None else 0
+            pictureBytes = package.read(relationships[picture.get(RelationshipId)]) if picture is not None else b""
             width, height = ObjectSize(objectElement)
 
             records.append(
@@ -1077,7 +1110,8 @@ def CheckObjects(documentPath: Path) -> list:
                     progId=element.get("ProgID"),
                     width=width,
                     height=height,
-                    drawn=pictureSize > BlankPictureSize,
+                    drawn=IsDrawnPicture(pictureBytes, BlankPictureSize),
+                    zeroFrame=HasZeroFrame(pictureBytes),
                 )
             )
 
@@ -1154,7 +1188,7 @@ def RenderObjects(documentPath: Path, keys: list, deadline: float) -> list:
 
     sizes = []
 
-    with WordSession(deadline) as session:
+    with EditorHook(EditorTitlePrefix + documentPath.name), WordSession(deadline) as session:
         try:
             document = session.application.Documents.Open(str(documentPath), ReadOnly=False, AddToRecentFiles=False)
             indexes = ObjectIndexes(document)
@@ -1246,15 +1280,15 @@ def CloseFontImport(pid: int) -> None:
 
 
 def QuietenEditor(window: int) -> None:
-    """Take the editor window off the operator's screen as soon as it appears.
+    """Minimise the editor window `AwaitEditor` found, for an editor the pass's `EditorHook` did not reach.
 
-    Word starts the server, so this window is not one the tooling launched and `STARTUPINFO` cannot reach it.
-    Measured on 2026-09-11: it opens visible, about 1080 by 720 points over whatever is behind it, and it does
-    not take the foreground, which stayed on the window that had it for the whole pass. Minimising it is what
-    this process can do to a window of another, and Radical Pie draws the equation and saves it minimised.
-    Handing the foreground back was measured as well and is not done here: `SetForegroundWindow` on the window
-    that held it is refused to this process, with and without an `AttachThreadInput` to the thread that owns
-    the foreground, and it left the foreground on no window at all.
+    The hook has shown the editor minimised before its first frame, and minimising a minimised window changes
+    nothing; this is what keeps the window off the screen when Windows refused the hook, which is how the pass
+    kept it off before the hook existed, 0.35 to 0.38 s after its show (measured 2026-10-31, module docstring).
+    The editor does not take the foreground, which stayed on the window that had it for the whole pass
+    (2026-09-11). Handing the foreground back was measured as well and is not done here: `SetForegroundWindow`
+    on the window that held it is refused to this process, with and without an `AttachThreadInput` to the
+    thread that owns the foreground, and it left the foreground on no window at all.
     """
 
     try:
@@ -1344,7 +1378,10 @@ def AwaitPresentation(document, index: int, blank: tuple, pid: int, window: int,
     """Post File > Save to the editor until Word has a picture of its own for the object.
 
     Word reports the new presentation as a size that differs from the blank 5.25 by 6.75 points, the height
-    first. Radical Pie leaving on its own means it could not read the equation. No Save is posted while a font
+    first. A Save that arrives before the layout has run delivers the zero-frame metafile, which Word shows at
+    1 by 1 point, and a height of 1 point at any width is the same undrawn state caught between the two updates,
+    so neither is a drawing and Save is posted again. Radical Pie leaving on its
+    own means it could not read the equation. No Save is posted while a font
     import runs, and the unresolved-font report is closed before one is; the return says whether it was seen.
     """
 
@@ -1358,7 +1395,8 @@ def AwaitPresentation(document, index: int, blank: tuple, pid: int, window: int,
         ready = watch.Ready(windows)
         shape = document.InlineShapes(index)
 
-        if (shape.Width, shape.Height) != blank and PresentationArrived(firstPost):
+        # Word updates the height first, so a zero-frame Save can read as (5.25, 1.0): the height alone decides.
+        if (shape.Width, shape.Height) != blank and shape.Height != ZeroFrameSize[1] and PresentationArrived(firstPost):
             return watch.reported
 
         # The size is read before the server is tested, so a render that lands as the server leaves counts.
@@ -1402,7 +1440,7 @@ def RaiseOnServerDialog(windows: list) -> None:
 
 
 def CheckPictures(documentPath: Path, expectedCount: int, blankPictureSize: int) -> None:
-    """Pass four: every object shows a picture Radical Pie drew, not the blank Word cached."""
+    """Pass four: every object shows a picture Radical Pie drew, not the blank Word cached nor the zero frame."""
 
     with zipfile.ZipFile(documentPath) as package:
         parts = ReadObjectParts(package)
@@ -1411,13 +1449,40 @@ def CheckPictures(documentPath: Path, expectedCount: int, blankPictureSize: int)
             raise WordError(f"the finished document holds {len(parts)} Radical Pie objects, expected {expectedCount}")
 
         for _, picturePart in parts:
-            size = len(package.read(picturePart))
+            picture = package.read(picturePart)
 
-            if size <= blankPictureSize:
+            if len(picture) <= blankPictureSize:
                 raise WordError(
-                    f"{picturePart} is {size} bytes, no larger than the {blankPictureSize}-byte blank picture,"
+                    f"{picturePart} is {len(picture)} bytes, no larger than the {blankPictureSize}-byte blank"
+                    " picture, so that object was not drawn"
+                )
+
+            if HasZeroFrame(picture):
+                raise WordError(
+                    f"{picturePart} is the zero-frame metafile Radical Pie answers with before its layout has run,"
                     " so that object was not drawn"
                 )
+
+
+def IsDrawnPicture(picture: bytes, blankPictureSize: int) -> bool:
+    """`CheckPictures`'s rule for one picture: larger than the blank, and not the zero-frame metafile."""
+
+    return len(picture) > blankPictureSize and not HasZeroFrame(picture)
+
+
+def HasZeroFrame(picture: bytes) -> bool:
+    """True for an enhanced metafile whose `rclFrame` has no width or no height.
+
+    That is the 632-byte metafile Radical Pie delivers for a Save that arrives before its layout has run; Word
+    sizes the object 1 by 1 point for it (measured 2026-10-31, the module docstring).
+    """
+
+    if len(picture) < EmfFrameOffset + 16 or struct.unpack_from("<I", picture, 0)[0] != EmfHeaderType:
+        return False
+
+    left, top, right, bottom = struct.unpack_from("<4i", picture, EmfFrameOffset)
+
+    return right == left or bottom == top
 
 
 def ReadFontWarnings(documentPath: Path, keys: list, equations: dict, reportedFlags: list) -> list:

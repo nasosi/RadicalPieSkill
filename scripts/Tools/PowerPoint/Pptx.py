@@ -80,7 +80,8 @@ The route is ADR-0009's, which is ADR-0004's three passes with four differences 
   object's design takes the base font size of the body text of the layout of the slide the window shows,
   28.0 under a 28 pt layout, and the user default 12.0 when the deck has no window at all.
 - `Application.Visible = False` is refused ("Hiding the application window is not allowed"), so the
-  application window is minimised with `WindowState` instead and the editor window is minimised as it opens.
+  application window is minimised with `WindowState` instead. The editor window is shown minimised from its
+  first frame by a `Tools.Word.EditorHook` around each session, as the Word pipeline's is (2026-10-31).
 
 Every pass works on a file of the pipeline's own beside the output, and the output path is written by one
 rename once the run has succeeded. A refusal or a failure removes that file and leaves the output path as it
@@ -181,6 +182,7 @@ from Tools.Word.Docx import (
     Pids,
     PresentationArrived,
 )
+from Tools.Word.EditorHook import EditorHook
 
 PowerPointImage = "POWERPNT.EXE"
 ServerImage = "RadicalPie.exe"
@@ -1003,7 +1005,8 @@ def PrepareObjects(deckPath: Path, placeholders: list, equations: dict, deadline
 
     plans = {}
 
-    with PowerPointSession(deadline) as session:
+    # Every object `AddOLEObject` inserts opens an editor of its own, so the hook outlives the session.
+    with EditorHook(EditorTitlePrefix + deckPath.name), PowerPointSession(deadline) as session:
         try:
             presentation = OpenDeck(session, deckPath)
             presentation.Windows(1).ViewType = PpViewNormal
@@ -2129,7 +2132,7 @@ def RenderObjects(deckPath: Path, placeholders: list, plans: list, deadline: flo
 
     drawn = []
 
-    with PowerPointSession(deadline) as session:
+    with EditorHook(EditorTitlePrefix + deckPath.name), PowerPointSession(deadline) as session:
         try:
             presentation = OpenDeck(session, deckPath)
             presentation.Windows(1).ViewType = PpViewNormal
@@ -2204,7 +2207,7 @@ def GroupObjects(deckPath: Path, placeholders: list, deadline: float) -> None:
     running = Pids(ServerImage)
 
     try:
-        with PowerPointSession(deadline) as session:
+        with EditorHook(EditorTitlePrefix + deckPath.name), PowerPointSession(deadline) as session:
             try:
                 presentation = OpenDeck(session, deckPath)
                 presentation.Windows(1).ViewType = PpViewNormal
@@ -2420,11 +2423,12 @@ def AwaitPresentation(slide, placeholder: Placeholder, pid: int, window: int, de
 
 
 def QuietenEditor(window: int) -> None:
-    """Take the editor window off the operator's screen as soon as it appears.
+    """Minimise the editor window `AwaitEditor` found, for an editor the pass's `EditorHook` did not reach.
 
     PowerPoint starts the server, so this window is not one the tooling launched and `STARTUPINFO` cannot
-    reach it. Minimising it is what this process can do to a window of another, and Radical Pie draws the
-    equation and saves it minimised.
+    reach it. The hook has shown it minimised before its first frame and minimising it again changes nothing;
+    this is what keeps it off the screen when Windows refused the hook. Radical Pie draws the equation and
+    saves it minimised.
     """
 
     try:

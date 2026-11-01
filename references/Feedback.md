@@ -29,7 +29,7 @@ name if the directory does not have one yet. One line per lesson, appended to th
 Five fields, in order, separated by ` | `:
 
 ```
-1.3.1 | 1.16 | what was asked | what the skill said or lacked | what worked
+1.3.2 | 1.16 | what was asked | what the skill said or lacked | what worked
 ```
 
 The skill version, from this folder's `README.md`. The Radical Pie version, from the same place a pipeline
