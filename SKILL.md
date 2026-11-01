@@ -49,7 +49,7 @@ several `Bg`, with an `Al` on each line marking the column they align on.
 
 **A symbol is one or more characters with one role and one style.** `Sb {s{"xy"}}` is a symbol whose text is a string
 data list. Adjacent characters that share a role and a style belong in the same `Sb`; a change of either starts a new
-one. The role drives spacing and behaviour, the style drives the glyphs.
+one. The role drives spacing and behavior, the style drives the glyphs.
 
 **A structure holds typed subgroups.** `Fr` holds `numr` and `dnom`; `Sc` holds `subs` and `sups`; `Rd`
 holds a radicand and an optional `degr`; `It` and `In` hold an iterand or integrand plus `lowr` and
@@ -57,7 +57,7 @@ holds a radicand and an optional `degr`; `It` and `In` hold an iterand or integr
 optional `labl`. The subgroup's type is its `t` property, and its position in the parent follows from
 that type rather than from its order.
 
-**Scripts attach backwards.** `Sc` applies to the structure immediately before it, so a superscript is
+**Scripts attach backward.** `Sc` applies to the structure immediately before it, so a superscript is
 written as the base symbol followed by the script structure. Nothing wraps the base. Set `pr` on the
 `Sc` to attach it to the structure after it instead, for an isotope number before an element.
 
@@ -73,8 +73,8 @@ annotation groups (`Gr (t='anno')`), and foreground drawing structures; only the
 1. Decide the mathematics first, in LaTeX or in words, and settle what each token is: variable,
    number, operator, relation, function name, unit, text. Where the request leaves a placement open, an arrow's
    end, the term a note points at, take the convention the references give, list every such decision in the reply,
-   and ask the caller only when told to or when a font is not found (`references/catalogue/Design.md`, `F`).
-2. Pick the structures with `references/LatexRecipes.md`, then read the catalogue family file of each one you
+   and ask the caller only when told to or when a font is not found (`references/catalog/Design.md`, `F`).
+2. Pick the structures with `references/LatexRecipes.md`, then read the catalog family file of each one you
    have not used: it lists every property's type, default and allowed values, with a validated example.
 3. Write the file: the line `// Radical Pie Equation`, then `D {}`, then the main group, indented with tabs as
    Radical Pie does. Leave the design block empty unless the caller supplies a design; an empty design renders at
@@ -83,7 +83,7 @@ annotation groups (`Gr (t='anno')`), and foreground drawing structures; only the
    absolute or relative to the shell's directory, as every command here is. It prints `OK <file>`, or one line per
    violation as `file:line:col path: message [section]`. The path is the route through the structure tree, such as
    `Gr/Fr/Gr(t='dnom')`, and the section names the specification part the rule comes from. Fix by the path, and read
-   that structure's catalogue entry; `references/Pitfalls.md` covers the mistakes those messages report.
+   that structure's catalog entry; `references/Pitfalls.md` covers the mistakes those messages report.
 5. Render it where Radical Pie is installed, `python scripts/Render.py png MyEquation.pie MyEquation.png`, open the
    PNG (render `pdf` where Inkscape is missing), and recheck the request clause by clause against the picture: each
    clause is visible or named as not done and why, then emit in the document's form. Where the render is off, read the
@@ -103,7 +103,7 @@ typeset. Radical Pie assigns these itself while a user types; writing the file, 
 | Relations, `= < ≤ ≈ ∈` | `'rltn'` | |
 | `∂`, `∇` | `'unry'` | Tighter than `'oper'`. A charge's sign is `'oper'` too. |
 | Function names, `sin`, `log`, `det`, `lim` | `'func'` | Upright, with space either side. |
-| Punctuation | `'pnct'` | Commas and full stops. A bracket is a `Br`, never a `'pnct'` pair. |
+| Punctuation | `'pnct'` | Commas and periods. A bracket is a `Br`, never a `'pnct'` pair. |
 | Ellipses, `⋯ ⋮ ⋱` | `'elps'` | Between factors, with no operator dot either side. |
 | Words and phrases | `'text'` | |
 | Chemical elements | `'chem'` | Upright, spaced after a number. |
@@ -112,7 +112,7 @@ typeset. Radical Pie assigns these itself while a user types; writing the file, 
 | Bond characters | `'bond'` | |
 
 Running text keeps its punctuation and word gaps inside the `'text'` string, `"Let "`, `", and let "`;
-write no separate `Sp` between words and no `'pnct'` full stop in prose, and give `mod` the role `'func'`.
+write no separate `Sp` between words and no `'pnct'` period in prose, and give `mod` the role `'func'`.
 A line of prose runs on however long it gets, so a statement the caller asks for on two lines is two `Bg`.
 
 Each role has a default style, so `st` is only ever written to override it:
@@ -128,7 +128,7 @@ The overrides that come up most: `st='bold'` for a bold vector, `st='mono'`, `st
 code point and the style together, `Sb (st='doub') {s{"ℝ"}}`: the styles draw `ℕ ℤ ℚ ℝ ℂ`, the double-struck
 digits from U+1D7D8, `ℬ ℋ` and the Script block from U+1D49C, `𝓘` and the Bold Script block from U+1D4D0,
 and nothing else, so `R` with `st='doub'` and `𝟙` with `st='uprt'` both render plain. A differential `d` is
-plain italic on the site; `st='uprt'` is a house style. The 22 styles are listed in the catalogue's `Sb` entry.
+plain italic on the site; `st='uprt'` is a house style. The 22 styles are listed in the catalog's `Sb` entry.
 
 Greek follows mathematical convention and splits by case: a small Greek letter is italic, `st='itgk'`,
 and a capital Greek letter is upright, `st='grek'`. The bold pair is `st='bigk'` and `st='bdgk'`.
@@ -144,16 +144,16 @@ and a capital Greek letter is upright, `st='grek'`. The bold pair is `st='bigk'`
 
 ## What is in this skill
 
-- `references/catalogue/Overview.md` — how a file is put together, and which family file holds which structure; open it first.
-- The catalogue's families, all 39 structures with a validated example each: `references/catalogue/Symbols.md` (Sb, Sp, Bg, Sl, Ng, Pr, Mk, Sc),
-  `references/catalogue/Groups.md` (Gr, Al, St, Ph), `references/catalogue/Brackets.md` (Br, Bx, En, Kt), `references/catalogue/Fractions.md` (Fr, Dv, Rd),
-  `references/catalogue/Operators.md` (In, It), `references/catalogue/Matrices.md` (Mx), `references/catalogue/Arrows.md` (Ar, Wm), `references/catalogue/Bonds.md` (Bd),
-  `references/catalogue/Drawings.md` (Ln, Cn, Qe, Zg, Jo, Rt, Rr, El), `references/catalogue/Annotations.md` (X, and Feynman diagrams), `references/catalogue/Design.md` (D, F, M, P, V).
-- `references/LatexRecipes.md` — every LaTeX construct and the structure it becomes.
-- `references/Chemistry.md` — skeletal formulas, reactions and orbital diagrams; open it for chemistry.
-- `references/Examples.md` — thirty-seven worked equations in order of difficulty; copy the closest one, from `references/examples/*.pie`.
-- `references/AnchorAtlas.md` — every anchor type and index with its measured position, for drawings; `references/TexSymbols.md` — every TeX name Radical Pie knows, with its character.
-- `references/OutputForms.md` — the SVG carrier, rendering, Word, PowerPoint and LaTeX; open it for the form.
-- `references/Pitfalls.md` — the mistakes that produce a rejected, crashing or silently wrong file; the hints for one domain each are `references/ChemistryHints.md`, `references/AnnotationHints.md` (annotations, arrows, drawings, rails), `references/LayoutHints.md` (alignment, spacing, brackets, scripts, matrices, designs) and `references/DocumentHints.md` (Word, PowerPoint, LaTeX, SVG).
-- `references/EditorFeatures.md` — what the editor does and leaves out; open it for a missing feature. `references/Feedback.md` — send back what the skill got wrong or what cost time, once the task is done; `references/KnownLimitations.md` — what cannot be fixed here, and is never feedback.
-- `scripts/Validate.py` — the validator. Run it on anything you write. `scripts/WrapSvg.py` — the SVG carrier both ways, and `Render.py`, `Word.py`, `PowerPoint.py`, `Latex.py`, the four pipelines.
+- `references/catalog/Overview.md`: how a file is put together, and which family file holds which structure; open it first.
+- The catalog's families, all 39 structures with a validated example each: `references/catalog/Symbols.md` (Sb, Sp, Bg, Sl, Ng, Pr, Mk, Sc),
+  `references/catalog/Groups.md` (Gr, Al, St, Ph), `references/catalog/Brackets.md` (Br, Bx, En, Kt), `references/catalog/Fractions.md` (Fr, Dv, Rd),
+  `references/catalog/Operators.md` (In, It), `references/catalog/Matrices.md` (Mx), `references/catalog/Arrows.md` (Ar, Wm), `references/catalog/Bonds.md` (Bd),
+  `references/catalog/Drawings.md` (Ln, Cn, Qe, Zg, Jo, Rt, Rr, El), `references/catalog/Annotations.md` (X, and Feynman diagrams), `references/catalog/Design.md` (D, F, M, P, V).
+- `references/LatexRecipes.md`: every LaTeX construct and the structure it becomes.
+- `references/Chemistry.md`: skeletal formulas, reactions and orbital diagrams; open it for chemistry.
+- `references/Examples.md`: thirty-seven worked equations in order of difficulty; copy the closest one, from `references/examples/*.pie`.
+- `references/AnchorAtlas.md`: every anchor type and index with its measured position, for drawings; `references/TexSymbols.md`: every TeX name Radical Pie knows, with its character.
+- `references/OutputForms.md`: the SVG carrier, rendering, Word, PowerPoint and LaTeX; open it for the form.
+- `references/Pitfalls.md`: the mistakes that produce a rejected, crashing or silently wrong file; the hints for one domain each are `references/ChemistryHints.md`, `references/AnnotationHints.md` (annotations, arrows, drawings, rails), `references/LayoutHints.md` (alignment, spacing, brackets, scripts, matrices, designs) and `references/DocumentHints.md` (Word, PowerPoint, LaTeX, SVG).
+- `references/EditorFeatures.md`: what the editor does and leaves out; open it for a missing feature. `references/Feedback.md`: send back what the skill got wrong or what cost time, once the task is done; `references/KnownLimitations.md`: what cannot be fixed here, and is never feedback.
+- `scripts/Validate.py`: the validator. Run it on anything you write. `scripts/WrapSvg.py`: the SVG carrier both ways, and `Render.py`, `Word.py`, `PowerPoint.py`, `Latex.py`, the four pipelines.

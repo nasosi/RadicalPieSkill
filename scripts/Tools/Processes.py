@@ -4,7 +4,7 @@ The standing ruling of 2026-09-10 is that every process the tooling launches is 
 success and on failure. A process listing read before and after a test cannot check that ruling exactly: a
 Radical Pie another test worker launched reads as a stray of this test, one the operator opened by hand reads
 the same way, and one the tooling has just killed is still listed by `tasklist` for a moment while it exits,
-which is the "still listed afterwards" fact `Tools.Word.Docx.WordSession.Terminate` records. So each pipeline
+which is the "still listed afterward" fact `Tools.Word.Docx.WordSession.Terminate` records. So each pipeline
 registers the pid it launched here and drops it once the process has been seen to exit; what is left in the
 registry is what the tooling failed to end, whoever else was running the same program at the time.
 

@@ -5,7 +5,7 @@ text. Radical Pie writes no raster image, so `RenderPng` renders the SVG with `T
 its validation-free contract, its retries and its font warnings, into a temporary directory, and converts that
 SVG with `inkscape.exe <svg> --export-type=png --export-filename=<png> --export-background=white
 --export-dpi=300`. The SVG and the PNG Inkscape writes stay in the temporary directory, which is removed
-afterwards as far as a virus scanner holding a file in it allows (`Tools.Render.Svg.WorkDirectory`); the PNG is
+afterward as far as a virus scanner holding a file in it allows (`Tools.Render.Svg.WorkDirectory`); the PNG is
 copied to the caller's path only when both steps succeeded.
 
 The resolution is fixed at 300 dpi: Corpus/Pie/RatioNewComputerModern.pie, 22.9 by 23 points, comes out 95 by 96

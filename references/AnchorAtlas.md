@@ -73,10 +73,10 @@ anchors, which are the corners of the grid. Probes run to `'bord'` 0 of the main
 | 1 | row 2 of 4, left | 5.50 | -11.06 | 0.115 | 0.317 |
 | 2 | row 3 of 4, left | 5.50 | 5.44 | 0.115 | 0.683 |
 | 3 | row 4 of 4, left | 5.50 | 19.70 | 0.115 | 1.000 |
-| 4 | row 1 of 4, centre | 23.83 | -25.32 | 0.500 | 0.000 |
-| 5 | row 2 of 4, centre | 23.83 | -11.06 | 0.500 | 0.317 |
-| 6 | row 3 of 4, centre | 23.83 | 5.44 | 0.500 | 0.683 |
-| 7 | row 4 of 4, centre | 23.83 | 19.70 | 0.500 | 1.000 |
+| 4 | row 1 of 4, center | 23.83 | -25.32 | 0.500 | 0.000 |
+| 5 | row 2 of 4, center | 23.83 | -11.06 | 0.500 | 0.317 |
+| 6 | row 3 of 4, center | 23.83 | 5.44 | 0.500 | 0.683 |
+| 7 | row 4 of 4, center | 23.83 | 19.70 | 0.500 | 1.000 |
 | 8 | row 1 of 4, right | 42.17 | -25.32 | 0.885 | 0.000 |
 | 9 | row 2 of 4, right | 42.17 | -11.06 | 0.885 | 0.317 |
 | 10 | row 3 of 4, right | 42.17 | 5.44 | 0.885 | 0.683 |
@@ -105,8 +105,8 @@ anchors, which are the corners of the grid. Probes run to `'bord'` 0 of the main
 | --- | --- | --- | --- | --- | --- |
 | 0 | top, left | 5.50 | -29.45 | 0.115 | -0.092 |
 | 1 | bottom, left | 5.50 | 23.82 | 0.115 | 1.092 |
-| 2 | top, centre | 23.83 | -29.45 | 0.500 | -0.092 |
-| 3 | bottom, centre | 23.83 | 23.82 | 0.500 | 1.092 |
+| 2 | top, center | 23.83 | -29.45 | 0.500 | -0.092 |
+| 3 | bottom, center | 23.83 | 23.82 | 0.500 | 1.092 |
 | 4 | top, right | 42.17 | -29.45 | 0.885 | -0.092 |
 | 5 | bottom, right | 42.17 | 23.82 | 0.885 | 1.092 |
 | 6 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
@@ -428,11 +428,11 @@ spans no width of its own. Probes run to `'bord'` 0 of the main group at (-7.15,
 
 ## Bond site: a carbon with a hydrogen in each of the six directions
 
-`Bd` with a `'sing'` bond and a neighbour group in all six directions. The seven bond anchor types box the
-site and each of its six neighbour groups: `'bond'` the whole site, `'bdup'` the `'uppr'` group, `'bdur'` the
+`Bd` with a `'sing'` bond and a neighbor group in all six directions. The seven bond anchor types box the site
+and each of its six neighbor groups: `'bond'` the whole site, `'bdup'` the `'uppr'` group, `'bdur'` the
 `'uprt'` group, `'bdul'` the `'uplf'` group, `'bdlw'` the `'lowr'` group, `'bdll'` the `'lwlf'` group and
 `'bdlr'` the `'lwrt'` group. A direction whose group is absent, and a four-letter name outside these seven,
-crash Radical Pie the same way an index past the end does. A bond site nested inside a neighbour group keeps
+crash Radical Pie the same way an index past the end does. A bond site nested inside a neighbor group keeps
 all four indexes, which a structure's type `0` anchors do not.
 
 The probe equation is anchored on `$bond`. Box x -3.25 to 39.86, y -30.70 to 23.42, from the `'bond'` anchors,
@@ -537,8 +537,8 @@ filled path. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70).
 | --- | --- | --- | --- | --- | --- |
 | 0 | middle, left | -1.22 | -2.81 | 0.000 | 0.500 |
 | 1 | middle, right | 6.49 | -2.81 | 1.000 | 0.500 |
-| 2 | bottom, centre | 2.63 | 10.20 | 0.500 | 1.000 |
-| 3 | top, centre | 2.63 | -15.82 | 0.500 | 0.000 |
+| 2 | bottom, center | 2.63 | 10.20 | 0.500 | 1.000 |
+| 3 | top, center | 2.63 | -15.82 | 0.500 | 0.000 |
 | 4 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ### `'anno'`
@@ -547,16 +547,16 @@ filled path. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70).
 
 | Index | Where it sits | x pt | y pt | x fraction | y fraction |
 | --- | --- | --- | --- | --- | --- |
-| 0 | bottom, centre | 2.63 | 13.17 | 0.500 | 1.114 |
-| 1 | top, centre | 2.63 | -18.79 | 0.500 | -0.114 |
+| 0 | bottom, center | 2.63 | 13.17 | 0.500 | 1.114 |
+| 1 | top, center | 2.63 | -18.79 | 0.500 | -0.114 |
 | 2 | middle, left | -4.19 | -2.81 | -0.385 | 0.500 |
 | 3 | middle, right | 9.46 | -2.81 | 1.385 | 0.500 |
-| 4 | middle, centre | 2.63 | -2.81 | 0.500 | 0.500 |
+| 4 | middle, center | 2.63 | -2.81 | 0.500 | 0.500 |
 | 5 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ## Line: `Ln (s)` from the `x` to the fraction
 
-A straight line between the centre anchors of the two structures.
+A straight line between the center anchors of the two structures.
 
 The probe equation is anchored on `$seg`. Box x 2.43 to 19.47, y -15.96 to 10.33, from the line's own stroked
 path, half a stroke wider than the segment. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70).
@@ -569,7 +569,7 @@ path, half a stroke wider than the segment. Probes run to `'bord'` 0 of the main
 | --- | --- | --- | --- | --- | --- |
 | 0 | top, left | 2.63 | -15.82 | 0.012 | 0.005 |
 | 1 | bottom, right | 19.26 | 10.20 | 0.988 | 0.995 |
-| 2 | middle, centre | 10.95 | -2.81 | 0.500 | 0.500 |
+| 2 | middle, center | 10.95 | -2.81 | 0.500 | 0.500 |
 | 3 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ### `'anno'`
@@ -650,7 +650,7 @@ three stroked legs. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70)
 | --- | --- | --- | --- | --- | --- |
 | 0 | top, left | 2.63 | -15.82 | 0.000 | 0.009 |
 | 1 | bottom, right | 19.26 | 10.20 | 1.000 | 0.991 |
-| 2 | middle, centre | 10.95 | -2.81 | 0.500 | 0.500 |
+| 2 | middle, center | 10.95 | -2.81 | 0.500 | 0.500 |
 | 3 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ## Quarter ellipse: `Qe (s)` from the `x` to the fraction
@@ -680,7 +680,7 @@ stroked path. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70).
 | --- | --- | --- | --- | --- | --- |
 | 0 | top, left | 2.63 | -15.82 | 0.000 | 0.009 |
 | 1 | bottom, right | 19.26 | 10.20 | 0.985 | 1.000 |
-| 2 | middle, centre | 15.55 | -6.18 | 0.766 | 0.376 |
+| 2 | middle, center | 15.55 | -6.18 | 0.766 | 0.376 |
 | 3 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ## Joist: `Jo (s)` from the `x` to the fraction
@@ -723,8 +723,8 @@ rectangle's own filled path. Probes run to `'bord'` 0 of the main group at (-7.1
 | --- | --- | --- | --- | --- | --- |
 | 0 | middle, left | -1.22 | -2.81 | 0.000 | 0.500 |
 | 1 | middle, right | 6.49 | -2.81 | 1.000 | 0.500 |
-| 2 | bottom, centre | 2.63 | 10.20 | 0.500 | 1.000 |
-| 3 | top, centre | 2.63 | -15.82 | 0.500 | 0.000 |
+| 2 | bottom, center | 2.63 | 10.20 | 0.500 | 1.000 |
+| 3 | top, center | 2.63 | -15.82 | 0.500 | 0.000 |
 | 4 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ### `'anno'`
@@ -733,11 +733,11 @@ rectangle's own filled path. Probes run to `'bord'` 0 of the main group at (-7.1
 
 | Index | Where it sits | x pt | y pt | x fraction | y fraction |
 | --- | --- | --- | --- | --- | --- |
-| 0 | bottom, centre | 2.63 | 13.17 | 0.500 | 1.114 |
-| 1 | top, centre | 2.63 | -18.79 | 0.500 | -0.114 |
+| 0 | bottom, center | 2.63 | 13.17 | 0.500 | 1.114 |
+| 1 | top, center | 2.63 | -18.79 | 0.500 | -0.114 |
 | 2 | middle, left | -4.19 | -2.81 | -0.385 | 0.500 |
 | 3 | middle, right | 9.46 | -2.81 | 1.385 | 0.500 |
-| 4 | middle, centre | 2.63 | -2.81 | 0.500 | 0.500 |
+| 4 | middle, center | 2.63 | -2.81 | 0.500 | 0.500 |
 | 5 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ## Filled ellipse: `El (f,fpi=9)` over the `x`
@@ -755,8 +755,8 @@ filled path. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70).
 | --- | --- | --- | --- | --- | --- |
 | 0 | middle, left | -2.82 | -2.81 | 0.000 | 0.500 |
 | 1 | middle, right | 8.09 | -2.81 | 1.000 | 0.500 |
-| 2 | bottom, centre | 2.63 | 15.59 | 0.500 | 1.000 |
-| 3 | top, centre | 2.63 | -21.21 | 0.500 | 0.000 |
+| 2 | bottom, center | 2.63 | 15.59 | 0.500 | 1.000 |
+| 3 | top, center | 2.63 | -21.21 | 0.500 | 0.000 |
 | 4 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ### `'anno'`
@@ -765,11 +765,11 @@ filled path. Probes run to `'bord'` 0 of the main group at (-7.15, 14.70).
 
 | Index | Where it sits | x pt | y pt | x fraction | y fraction |
 | --- | --- | --- | --- | --- | --- |
-| 0 | bottom, centre | 2.63 | 18.56 | 0.500 | 1.081 |
-| 1 | top, centre | 2.63 | -24.18 | 0.500 | -0.081 |
+| 0 | bottom, center | 2.63 | 18.56 | 0.500 | 1.081 |
+| 1 | top, center | 2.63 | -24.18 | 0.500 | -0.081 |
 | 2 | middle, left | -5.79 | -2.81 | -0.272 | 0.500 |
 | 3 | middle, right | 11.06 | -2.81 | 1.272 | 0.500 |
-| 4 | middle, centre | 2.63 | -2.81 | 0.500 | 0.500 |
+| 4 | middle, center | 2.63 | -2.81 | 0.500 | 0.500 |
 | 5 | crash: Radical Pie exited with code 3221225477 before saving the render | | | | |
 
 ## Annotation group: a label on the far end of that line

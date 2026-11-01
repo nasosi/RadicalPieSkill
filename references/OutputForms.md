@@ -18,7 +18,7 @@ their own default in the editor applies to a new equation the editor creates and
 A caller hands a design over in one of three ways. As a `D` block, copied from an equation the document
 already has or from the editor's Settings menu, which is the exact text to use. As a description, "Cambria
 at 11 point" or "our house blue for the highlighted terms", which becomes an `F` and its `M` structures, a
-`V (n='fsiz')` and a `P`; `references/catalogue/Design.md` gives each of the four structures and
+`V (n='fsiz')` and a `P`; `references/catalog/Design.md` gives each of the four structures and
 `references/Examples.md` example 35 is a whole one. Or as nothing at all, which leaves `D {}` in every
 equation and the factory design in force. On a slide an empty `D {}` takes its size from the slide instead,
 as the PowerPoint table below gives it; the slide master is never edited for that, and an equation wanted at
@@ -31,7 +31,7 @@ symbols mentioned in the prose looking like another document's.
 
 Run `python scripts/Fonts.py check` on one equation of the set, then render it and look at it before
 writing the rest. A font name Radical Pie cannot resolve draws in Times and is saved as Times, as the `F`
-entry of `references/catalogue/Design.md` says. Every pipeline writes its output all the same, prints one
+entry of `references/catalog/Design.md` says. Every pipeline writes its output all the same, prints one
 `warning:` line per such slot on stderr, naming the slot, the name written and the closest installed
 names, and exits 3; ask the user what to do then, as that entry says. Aptos, the default font of both Word
 and PowerPoint, is one such name until it is installed the ordinary way: it ships as a cloud font Office
@@ -105,7 +105,7 @@ Five placeholder forms, following the recipe on Radical Pie's own Word page:
 | Placeholder | What it becomes |
 | --- | --- |
 | `{{pie:key}}` inside a sentence | An inline equation on the text baseline. |
-| `{{pie:key|display}}` alone in its paragraph | The equation centred on its own line, in the `Equation` paragraph style. |
+| `{{pie:key|display}}` alone in its paragraph | The equation centered on its own line, in the `Equation` paragraph style. |
 | `{{pie:key|numbered}}` alone in its paragraph | As display, plus `(1)`, `(2)` at the right margin from a `SEQ equation` field, and a bookmark `eq_key` over the number. |
 | `{{ref:key}}` in text | A `REF eq_key` field showing that number, so write "see equation ({{ref:momentum}})". |
 | `{{chapter}}` in a heading | A `SEQ chapter` field showing the chapter's number, which turns the `(x.y)` form on for the equations after it. |
@@ -139,13 +139,13 @@ A whole sentence can be one equation as well, which is how a theorem statement k
 same fonts as its prose. Set the words as `Sb (ro='text')`, with the spaces written inside the strings, and
 a letter inside the sentence as `Sb (ro='text',st='ital')`. The role draws from the same fonts as
 `'math'`, upright where no `st` says otherwise, unless the design gives prose fonts of its own with
-`seps`, which `references/catalogue/Design.md` sets out under matching text and math fonts. What the role
-changes is spacing, and the `Sb` entry of `references/catalogue/Symbols.md` gives the rule.
+`seps`, which `references/catalog/Design.md` sets out under matching text and math fonts. What the role
+changes is spacing, and the `Sb` entry of `references/catalog/Symbols.md` gives the rule.
 
 Each equation becomes a Radical Pie OLE object that the author double-clicks to edit in the editor. A key
 is a word (`[A-Za-z][A-Za-z0-9_]*`, at most 37 characters) and doubles as the bookmark name, so choose
 descriptive ones: `momentum`, `basel_sum`. The `Equation` style is created if the document lacks it, with
-a centre tab at half the text width and a right tab at the full width, computed from the page setup, Normal
+a center tab at half the text width and a right tab at the full width, computed from the page setup, Normal
 set as the style of the paragraph that follows it, and spacing before and after close to the body font
 size. The pipeline drives the installed Word and Radical Pie invisibly, about twenty seconds plus a second
 per equation, and refuses the job before starting Word when a placeholder has no file, a file no
@@ -188,9 +188,9 @@ coefficient {{pie:a}} of the squared term" and "solve for {{pie:x}}", so the let
 from Radical Pie like the letters in the equations. In a list such as a, b and c, each comma is the last
 symbol of its equation, as the next paragraph says.
 
-Punctuation that follows an inline equation goes inside the equation: write the comma, full stop,
+Punctuation that follows an inline equation goes inside the equation: write the comma, period,
 semicolon, colon or closing bracket as its last symbol, `Sb (ro='pnct') {s{","}}` as the `Sb` entry of
-`references/catalogue/Symbols.md` writes it, and let a space and the next word follow the placeholder. An
+`references/catalog/Symbols.md` writes it, and let a space and the next word follow the placeholder. An
 opening bracket before the equation goes inside it the same way, where it takes the equation's own font and
 spacing. A mark left in the text stands against the object anyway, and its equation's line says which side
 lost its space, `no padding beside the space and before ','`. The object is
@@ -208,21 +208,21 @@ Four things differ from the Word document, each measured against PowerPoint 16.
 | Placeholder | Inline, display or numbered, inside the text | A whole shape, or inline in a sentence; no kinds, no numbering, no `{{ref:...}}` |
 | Inline | Sits in the text and moves with it | Stands on the sentence's baseline as an object of its own, grouped with the shape |
 | An empty `D {}` | Radical Pie's factory 11 point | Inline, the size of the run it stands in; a whole shape, the layout's body text size, or 28 point where the layout has no body placeholder |
-| The run | Word is invisible | PowerPoint cannot be hidden; a minimised window is on screen |
-| Afterwards | The picture holds | An object can collapse to a blank, so the run is guarded |
+| The run | Word is invisible | PowerPoint cannot be hidden; a minimized window is on screen |
+| Afterward | The picture holds | An object can collapse to a blank, so the run is guarded |
 
 An inline equation carries rules of its own, because the object floats and the sentence does not. An
 equation that would come within a sixth of the text size of the ink of the line above or the line below
 makes the pipeline open the paragraph by what it would intrude, with a wider line spacing where that line
 belongs to the same paragraph and space after the earlier of two paragraphs where it does not; it prints one
-line per paragraph it opened. An inline equation of the same run standing on the neighbouring line counts as
+line per paragraph it opened. An inline equation of the same run standing on the neighboring line counts as
 that line's ink, so tall equations on consecutive bullets clear each other. One that reaches
 past the top of its text frame or below its bottom opens nothing, because no text stands there and the box
 does not clip it. One equation-bearing line per paragraph is held open by a tab
-stop, and any further line of the same paragraph by a run of spaces with the object centred in it, because
+stop, and any further line of the same paragraph by a run of spaces with the object centered in it, because
 PowerPoint's tab stops belong to the paragraph rather than to the line. An equation that does not fit in the
 room its line has left moves to the next line, as a word that does not fit does, and the run says
-`moved to the next line` beside it. A centred or right-aligned
+`moved to the next line` beside it. A centered or right-aligned
 paragraph is refused, as are two font sizes on the line, vertical or rotated text, a placeholder in a table
 cell or a group, and an equation wider than the text area itself; each refusal names the shape and all but
 the last come before PowerPoint starts. Each shape is grouped with the objects that stand in it, so moving

@@ -13,7 +13,7 @@ Five rules and one workaround:
   margin. The stop lands the text after the gap where it is asked to within 0.025 pt over 144 rows of
   twelve fonts and three sizes, and needs no font metrics at all.
 - The padding on one side goes where something already stands between the object and the text there: a
-  space the author wrote, or a punctuation mark, a comma, a full stop or a closing bracket right after the
+  space the author wrote, or a punctuation mark, a comma, a period or a closing bracket right after the
   gap and an opening bracket right before it. That is the operator's ruling of 2026-09-18 and not a
   measurement. A space is the gap a word gets, so the padding beside it would be a second gap; a mark
   belongs inside the equation as its last symbol, which is what the skill's `references/OutputForms.md`
@@ -55,8 +55,8 @@ import win32com.client
 # The padding either side of an inline object, a thin space of the run's size. The first probe measured the
 # space between the object's right edge and the text after it at 2.24 to 3.86 pt for text at 14 to 24 pt,
 # within 0.025 pt of 0.16 of the size asked for, over all 144 rows.
-# A point is 1/72 inch and an inch 25.4 mm; an EMF frame is kept in hundredths of a millimetre.
-MillimetresPerPoint = 25.4 / 72.0
+# A point is 1/72 inch and an inch 25.4 mm; an EMF frame is kept in hundredths of a millimeter.
+MillimetersPerPoint = 25.4 / 72.0
 
 PaddingShare = 0.16
 
@@ -73,7 +73,7 @@ Space = " "
 # The measure-set-measure loop. Setting a stop changes the width of the tab, which can move the line break,
 # which moves the text before the gap: on the first probe's `narrowB` case it moved 16.7 pt and onto
 # another line, and the object, placed from the measurement taken before the stop went in, stood outside
-# the box. Seven of that probe's eight wrapped cases settle on the first try; a centred or right-aligned
+# the box. Seven of that probe's eight wrapped cases settle on the first try; a centered or right-aligned
 # paragraph never settles, which is the same test as refusing it.
 StopAttempts = 4
 StopTolerance = 0.05
@@ -100,8 +100,8 @@ MsoAlignCenter = 2
 MsoAlignRight = 3
 MsoAlignJustify = 4
 
-# The alignments an inline gap cannot be placed in. The second probe set a stop on a centred and on a
-# right-aligned paragraph: in the centred one the text after the gap moved 57 pt as the stop went in and
+# The alignments an inline gap cannot be placed in. The second probe set a stop on a centered and on a
+# right-aligned paragraph: in the centered one the text after the gap moved 57 pt as the stop went in and
 # never settled, in the right-aligned one the stop changed nothing at all and the space after the object
 # came out at 55.38 pt instead of the 2.88 asked for.
 RefusedAlignments = (MsoAlignCenter, MsoAlignRight, MsoAlignJustify)
@@ -230,23 +230,23 @@ def GapPaddings(fontSize: float, before: str, after: str) -> tuple:
 def DrawnWidth(renderedWidth: float) -> float:
     """The width PowerPoint gives an object drawn from a render of `renderedWidth` points.
 
-    The picture's frame is kept in hundredths of a millimetre, rounded up, and the shape's extent is that frame
+    The picture's frame is kept in hundredths of a millimeter, rounded up, and the shape's extent is that frame
     on the nearest eighth of a point (369 of 369 unscaled shapes of the operator's deck, 2026-09-13). The
-    millimetre step is what a bare rounding to the eighth misses: a render of 28.0480 points is 9.8947 mm, kept
+    millimeter step is what a bare rounding to the eighth misses: a render of 28.0480 points is 9.8947 mm, kept
     as 9.90 mm, which is 28.063 points and draws at 28.125 where the bare rounding gives 28 (the cold start of
     2026-09-18). Nine of nine measured pairs follow this rule, the first probe's eight among them: 39.5285
     drawn as 39.5, 75.8244 as 75.875.
     """
 
-    hundredths = math.ceil(renderedWidth * MillimetresPerPoint * 100.0 - 1e-9)
+    hundredths = math.ceil(renderedWidth * MillimetersPerPoint * 100.0 - 1e-9)
 
-    return round(hundredths / 100.0 / MillimetresPerPoint * 8.0) / 8.0
+    return round(hundredths / 100.0 / MillimetersPerPoint * 8.0) / 8.0
 
 
 def LineBox(fontSize: float, spaceWithin: float, lineRuleWithin: int) -> float:
     """The height PowerPoint lays one line of a paragraph out at, from the spacing it reports.
 
-    A spacing in lines is taken of the natural line and is not quantised: 0.9 lines at 18 pt, which is what
+    A spacing in lines is taken of the natural line and is not quantized: 0.9 lines at 18 pt, which is what
     the body placeholder of the Office theme carries, is exactly 19.44. A spacing in points is rounded to a
     whole point, half up: of the second probe's 24 spacings 21.6 laid out at 22, 20.5 at 21, 20.4 at 20,
     49.5 at 50 and 79.4 at 79, which is why an opening asks for a whole number of points.

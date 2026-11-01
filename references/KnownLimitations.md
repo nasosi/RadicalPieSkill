@@ -5,18 +5,18 @@ Nothing in this list is feedback: `references/Feedback.md` says to read it befor
 lesson that is already here is dropped.
 
 - **Every render opens a window.** Radical Pie has no headless mode, so each render, export and embed starts
-  the editor minimised and unfocused and closes it again: it stands on the taskbar for a second or two and
+  the editor minimized and unfocused and closes it again: it stands on the taskbar for a second or two and
   never over the desktop or the window being typed in. One program at a time may drive it, the foreground
   window and the clipboard being shared.
 - **PowerPoint cannot be hidden.** Word runs invisibly under COM; PowerPoint does not, and its window is
-  on the screen, minimised at best, for the length of an embed.
+  on the screen, minimized at best, for the length of an embed.
 - **A killed interpreter leaves the working copy of a deck behind.** The pipelines end every program they
   start, on success, on failure and on Ctrl-C, and every one of those programs is in a Windows job object
   that ends with the interpreter, so Ctrl-Break, a closed console and a killed process take the editor,
   PowerPoint and Word with them too. What such an end does leave is the file the PowerPoint pipeline was
   building, beside the output path it never wrote, for the user to delete.
 - **An inline equation on a slide does not follow the text.** PowerPoint has no inline shape, so an inline
-  equation is an object floating over the sentence it was placed in. Editing that sentence afterwards moves
+  equation is an object floating over the sentence it was placed in. Editing that sentence afterward moves
   the text and leaves the equation where it was; the fix is to run the pipeline again on the edited draft.
   The group the pipeline leaves behind is what keeps the two together when the shape itself is moved.
 - **Equations in a layout's placeholder are not grouped with it.** PowerPoint refuses to group a placeholder,
@@ -27,7 +27,7 @@ lesson that is already here is dropped.
 - **The editor crashes on the files the validator refuses.** An anchor index a nested structure does not
   own, a drawing connector with one anchor, `Zg (d=3)`, and a style map's first font index of 20 or 255 each
   exit Radical Pie with an access violation rather than an error; a first index of 16 to 19 is unmeasured, and
-  the validator refuses it as well. Refusing the file before it is opened is the whole defence available from
+  the validator refuses it as well. Refusing the file before it is opened is the whole defense available from
   outside the program.
 - **A damaged font cache crashes the editor.** A 0-byte `.slug` file in `%LOCALAPPDATA%\RadicalPie`, left
   when the font import is stopped part way, crashes Radical Pie with an access violation whenever a file

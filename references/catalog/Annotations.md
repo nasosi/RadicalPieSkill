@@ -1,15 +1,15 @@
 # Annotations
 
 Three forms an annotated equation needs sit with their own structures: the label box under `Gr` and the
-inline group under `St` in `references/catalogue/Groups.md`, and the arrow-to-rail form under `Ln` in
-`references/catalogue/Drawings.md`.
+inline group under `St` in `references/catalog/Groups.md`, and the arrow-to-rail form under `Ln` in
+`references/catalog/Drawings.md`.
 
-## X — connector
+## X: connector
 
 Attaches a drawing structure, or an annotation group, to the anchor or anchors that place it. A drawing
 structure's connector holds two anchors, one per end of a line, joist, zigzag, corner or quarter
 ellipse, or one per opposite corner of a rectangle, rounded rectangle or ellipse; giving it a single
-anchor crashes Radical Pie with an access violation, so every drawing example in this catalogue writes
+anchor crashes Radical Pie with an access violation, so every drawing example in this catalog writes
 two. An annotation group's connector holds one anchor, because an annotation is placed against the one
 thing it labels. Those two are the only places an `X` belongs: one written into an ordinary group
 crashes Radical Pie the same way, and the validator refuses it.
@@ -29,15 +29,15 @@ one-anchor annotation connector's each hold one.
 
 Anything a connector points at needs an OpenDDL name, so name the pieces you mean to label as you write
 them: `Bg $bgTerm {}`, `Sb $p {s{"p"}}`, `Gr $main { ... }`. Radical Pie 1.15 opened, rendered and wrote
-back every two-anchor drawing shape in this catalogue unchanged apart from node renaming; on save it
+back every two-anchor drawing shape in this catalog unchanged apart from node renaming; on save it
 renames every node to `$_0`, `$_1` and so on in the order they appear, so the names an author writes,
-`$main` and the rest of this catalogue's names among them, are free, and a file the program wrote has no
+`$main` and the rest of this catalog's names among them, are free, and a file the program wrote has no
 readable names left. No two may be the same: a repeated name raises the invalid-data dialog on open,
 and the validator refuses it.
 
 ### Anchor types
 
-The anchor types are `0` the main anchor, `'cent'` the centre, `'axis'` the math axis and `'lmnl'` the
+The anchor types are `0` the main anchor, `'cent'` the center, `'axis'` the math axis and `'lmnl'` the
 liminal anchor of a top-level group, `'xxx!'` and `'yyy!'` its horizontal and vertical rails, `'bord'`
 its border, `'mtrx'`, `'cell'`, `'mrow'`, `'mcol'`, `'orow'`, `'ocol'`, `'lrow'` and `'lcol'` the
 anchors of a matrix, `'line'` the own anchor of a line, corner, zigzag or quarter ellipse, which the
@@ -47,14 +47,14 @@ an annotation group, a target type only.
 
 A bond structure adds seven more that the specification's anchor table does not list: `'bond'` boxes
 the whole site and `'bdup'`, `'bdur'`, `'bdul'`, `'bdlw'`, `'bdll'` and `'bdlr'` box its `'uppr'`,
-`'uprt'`, `'uplf'`, `'lowr'`, `'lwlf'` and `'lwrt'` neighbour groups one at a time. They are how the
+`'uprt'`, `'uplf'`, `'lowr'`, `'lwlf'` and `'lwrt'` neighbor groups one at a time. They are how the
 chemistry files panel a substituent; `references/Chemistry.md` has the section and the fence.
 
 Three equation structures carry no anchor a drawing can reach. The specification's table gives the main
 anchor to every structure in the equation category except a group, an aligner and a phantom, and the
-centre anchor to every one except a group, a begin, an aligner and a phantom. So an `Al` and a `Ph` own
+center anchor to every one except a group, a begin, an aligner and a phantom. So an `Al` and a `Ph` own
 nothing at all and cannot be pointed at, and a `Bg` owns the four main anchors of the line it begins and
-no centre. Point at the symbol beside the aligner or inside the phantom instead.
+no center. Point at the symbol beside the aligner or inside the phantom instead.
 
 A four-letter anchor type the structure does not own crashes Radical Pie with an access violation
 rather than raising the invalid-data dialog. The validator refuses a type the referenced structure does
@@ -78,7 +78,7 @@ Rendering example.
 | `0` | | 1 | above its right end, the near row |
 | `0` | | 2 | below its right end, the far row (not on a structure nested inside a subgroup) |
 | `0` | | 3 | above its right end, the far row (not on a structure nested inside a subgroup) |
-| `'cent'` | a symbol or structure | 0 to 3 | the same four rows at its horizontal centre (2 and 3 not on a structure nested inside a subgroup) |
+| `'cent'` | a symbol or structure | 0 to 3 | the same four rows at its horizontal center (2 and 3 not on a structure nested inside a subgroup) |
 | `'edge'` | a rectangle, rounded rectangle or ellipse | 2 | its bottom edge |
 | `'edge'` | | 3 | its top edge |
 | `'axis'` | the main group | 0 and 1 | the left and the right end of the first line's math axis |
@@ -88,7 +88,7 @@ Rendering example.
 | `'anno'` | an annotation group | 0 | its underside |
 | `'anno'` | an annotation group | 1 | its top |
 | `'anno'` | a line | 1 | its far end, the end away from the equation |
-| `'anno'` | a rectangle, rounded rectangle or ellipse | 0 to 4 | below it, above it, left, right, over its centre |
+| `'anno'` | a rectangle, rounded rectangle or ellipse | 0 to 4 | below it, above it, left, right, over its center |
 | `'anno'` | a corner or a zigzag | 0 to 7 | beyond its two ends, then a pair beside each leg |
 | `'anno'` | a quarter ellipse | 0 to 3 | beyond its two ends, outside the arc, inside it |
 | `'anno'` | a joist | 0 | the only one |
@@ -107,7 +107,7 @@ the `Bg` and take its index 1.
 
 Indexes above 1 on `'xxx!'` are further rails. The site's own Rendering example sends two
 arrows up to indexes 7 and 9 to hang a second row of labels clear of the first, and sets `al='rght'` on
-those two labels so they read outwards.
+those two labels so they read outward.
 
 An annotation group is a top-level group, so it owns `'xxx!'` and `'yyy!'` rails of its own and not only
 the main group's. That is how a chain of callouts is built: an arrow from a symbol inside the annotation
@@ -275,7 +275,7 @@ Gr (as=0.6875,t='anno',al='cent')
 
 ### A drawn rail over a span
 
-A run of terms is labelled as a whole by drawing the rail rather than pointing at any one term. A thick
+A run of terms is labeled as a whole by drawing the rail rather than pointing at any one term. A thick
 line, `Ln (s,w=4,spi=9)`, runs between the type `0` anchor 3 of the structure that begins the run and
 anchor 3 of the one that ends it, the far row above the right end of each. A second line of the same
 weight rises from that line's own `'line'` anchor 2, its midpoint, to one of the equation's `'xxx!'`
@@ -346,7 +346,7 @@ put a `Sp` in one cell instead where only that row or column needs to be wider, 
 below widens its middle row to clear the wavy line. Every leg of the diagram then runs corner to
 corner, or corner to the grid's `'mrow'` or `'mcol'` anchors, so the vertices land exactly on the
 grid regardless of what each cell draws. `'rwgp'` and `'clgp'` both range 0 to 18, as the `V` table
-of `references/catalogue/Design.md` gives; the validator refuses a value above that.
+of `references/catalog/Design.md` gives; the validator refuses a value above that.
 
 A fermion is a `Ln` between two grid anchors, with an endpoint symbol at whichever end carries the
 arrow: `es='arr2'` at the first anchor the `X` lists or `ef='arr2'` at the second. Order the two
@@ -365,14 +365,14 @@ a zigzag rather than the tilde run. A scalar is a dashed `Ln`, `Ln (s,d=2)` betw
 of grid anchors a fermion uses, with no endpoint arrow unless the diagram gives the scalar a direction.
 
 A vertex is nowhere drawn; it is the grid corner or row anchor that two or more legs share, `'cell'` for
-a corner of the grid and `'mrow'` or `'mcol'` for the centre of a row or column, so three legs meeting
+a corner of the grid and `'mrow'` or `'mcol'` for the center of a row or column, so three legs meeting
 at one vertex all name the same anchor in their `X`.
 
 Label each leg with an annotation group on its own `'anno'` anchors rather than nudging a symbol
 into place: a straight leg (`Ln`, `Cn`, `Zg`, `Qe`) carries `'anno'` 0 beyond its start and 1 beyond
 its finish, and the run of `Wm` widemarks that makes a photon is itself a named node, so a caption
 can hang off the last widemark's own `0`/`1` anchors the way it hangs off any symbol. Give the
-caption `as=0.8125` to set it below the size of the equation, as every other label in this catalogue
+caption `as=0.8125` to set it below the size of the equation, as every other label in this catalog
 does. A particle name is upright whatever its case, which is why the photon below is `Sb (st='grek')
 {s{"γ"}}` rather than the `st='itgk'` a small Greek letter takes everywhere else.
 

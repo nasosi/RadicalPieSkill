@@ -2,7 +2,7 @@
 
 The scripts travel in two layouts. Inside the repository they sit at Skill/RadicalPie/scripts and the
 pipelines are the repository's own Tools package; packaged by Scripts/PackageSkill.py they sit beside a
-vendored copy of it, scripts/Tools. The repository is recognised rather than counted to: the root is the
+vendored copy of it, scripts/Tools. The repository is recognized rather than counted to: the root is the
 nearest ancestor of this file that holds a `Tools/<package>` directory and a pyproject.toml whose
 `[project]` table names this project. Counting parents, which is what these scripts did until the review of
 2026-09-14, raises `IndexError` for a folder installed fewer than three directories below a drive root and

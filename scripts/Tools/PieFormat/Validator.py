@@ -1,8 +1,8 @@
-"""Validation of a Radical Pie equation against the catalogue in Schema.py.
+"""Validation of a Radical Pie equation against the catalog in Schema.py.
 
 Validate returns one PieError per violation, each naming the line, the column, the path through the
 structure tree, the message and the FileFormat.md section that the rule comes from. An empty list
-means the text satisfies every rule the catalogue carries.
+means the text satisfies every rule the catalog carries.
 
 ValidateFile reads a .pie file, or a .svg file that carries equations. Radical Pie writes the equation
 text into an SVG as the first equation-shaped XML comment, and InkRadix writes it into an
@@ -680,7 +680,7 @@ def CheckMatrixEntries(structure, path, errors):
 
 
 def CheckArrowValues(array, allowed, describe, path, errors):
-    """Every value of one of Ar's uint32 arrays is a name the catalogue lists."""
+    """Every value of one of Ar's uint32 arrays is a name the catalog lists."""
 
     for value in array.values:
         if value in allowed:
@@ -700,7 +700,7 @@ def CheckArrowValues(array, allowed, describe, path, errors):
 def CheckArrowArrays(structure, path, errors):
     """Ar: the first uint32 array holds one to three arrow types, and one charm array follows each arrow.
 
-    The values inside the arrays are held to the catalogue's two enumerations, which is narrower than
+    The values inside the arrays are held to the catalog's two enumerations, which is narrower than
     Radical Pie 1.15: an arrow type outside the four draws a full-length arrow and a charm outside the
     forty is dropped, both without a word (ADR-0007, measured 2026-09-13). What is deliberately not
     checked is where a charm sits. The specification's charm table marks each type legal at the left
@@ -807,7 +807,7 @@ def CheckBondPairs(array, structure, groupTypes, valueTypes, describe, path, err
 def CheckBondArrays(structure, path, errors):
     """Bd: the first uint32[2] array pairs a direction with a bond type, the second with an angle type.
 
-    The bond types are the fifteen of the specification's table with their capitalised long forms, and a
+    The bond types are the fifteen of the specification's table with their capitalized long forms, and a
     value outside them is drawn as a single bond and written back into the saved equation unchanged:
     `u32[2]{{0,'zzzz'}}` and `u32[2]{{0,'sing'}}` each rendered 15.6075 by 9 pt (measured 2026-09-14), so
     this enumeration is narrower than the executable the way Ar's two are (ADR-0007). A pair naming a
@@ -832,7 +832,7 @@ def CheckBondArrays(structure, path, errors):
         Schema.BondGroupTypes,
         Schema.BondTypeValues,
         "a bond type is one of the fifteen the specification lists, or one of those with its first "
-        "letter capitalised for a long bond",
+        "letter capitalized for a long bond",
         Join(path, arrays[0]),
         errors,
     )
@@ -1275,7 +1275,7 @@ def CheckConnectorArity(structure, path, errors):
 def CheckDrawingProperties(structure, path, errors):
     """A drawing property the structure it is written on does nothing with, and the one that crashes.
 
-    A line object draws with its stroke colour and drops the fill (Drawing Tools), and a joist, which
+    A line object draws with its stroke color and drops the fill (Drawing Tools), and a joist, which
     is a bracket or a brace, drops the stroke width and the dashing as well (Radical Pie Editor
     Window). Radical Pie renders such a file and says nothing, so a writer who asks for a red arrow
     with `fco` gets a black one; the two rules here are the only place that says so. Measured
@@ -1536,7 +1536,7 @@ def CheckAnchor(target, reference, anchorType, index, types, indexes, path, erro
     an index past the last anchor of a type both crash Radical Pie with an access violation rather than
     raising the invalid-data dialog, so the validator is the only thing that can refuse them.
 
-    A bond anchor type for a direction whose neighbour group the site does not hold crashes the same way
+    A bond anchor type for a direction whose neighbor group the site does not hold crashes the same way
     (Docs/ARCHITECTURE.md, format facts, measured 2026-09-12), which is the third thing checked here.
     """
 

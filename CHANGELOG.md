@@ -1,8 +1,13 @@
 # Changelog
 
+## 1.3.3 — 2026-10-31
+
+- The skill is written in American English. The catalog folder is `references/catalog/`, and the example
+  `LabelledArrows.pie` is `LabeledArrows.pie`.
+
 ## 1.3.2 — 2026-10-31
 
-- Word and PowerPoint embeds start every Radical Pie editor minimised, so none is drawn over the desktop;
+- Word and PowerPoint embeds start every Radical Pie editor minimized, so none is drawn over the desktop;
   an embed used to open one visible editor per equation, and in Word keep it there for up to seconds.
 
 ## 1.3.1 — 2026-10-22
@@ -17,7 +22,7 @@
 - The skill targets Radical Pie 1.16 and needs it. A design names a font by its full name, as
   `"New Computer Modern 10 Book"`; the stem of a `.ttf` or `.otf` file, `"NewCM10-Book"`, resolves too and
   is saved as the full name. The file name with its extension and the stem of a collection do not resolve.
-  `references/catalogue/Design.md` gives the rule and the numbers 1.16 writes back for the fonts it knows.
+  `references/catalog/Design.md` gives the rule and the numbers 1.16 writes back for the fonts it knows.
 - `python scripts/Fonts.py find <words>` lists the installed fonts with the full name to write in `F` and the
   file stem that resolves to it. `python scripts/Fonts.py check Eq.pie` says for each font slot of a design
   whether this machine resolves it, to which installed file, whether it still has to be imported, or that
@@ -37,7 +42,7 @@
   plain letters. The old Symbol, MT Extra, Webdings and Wingdings fonts draw at their Unicode code points.
   A style map draws from the fonts it lists and from no other, so a map lists its own fallbacks.
 - `Sb (of)` draws oldstyle figures. `Mk` gains the eight marks of the 1.16 palette, and
-  `references/catalogue/Design.md` lists the eighteen symbols 1.16 adds at Unicode code points, the shuffle
+  `references/catalog/Design.md` lists the eighteen symbols 1.16 adds at Unicode code points, the shuffle
   product U+29E2 among them. The private use area of the Radical font now runs to U+EE77.
 - The validator follows 1.16: an `F` holds one string, a known font's `int16` id (-1 to 83) or a 1.15 `uint8`
   number; up to 26 maps; `V (n='escl')`, the External font scale, 0.5 to 2. A design value is a float data
@@ -73,11 +78,11 @@
   column; Example 20 is corrected and the `Al` entry gives the measurement.
 - New in the references: a matrix cell is filled with an `Rt (f)` between its grid corners, never a square
   glyph; prose never wraps, so two lines are two `Bg`; the Methanol example is the site's own file; the
-  dashed side of a delocalised ring's bonds is named bond by bond.
+  dashed side of a delocalized ring's bonds is named bond by bond.
 
 ## 1.1.1 — 2026-09-19
 
-- A comma or a full stop left after an inline equation on a slide now stands against the equation instead of
+- A comma or a period left after an inline equation on a slide now stands against the equation instead of
   a thin space away from it. `references/OutputForms.md` says to write such a mark inside the equation, as
   its last symbol in the punctuation role.
 - An inline equation now takes the space the author wrote beside its placeholder as its gap, where it used to
@@ -127,7 +132,7 @@
 
 ## 0.10.0 — 2026-09-15
 
-- The reference catalogue is reorganised into `references/catalogue/`, one file per structure family
+- The reference catalog is reorganized into `references/catalog/`, one file per structure family
   (symbols, groups, brackets, fractions, operators, matrices, arrows, bonds, drawings, annotations and
   design), with short hint files for chemistry, annotations, layout and document output.
 - Layout details that used to cost a retry are now written down: which side of a bond a partial bond's
@@ -150,7 +155,7 @@
 
 ## 0.9.1 — 2026-09-14
 
-- The centred dot is U+00B7, reported by a user.
+- The centered dot is U+00B7, reported by a user.
 
 ## 0.9.0 — 2026-09-13
 

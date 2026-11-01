@@ -21,7 +21,7 @@ model it.
 - **Function name recognition.** The editor auto-detects hundreds of standard function names as they
   are typed, `sin` and `log` among them, and lets a user define more of its own; none of that reaches
   the file, where a name that behaves as a function is an ordinary `Sb` carrying the role `'func'`,
-  whether or not the editor would have recognised it.
+  whether or not the editor would have recognized it.
 - **LaTeX and MathML.** Pasting LaTeX into the editor builds the structures it describes (1.8), and on
   Copy the editor puts LaTeX or MathML on the clipboard (1.3, 1.15), writes it into the `<desc>` of an SVG
   as alternative text (1.10, 1.15), and sets it as the alternative text of an equation embedded in Word
@@ -47,7 +47,7 @@ model it.
   The result is the same `Mx` entries a caller would type into each cell directly, so write the repeated
   cell into every entry that needs it; there is nothing else to model.
 - **Office Math conversion.** Inserting a Radical Pie equation with the cursor immediately after an OMML
-  equation, or at the start of the line after a displayed one, initialises it from that equation. The
+  equation, or at the start of the line after a displayed one, initializes it from that equation. The
   skill does not read or write OMML.
 - **PowerPoint objects** (1.9), inserted by the PowerPoint add-in. The skill writes the same objects
   into a deck without the editor, `python scripts/PowerPoint.py embed Draft.pptx Final.pptx eq=Eq.pie`,

@@ -96,7 +96,7 @@ Gr
 ```
 
 This is what Radical Pie saves when the document carries a design: eight fonts, a style map for 21 of
-the styles, the sixteen palette colours and the font size. 1.15 named each font by its file
+the styles, the sixteen palette colors and the font size. 1.15 named each font by its file
 name without the extension, which 1.16 resolves too and saves as the font's full name, so the names here
 are the full names.
 A generated equation writes `D {}` instead and renders at the factory design. Note `25` as one `Sb` with
@@ -325,8 +325,8 @@ Gr
 }
 ```
 
-A multi-line equation is one group with several `Bg` structures, not several groups. The centre aligner
-before each `=` puts all three signs in one column and centres each left-hand side in the width the
+A multi-line equation is one group with several `Bg` structures, not several groups. The center aligner
+before each `=` puts all three signs in one column and centers each left-hand side in the width the
 longest of them needs. `mnp` is one symbol, because three letters that share a role and a style belong
 in one.
 
@@ -405,7 +405,7 @@ Gr
 
 Each bond site is a `Bd` whose pair list names one bond per direction, with group type `0` for the
 rightward bond that has no group of its own. The atoms are `ro='chem'`, which sets them upright. The
-molecule reads left to right along the baseline, one bond site per atom that has a neighbour to its
+molecule reads left to right along the baseline, one bond site per atom that has a neighbor to its
 right; the last hydrogen is a plain symbol, because the carbon before it draws the bond that reaches
 it.
 
@@ -899,7 +899,7 @@ Gr
 
 Entries run row-major: a, b, c, d for a matrix read a, b over c, d. The specification calls the
 order column-major; Radical Pie 1.15 lays the entries out row by row, and the executable wins.
-Getting this backwards transposes the matrix and nothing complains. The brackets are a `Br` around
+Getting this backward transposes the matrix and nothing complains. The brackets are a `Br` around
 the matrix with `u32{0x5B,0x5D}`; `pmatrix` is the same with `0x28,0x29`, and `vmatrix` with
 `0x7C,0x7C`.
 
@@ -1336,8 +1336,8 @@ Gr
 
 Every line puts its aligner after the relation, so the equals sign closes the right-aligned span and the
 three signs stand in one column. A right aligner pushes what comes before it against the column, which is
-the usual choice for a derivation; a centre aligner centres it, as in example 5. The `Al` entry of
-`references/catalogue/Groups.md` measures what an aligner written in front of the relation costs a line
+the usual choice for a derivation; a center aligner centers it, as in example 5. The `Al` entry of
+`references/catalog/Groups.md` measures what an aligner written in front of the relation costs a line
 that has no left-hand side.
 
 ## 21. A chemical equation
@@ -1456,9 +1456,9 @@ Words are `ro='text'`, and the comma, the gap and the trailing space inside the 
 Pie separates prose from the mathematics on either side of it, the way the site's Convergence
 equation and its Theorem equation write it; no separate `'pnct'` sits between them. `kg` is `ro='unit'` with no `Sp` before
 it, since the role spaces itself. `Fr (sm)` is the small fraction that belongs in a line of text, and
-the closing full stop after math is a plain `st='uprt'` symbol, not `ro='pnct'`.
+the closing period after math is a plain `st='uprt'` symbol, not `ro='pnct'`.
 
-## 23. An equation with its terms labelled
+## 23. An equation with its terms labeled
 
 File: `examples/NavierStokesAnnotated.pie`
 
@@ -1709,7 +1709,7 @@ Gr (t='anno',al='cent')
 
 Read the file in the order of its five sections: the drawing structures of the background layer, the
 main group, then the annotation groups. The three `Rt` rectangles come first so that their fill sits
-behind the glyphs, `fpi=9` on two of them and `fpi=10` on the third, one colour per kind of term.
+behind the glyphs, `fpi=9` on two of them and `fpi=10` on the third, one color per kind of term.
 
 Each rectangle runs from index 1 of the structure that starts the run to index 0 of the structure that
 ends it, and the choice of start is the whole trick:
@@ -1726,7 +1726,7 @@ ends it, and the choice of start is the whole trick:
 The two terms with no highlight, the pressure `p` and the body force `f`, are each wrapped in an inline
 group, `St { Gr (ba='mddl') { Bg {} Sb $_13 {s{"p"}} } }`. The wrap adds no glyph and no spacing and
 leaves the symbol its own anchors, which is what the arrow needs: `u32{'cent','xxx!'} i32{1,1}` leaves
-the symbol's centre and ends on the rail above the equation.
+the symbol's center and ends on the rail above the equation.
 
 Every arrow ends on a rail, `'xxx!'` index 1 above and index 0 below, and the rail snaps the line
 straight, so all five come out vertical and the captions on each side line up. The three that start on
@@ -1736,7 +1736,7 @@ equation.
 
 The five captions are annotation groups after the main group. Each attaches to its own arrow with
 `ref{$_2} u32{'anno'} i32{1}`, the far end of that arrow, so the arrow's length places the caption and
-no nudge is needed; `al='cent'` centres the lines over it, and a second `Bg` gives a second line. The
+no nudge is needed; `al='cent'` centers the lines over it, and a second `Bg` gives a second line. The
 `Sp (s=1.5) {}` at each end of the bracketed run is there for the highlight: a rectangle takes no
 padding of its own, and without the space the box would touch the bracket.
 
@@ -1744,7 +1744,7 @@ padding of its own, and without the space the box would touch the bracket.
 
 File: `examples/RenderingEquationAnnotated.pie`
 
-The rendering equation with five highlights, six arrows and six captions, in three colours. This file
+The rendering equation with five highlights, six arrows and six captions, in three colors. This file
 was written by hand, so its nodes carry names that say what they are, `$boxOut`, `$arOut`, `$main`;
 Radical Pie replaces them all with `$_0`, `$_1` and so on the first time it saves the file.
 
@@ -2126,9 +2126,9 @@ Gr (as=0.8125,t='anno',al='cent')
 }
 ```
 
-The highlights are `Rr (f,fpi=...,r=1)`, rounded rather than square, and colour carries the meaning:
+The highlights are `Rr (f,fpi=...,r=1)`, rounded rather than square, and color carries the meaning:
 `fpi=9` for the three radiance terms, `fpi=10` for the BRDF, `fpi=11` for the cosine factor, with each
-arrow's `spi` and each caption's `pi` set to the same index, so a reader follows the colour from the
+arrow's `spi` and each caption's `pi` set to the same index, so a reader follows the color from the
 term to the words.
 
 Every one of the five boxed terms is wrapped in an inline group with a named `Bg`, `$bgOut`, `$bgEmit`,
@@ -2138,9 +2138,9 @@ right end of the first symbol; the wrap is what gives the run a left edge. The B
 it starts at `$bgInt`, the `Bg` of the integrand itself, because the term is the first thing in the
 integrand.
 
-The three radiance terms are labelled from above, `'edge'` index 3 to `'xxx!'` index 1, and the BRDF
+The three radiance terms are labeled from above, `'edge'` index 3 to `'xxx!'` index 1, and the BRDF
 and the cosine factor from below, `'edge'` index 2 to `'xxx!'` index 0, which keeps six captions apart
-on a single equation. The domain of integration is labelled without a highlight: the arrow leaves the
+on a single equation. The domain of integration is labeled without a highlight: the arrow leaves the
 `Ω` in the integral's `'lowr'` subgroup at `'cent'` index 0, the downward anchor of a symbol, and runs
 to the rail below.
 
@@ -2152,7 +2152,7 @@ row to this pattern: two more arrows to `'xxx!'` indexes 7 and 9, rails further 
 The `Sp (s=3.0) {}` between the factors of the integrand separates the highlights; without them the
 boxes would meet.
 
-## 25. A reaction with a labelled arrow, in chemistry mode
+## 25. A reaction with a labeled arrow, in chemistry mode
 
 File: `examples/Photosynthesis.pie`
 
@@ -2261,7 +2261,7 @@ holding a `'subs'` group, written after the element it counts, which is all that
 subscripting of version 1.15 leaves in the file; `s{"12"}` is one number in one symbol, coefficient or
 subscript, never two digits. The reaction arrow is an `Ar` with `'long'` and `'rarw'` in two `u32`
 lists and an `'uppr'` label group holding the word light as `ro='text'`, and the label is what
-stretches the arrow. `al='cent'` centres the label over the arrow, where Example 21 leaves `al` at its
+stretches the arrow. `al='cent'` centers the label over the arrow, where Example 21 leaves `al` at its
 default.
 
 ## 26. A structural formula written from scratch
@@ -2470,14 +2470,14 @@ Gr
 ```
 
 Six carbons, six nested bond sites, one closing stub. The root is the lower-left carbon; each
-following ring carbon is a bond site inside the previous one's neighbour group, walking up the left
+following ring carbon is a bond site inside the previous one's neighbor group, walking up the left
 side, across the top and down the right. The sixth bond of the ring is `{'uppr','doub'}` on the
 lower-right carbon pointing into `Gr (t='uppr') { Bg {} }`, a group with no atom in it. The stub lands
 on the upper-right carbon, which is already drawn at that position, and the ring closes.
 
 Every diagonal ring bond is `'shal'`, which is what makes the hexagon regular; the two vertical bonds
 take no angle. The double bonds alternate for a Kekulé structure. The site's Orthoxylene equation
-uses `'prd1'` and `'prd2'` on the same skeleton for the delocalised picture. Substituting the ring is
+uses `'prd1'` and `'prd2'` on the same skeleton for the delocalized picture. Substituting the ring is
 a change to the top carbon's `'uppr'` group alone: the site's Phenol equation puts `OH` there. The
 step-by-step recipe is in `references/Chemistry.md`.
 
@@ -2562,7 +2562,7 @@ Gr
 ```
 
 One `Ar` with one `'long'` arrow, one `'rarw'` charm, and both label groups. The catalyst goes in
-`Gr (t='uppr',al='cent')` and the conditions in `Gr (t='lowr',al='cent')`; `al='cent'` centres each
+`Gr (t='uppr',al='cent')` and the conditions in `Gr (t='lowr',al='cent')`; `al='cent'` centers each
 label over the shaft, and the wider of the two labels sets the length of the arrow.
 
 A temperature is two symbols, `ro='nmbr'` for the figure and `ro='unit'` for `°C`, which keeps the
@@ -2936,10 +2936,10 @@ Gr (al='cent',ba='frst')
 
 The ring is two bond sites side by side in one group, the construction `references/Chemistry.md`
 gives under Saturated and heteroatom rings. The first site owns the left apex and the two atoms
-diagonally right of it, and each of those two ends in a `{0,'Sing'}` bond that runs rightwards into
+diagonally right of it, and each of those two ends in a `{0,'Sing'}` bond that runs rightward into
 an atom the second site holds, one in its `'uplf'` group and one in its `'lwlf'` group. The second
 site owns the right apex and closes both halves with `'uplf','Sing'` and `'lwlf','Sing'`. The
-capitalised bond kinds are the long bonds that give the ring its height.
+capitalized bond kinds are the long bonds that give the ring its height.
 
 The two hydroxyls sit on adjacent atoms. The one on the left apex goes in its `'uplf'` group with
 `al='rght'`, which turns the group round so the bond meets `HO` at its right edge; the one on the
@@ -2949,14 +2949,14 @@ hydrogen is written by leaving it out.
 
 The name under the drawing is a second line of the main group, opened by `Bg (lg=30.0) {}`.
 `ba='frst'` puts the equation's baseline on the drawing rather than on the name, which is the
-difference between a baseline shift of 50 points and one of 3 for this file, and `al='cent'` centres
+difference between a baseline shift of 50 points and one of 3 for this file, and `al='cent'` centers
 both lines.
 
 ## 33. A Feynman diagram
 
 File: `examples/FeynmanVertex.pie`
 
-A QED vertex: an electron in, an electron out, and a photon leaving where they meet. `references/catalogue/Annotations.md`, under Feynman diagrams, has the recipe this equation follows.
+A QED vertex: an electron in, an electron out, and a photon leaving where they meet. `references/catalog/Annotations.md`, under Feynman diagrams, has the recipe this equation follows.
 
 ```pie
 // Radical Pie Equation
@@ -3121,9 +3121,9 @@ does: into the vertex on the way in, away from it on the way out. The photon is 
 widemarks in one annotation group anchored on the vertex, `al='left'` so the wave starts exactly there,
 and each of the three legs takes its own caption from an annotation group on its `'anno'` anchor.
 
-## 34. Two labelled arrows in a synthesis
+## 34. Two labeled arrows in a synthesis
 
-File: `examples/LabelledArrows.pie`
+File: `examples/LabeledArrows.pie`
 
 `\ce{C2H4 ->[H3PO4][300 ^\circ C] C2H5OH ->[K2Cr2O7] CH3COOH}`, ethene to ethanol to ethanoic
 acid.
@@ -3258,7 +3258,7 @@ Gr
 
 The two arrows carry the same `u32{'long'}` and `u32{'rarw'}` and come out different lengths, 40.26
 and 46.84 points of shaft, because an arrow is as long as its widest label plus 11 points at each end
-and nothing else sets it. Neither label group carries `al`, which centres it; the first arrow's
+and nothing else sets it. Neither label group carries `al`, which centers it; the first arrow's
 `'lowr'` group holds the temperature as a number and a unit, and both `'uppr'` groups hold a formula
 written the way the line around them is, `ro='chem'` with `Sc` subscripts.
 
@@ -3334,7 +3334,7 @@ keeps the font the factory design gives it, so the Greek, the symbols and the bi
 Radical Pie's own faces. Each map names Cambria alone, and a map draws from no font it does not list, so a
 character Cambria lacks in those four styles draws the missing-glyph box; add fallbacks to the maps when
 the text holds one. `V (n='fsiz') {f{12.0}}` sets the body size in points, against a factory default of
-11, and the `P` replaces all sixteen palette colours at once, which is what lets `pi=6` mean this
+11, and the `P` replaces all sixteen palette colors at once, which is what lets `pi=6` mean this
 document's blue. Hand a design over as a block like this one and copy it into every equation the document
 holds; nothing outside the file carries it, and an equation with an empty `D {}` renders at the factory
 design instead.

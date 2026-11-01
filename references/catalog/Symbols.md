@@ -1,6 +1,6 @@
 # Symbols
 
-## Bg — begin
+## Bg: begin
 
 Begins a line. Every group starts with one, and a further `Bg` inside the same group starts another
 line, which is how a multi-line equation is written. A blank line, one whose `Bg` is followed straight by
@@ -28,7 +28,7 @@ Gr
 }
 ```
 
-## Mk — mark
+## Mk: mark
 
 An accent on a single character: hat, tilde, bar, dot, and the rest of the Unicode combining range
 U+0300 to U+0362. A mark is a child of the `Sb` it applies to. Several marks on one symbol stack
@@ -43,8 +43,8 @@ One `uint32` data list of one value: the Unicode value of the mark character.
 
 Radical Pie 1.16's Marks palette adds eight marks, each above and below: ring U+030A and U+0325, double
 ring U+EE73 and U+035A, bridge U+0346 and U+032A, inverted bridge U+EE71 and U+033A, square U+EE72 and
-U+033B, clockwise arrow U+20D5 and U+EE75, anticlockwise arrow U+20D4 and U+EE74, and clockwise and
-anticlockwise arrow U+EE76 and U+EE77. U+EE70 is four dots below, the partner of U+20DC. Each of them,
+U+033B, clockwise arrow U+20D5 and U+EE75, counterclockwise arrow U+20D4 and U+EE74, and clockwise and
+counterclockwise arrow U+EE76 and U+EE77. U+EE70 is four dots below, the partner of U+20DC. Each of them,
 and the older marks with them, draws a bolder form on a bold symbol. Where a mark sits follows `un` and
 not the code point: written with `un`, the above member of a pair draws under the character, and without
 it the below member draws over it (measured 2026-10-08).
@@ -64,7 +64,7 @@ Gr
 }
 ```
 
-## Ng — negate
+## Ng: negate
 
 A negation stroke through a single symbol, the way `\notin` is drawn. A child of the `Sb` it applies
 to.
@@ -103,7 +103,7 @@ Gr
 }
 ```
 
-## Pr — prime
+## Pr: prime
 
 Prime marks on the structure before it. Up to four primes merge into one `Pr`, and the character says
 which kind.
@@ -133,9 +133,9 @@ Gr
 }
 ```
 
-## Sb — symbol
+## Sb: symbol
 
-One or more adjacent characters that share a role and a style. The role drives spacing and behaviour;
+One or more adjacent characters that share a role and a style. The role drives spacing and behavior;
 the style drives the glyphs. Everything visible that is not a structure is an `Sb`.
 
 | Property | Type | Default | Description |
@@ -151,7 +151,7 @@ the style drives the glyphs. Everything visible that is not a structure is an `S
 | `nd` | bool | false | Disable dotless i and j under a mark. |
 | `ns` | bool | false | Disable the italic correction that shifts a mark. |
 | `nb` | bool | false | Disable the bold form of a mark on a bold symbol. |
-| `ma` | bool | false | Shift the math axis for capitals: raise the symbol to centre it between capitals. |
+| `ma` | bool | false | Shift the math axis for capitals: raise the symbol to center it between capitals. |
 
 `ma` is not in the specification's property table. One of Radical Pie's own files writes it,
 and the Symbols page of the documentation describes the setting.
@@ -213,9 +213,9 @@ single, U+EE35 and U+EE36 the two partial doubles, U+EE37 to U+EE39 the three pa
 long single and U+EE3B long double. They are not in Unicode, so write the code point itself in the
 UTF-8 string. Two of them draw what nothing else in the format draws: no `Bd` bond type is quadruple,
 and the partial forms are dashed. Their distinguishing feature is where they sit: measured 2026-09-13
-at the default design and 11 pt, the bar of U+EE30 is centred 3.6416 pt above the baseline, exactly half
+at the default design and 11 pt, the bar of U+EE30 is centered 3.6416 pt above the baseline, exactly half
 the 7.2832 pt capital height of the `H` beside it, while an em dash in the same place sits at 2.7560 pt,
-the math axis. So `H—OH` written with an em dash draws its bond 0.886 pt too low, and the long single
+the math axis. So an `H` and an `OH` joined by an em dash draw their bond 0.886 pt too low, and the long single
 bond U+EE3A is 7.5 pt of bond against the em dash's 5.4.
 
 ```pie
@@ -247,9 +247,9 @@ Gr
 it. The space is the `'symb'` domain's `'fnsp'`, whose factory value is those 3 mu: measured
 2026-09-13, `V (d='symb',n='fnsp') {f{0.0}}` took `sin x` from 19.5526 to 17.7192 pt and `{f{9.0}}` took
 it to 23.2192. The editor
-recognises hundreds of names as they are typed, `sin` and `log` among them, and lets a user define more;
+recognizes hundreds of names as they are typed, `sin` and `log` among them, and lets a user define more;
 none of that reaches the file, where the role is the whole of the feature. Write `ro='func'` on any name
-that should behave as a function, a name the editor would not recognise included, and put its letters in
+that should behave as a function, a name the editor would not recognize included, and put its letters in
 one `Sb`.
 
 Those 3 mu are not always enough to part the name from a `'math'` letter written straight after it.
@@ -264,19 +264,19 @@ Text mode is the `'text'` role, which sets a sentence of prose inside an equatio
 same fonts as `'math'`: with no `st` it is the upright style, glyph for glyph the render `st='uprt'`
 gives, and `ro='text',st='ital'` renders identically to a plain `Sb`, so a letter mentioned inside a
 sentence may be written either way. What the role changes is spacing. A binary operator whose left
-neighbour carries `ro='text'` loses the 4 mu it takes on each side: `a + b` measures 21.3102 pt with
+neighbor carries `ro='text'` loses the 4 mu it takes on each side: `a + b` measures 21.3102 pt with
 upright `'math'` letters and 16.4213 pt with `'text'` letters. A `'rltn'` keeps its space either way,
 and so does a `'func'`. Words are separated by spaces written inside the string, which every role
 keeps, leading, internal and trailing, 2.7500 pt each at the default design. So a prose fragment is one
 `Sb` holding `" is a prime number that does not divide "`, and no `Sp` stands between its words. A
 design that sets `V (n='seps') {b{true}}` gives the role fonts of its own, the four text styles of
-`references/catalogue/Design.md`, and the role's glyphs then part from the `'math'` ones.
+`references/catalog/Design.md`, and the role's glyphs then part from the `'math'` ones.
 
 `'pnct'` takes no space in front of it and 3 mu behind it when a symbol follows, and nothing behind it
 at the end of a line. It also drops the half math unit of italic correction that an upright glyph gets
-after a math italic: a full stop after an italic `a` measures 8.2500 pt as `'pnct'` and 8.5556 pt as
+after a math italic: a period after an italic `a` measures 8.2500 pt as `'pnct'` and 8.5556 pt as
 `st='uprt'`. Use it for a comma inside a sentence, where the 3 mu is the space after the comma, and
-leave the closing full stop of a prose equation as `st='uprt'`, which is what the site's own theorem
+leave the closing period of a prose equation as `st='uprt'`, which is what the site's own theorem
 and convergence statements do.
 
 Styles: `'uprt'` upright, `'ital'` italic, `'bold'`, `'bitl'` bold italic, `'mono'` monospace,
@@ -288,7 +288,7 @@ double-struck, `'sans'` sans-serif upright, `'itsn'` sans-serif italic, `'dbsn'`
 
 The default style is `'ital'` for `'math'`, `'sym1'` for the five symbol roles `'oper'`, `'rltn'`,
 `'unry'`, `'arrw'` and `'bond'`, and `'uprt'` for the other seven. Measured 2026-09-13, three characters
-against every role: a full stop, a capital A and a zero each rendered under each role with no `st` and
+against every role: a period, a capital A and a zero each rendered under each role with no `st` and
 then under `st='sym1'`, `'uprt'` and `'ital'`, and the glyph and the advance width of the bare render
 matched one of the three every time. The specification gives `'uprt'` for every role but `'math'`,
 `'oper'` and `'rltn'`, which is wrong about the other three. Write `st` only to override the default: `Sb (st='bold')` for a bold vector, `Sb (st='doub')` for
@@ -311,7 +311,7 @@ it, upward for a mark over the character and downward for a mark with `un`. In
 `Mk` without `un` put one accent above the other. A symbol that carries a mark carries one character, so
 a run of letters splits into one `Sb` for each letter that takes an accent.
 
-The fence writes all three full stops, one per case: `ro='pnct'` ends the math line, the bold
+The fence writes all three periods, one per case: `ro='pnct'` ends the math line, the bold
 `'text'` stop belongs to the word Lemma inside the running text, and the `st='uprt'` stop closes the
 prose equation.
 
@@ -347,7 +347,7 @@ Gr
 }
 ```
 
-## Sc — script
+## Sc: script
 
 A subscript, a superscript, or both stacked on each other. The script attaches to the structure before
 it, or to the one after it when `pr` is set.
@@ -404,7 +404,7 @@ Gr
 }
 ```
 
-## Sl — slash
+## Sl: slash
 
 A slash through a single symbol. A child of the `Sb` it applies to.
 
@@ -434,7 +434,7 @@ Gr
 }
 ```
 
-## Sp — space
+## Sp: space
 
 A space, or a kern when the width is negative. Widths are in math units, 18 to the em, and one math
 unit is the design font size divided by eighteen. The default design sets 11 point type, so a math unit

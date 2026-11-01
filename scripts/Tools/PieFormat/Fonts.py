@@ -392,7 +392,7 @@ class Database:
         A file name with its extension, `"NewCM10-Book.ttf"`, and the stem of a collection, `"msgothic"`, point
         at the fonts of that file by name ID 4; the family is how a writer names a font, `"Lato"`, and points at its
         members. The spelling is compared on the family words alone (`FamilyWords`), and the nearest font of each
-        family that matches comes first, by its whole name. A misspelt style word counts as a family word, so a
+        family that matches comes first, by its whole name. A misspelled style word counts as a family word, so a
         name none of whose families is close enough is then offered the fonts of each installed family whose
         words lead its own, nearest whole name first: `"Lato Regulr"` is offered `"Lato Regular"`. A name whose
         family words are all style words, or neither match nor begin with an installed family, gets no

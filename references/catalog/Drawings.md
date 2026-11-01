@@ -1,15 +1,15 @@
 # Drawings
 
-## Cn — corner
+## Cn: corner
 
 A corner drawing object: one horizontal leg and one vertical one, horizontal first, or vertical first
 with `v`. Drawing structures sit outside the main equation, before it for the background layer and
 after it for the foreground layer, and each attaches to two anchors through its connector, one per end
-of the corner; see `X` in `references/catalogue/Annotations.md`
+of the corner; see `X` in `references/catalog/Annotations.md`
 for the rule and the reason a single anchor crashes Radical Pie.
 
 It routes between its two anchors, turning where a straight line would run diagonally, so it reaches a
-term the arrow-to-rail form under [Ln](#ln--line) cannot. Reach for it only then: a straight vertical
+term the arrow-to-rail form under [Ln](#ln-line) cannot. Reach for it only then: a straight vertical
 arrow to a rail is the form to teach.
 
 The specification lists `es`, `ef`, `os` and `of` under `Ln` alone. A corner takes all four, measured
@@ -56,7 +56,7 @@ Cn (s,v)
 }
 ```
 
-## El — ellipse
+## El: ellipse
 
 An ellipse drawing object, attached at two opposite corners of its bounding box.
 
@@ -93,7 +93,7 @@ El (s)
 }
 ```
 
-## Jo — joist
+## Jo: joist
 
 A brace or bracket drawn as a drawing object, stretched between anchors.
 
@@ -109,7 +109,7 @@ A brace or bracket drawn as a drawing object, stretched between anchors.
 
 A joist takes no endpoint symbol. Writing `es` or `ef` on one is refused by the validator, and Radical
 Pie drops the property when it saves the file (measured 2026-09-12). The brace appears on the left of
-the line from the first anchor to the second, so drawing it backwards mirrors it. It owns one `'jost'`
+the line from the first anchor to the second, so drawing it backward mirrors it. It owns one `'jost'`
 anchor at its middle and one `'anno'` anchor beyond that; index 1 of either crashes Radical Pie.
 
 ```pie
@@ -136,7 +136,7 @@ Jo (s,t='brac')
 }
 ```
 
-## Ln — line
+## Ln: line
 
 A line drawing object.
 
@@ -187,9 +187,9 @@ An annotation arrow runs from the term to a rail of the main group, `'xxx!'` ind
 and index 0 below it. The rail snaps the line straight, so the arrow comes out vertical and every label
 on the same side lines up. Give the first anchor to the term, the second to the rail:
 
-- from a symbol, `u32{'cent','xxx!'} i32{1,1}` upwards or `i32{0,0}` downwards;
-- from a highlight rectangle, `u32{'edge','xxx!'} i32{3,1}` from its top edge upwards or `i32{2,0}`
-  from its bottom edge downwards.
+- from a symbol, `u32{'cent','xxx!'} i32{1,1}` upward or `i32{0,0}` downward;
+- from a highlight rectangle, `u32{'edge','xxx!'} i32{3,1}` from its top edge upward or `i32{2,0}`
+  from its bottom edge downward.
 
 The rail goes on the finish end. The Drawing Tools page says a drawing object starts on an anchor point
 and only its finish end may attach to a rail, so both ends cannot be rails, and that is the order the
@@ -200,7 +200,7 @@ position relative to the starting anchor and a rail at the start has no starting
 
 The arrowhead goes on the equation end, which is the start of the line, so it is `es`, not `ef`. Both
 `es='arr1'` and `es='arr2'` are heads: the annotated equation Radical Pie's editor produced carries
-`arr1`, and Radical Pie's own annotated examples carry `arr2`. Colour the line with `spi`, the stroke
+`arr1`, and Radical Pie's own annotated examples carry `arr2`. Color the line with `spi`, the stroke
 palette index, and give the caption's symbols the same `pi` so the two match. Then attach the caption to
 the far end of the arrow with `ref{$arrow} u32{'anno'} i32{1}`.
 
@@ -253,7 +253,7 @@ Gr (as=0.8125,t='anno',al='cent')
 A line needs both of its anchors; a single-anchor `Ln` crashes Radical Pie, and the validator refuses
 it.
 
-## Qe — quarter ellipse
+## Qe: quarter ellipse
 
 A quarter ellipse drawing object.
 
@@ -303,10 +303,10 @@ Qe (s)
 }
 ```
 
-## Rr — rounded rectangle
+## Rr: rounded rectangle
 
 A rounded rectangle drawing object. Its two anchors are opposite corners, and it takes the highlight
-form described under [Rt](#rt--rectangle) unchanged: from index 1 of the structure that starts the run
+form described under [Rt](#rt-rectangle) unchanged: from index 1 of the structure that starts the run
 to index 0 of the structure that ends it, filled, in the background layer. `r=1` is the radius Radical
 Pie's own annotated rendering equation uses for every highlight, and Example 24 follows it; Example 23
 uses square `Rt` boxes instead. Either is correct, so pick one and keep it for the whole equation.
@@ -343,7 +343,7 @@ Rr (s,r=1)
 }
 ```
 
-## Rt — rectangle
+## Rt: rectangle
 
 A rectangle drawing object. Its two anchors are opposite corners.
 
@@ -419,7 +419,7 @@ Gr $main
 }
 ```
 
-## Zg — zigzag
+## Zg: zigzag
 
 A zigzag drawing object, dominantly horizontal, or dominantly vertical with `v`.
 

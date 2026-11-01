@@ -1,6 +1,6 @@
 # Groups
 
-## Al — aligner
+## Al: aligner
 
 Marks a column in a multi-line group. The i-th aligner on every line stands at the same x, and the
 span between two consecutive aligners is a box as wide as the widest line's content in that span. The
@@ -11,7 +11,7 @@ The column does not move when `al` changes; only the material before the aligner
 default design on four lines whose longest left-hand side is 23.96 points wide, the relation after the
 aligner starts at 26.8990 points on every line, and the shorter left-hand sides start at 0.0000 with
 `'left'`, at 18.5142 with `'rght'`, which puts their right edge on the column, and at 9.8345 with
-`'cent'`, which centres them in the box. A line carrying no aligner starts at the line origin and takes
+`'cent'`, which centers them in the box. A line carrying no aligner starts at the line origin and takes
 no part in the columns.
 
 On a derivation whose continuation lines carry no left-hand side, the aligner goes after the relation. A
@@ -52,7 +52,7 @@ Gr
 }
 ```
 
-## Gr — group
+## Gr: group
 
 A group holds a run of equation structures. The main equation is a group; so is every typed subgroup
 of a structure; so is an annotation.
@@ -84,7 +84,7 @@ A group may be given an OpenDDL name, `Gr $main { ... }`, so that a connector ca
 numerator or denominator, a matrix entry and an arrow's label. All three values are attested and 0 is
 the Align Default the Group menu offers, which the context decides: measured 2026-09-13, a numerator
 holding `x` over a denominator holding `abcd` rendered the same paths with no `al`, with `al=0` and
-with `al='cent'`, and differently with `'left'` and with `'rght'`, so a fraction's default is centre.
+with `al='cent'`, and differently with `'left'` and with `'rght'`, so a fraction's default is center.
 An iteration's limits take their alignment from the context and from nothing else: `al='left'`,
 `'cent'` and `'rght'` on a `'lowr'` or an `'uppr'` group each rendered exactly what no `al` rendered,
 with the limits above and below and with `il` set, so the centring above and below and the left
@@ -150,17 +150,17 @@ Captions on one rail collide when their arrows are closer together than the capt
 the validator cannot; only a rendering shows it. Three remedies, in the order to try them: send one of
 the two arrows to the other rail (`'xxx!'` index 0 below instead of 1 above, leaving the arrow from the
 term's `'cent'` anchor 0 or a rectangle's `'edge'` anchor 2 instead of 1); align the captions away from
-each other, `al='rght'` on the left one so it extends leftwards from its arrow end and `al='left'` on the
+each other, `al='rght'` on the left one so it extends leftward from its arrow end and `al='left'` on the
 right one; or use the site's Rendering equation's second row of rails (`'xxx!'` indexes 7 and 9). A
 caption of one short word fits where two lines do not. Always render and look before shipping an
 annotated equation.
 
-`al='cent'` centres the caption on the arrow. Radical Pie's own annotated rendering equation writes
+`al='cent'` centers the caption on the arrow. Radical Pie's own annotated rendering equation writes
 `al='rght'` instead on the two captions that hang off its outer rails; the specification enumerates no
 values for `al`, so copy one of those two from a fixture rather than inventing a third. A second `Bg`
 begins a second line of the caption, one `Bg` per line, and the words are `ro='text'`.
 `as` scales the whole caption; `0.8125` is the value Radical Pie's annotated examples use, which sets
-the caption below the size of the equation. `pi` on each symbol matches the caption to the colour of its
+the caption below the size of the equation. `pi` on each symbol matches the caption to the color of its
 arrow.
 
 An annotation holds anything the main group holds, so a caption is not restricted to text.
@@ -174,7 +174,7 @@ An arrow is not required. A caption hung on a highlight's or a panel's own `'ann
 against it with no stem at all, index 1 above and index 0 below, which is how the site's Amino Acid
 equation labels the three groups of an amino acid. Use the arrow when
 the term is inside the equation's line and the caption has to stand clear of it, and the bare
-annotation when the thing labelled is a box drawn round the term.
+annotation when the thing labeled is a box drawn round the term.
 
 Drawing objects and annotations attach to each other to any depth. A drawing structure can take its
 anchors from structures named inside an annotation group, and a further annotation then hangs off that
@@ -191,7 +191,7 @@ smaller `as` so it reads as a note on the first.
 The equation grows to include the captions and the arrows: the SVG `viewBox` and the Word object size
 follow, while the baseline shift stays that of the equation line.
 
-## Ph — phantom
+## Ph: phantom
 
 Material that takes up space and draws nothing, so that two parts of an equation come out the same
 size. A phantom holds its content directly, beginning with a `Bg`, the way a group does; there is no
@@ -212,7 +212,7 @@ neither the width nor the height of the file, and it does not even break the ove
 italic letters get. Radical Pie renders a type outside the five as `'vert'` and reports nothing; the
 validator refuses it.
 
-A phantom also equalises a matrix cell against its sibling cells: in the middle array of the site's
+A phantom also equalizes a matrix cell against its sibling cells: in the middle array of the site's
 Frenet equation, the cell holding `κ` follows it with `Ph { Bg {} Pr {} }`, an empty prime,
 so that cell is exactly as wide as the cells beside it that carry a real prime. The arrows that fill
 the other cells of that same matrix take `st='sym1'`.
@@ -259,7 +259,7 @@ Gr
 }
 ```
 
-## St — stack
+## St: stack
 
 A full-size expression with a small label above it, below it, or both. This is how `\lim`, `\max` and
 an operator with a condition under it are written.
@@ -349,15 +349,15 @@ no glyph and no spacing, and everything inside it keeps its own anchors, so it e
 connector something to point at. Two uses:
 
 - **A symbol the arrow points at.** Wrap the symbol, name it, and take its `'cent'` anchor, index 1 for
-  an arrow that leaves upwards and index 0 for one that leaves downwards. This is the form the editor
-  produces when a term is labelled without a highlight, and it is the whole of the mark-up for that
+  an arrow that leaves upward and index 0 for one that leaves downward. This is the form the editor
+  produces when a term is labeled without a highlight, and it is the whole of the mark-up for that
   term: no rectangle, no spacing change.
 - **A run that needs a left anchor.** A symbol's type `0` anchors sit at its right end, so a highlight
   that starts at the first symbol of a run cuts that symbol off. Wrap the run and name the inline
   group's `Bg`, `St { Gr { Bg $bgTerm {} Sb {s{"L"}} ... } }`, then start the rectangle at `$bgTerm`
   index 1. The same wrap gives a bracket standing on its own a left anchor.
 
-The example below wraps the `p` of a gradient so that a vertical arrow can leave the symbol's centre for
+The example below wraps the `p` of a gradient so that a vertical arrow can leave the symbol's center for
 the rail above the equation.
 
 ```pie
@@ -396,8 +396,8 @@ Gr $main
 `\cancelto{2}{4}`, and `\cancel{4}` on its own, strike the digit with `Kt (t='lwup')` and put the
 replacement directly under or over it as an `St`: the `St`'s main `Gr` holds the `Kt`-wrapped digit,
 and its `Gr (t='lowr')` or `Gr (t='uppr')` holds the smaller replacement digit. The strike and its
-replacement usually share one colour, `pi` on the `Kt` for the stroke and `pi` on the replacement
-symbol, which leaves the struck digit in the body colour. The example cross-cancels before
+replacement usually share one color, `pi` on the `Kt` for the stroke and `pi` on the replacement
+symbol, which leaves the struck digit in the body color. The example cross-cancels before
 multiplying, 6/5 times 7/9, striking the 6 with a small 2 above it and the 9 with a small 3 below
 it, which is why the answer comes out 14/15 rather than 42/45.
 

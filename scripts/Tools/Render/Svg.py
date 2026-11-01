@@ -25,9 +25,9 @@ width and height that is not the stub's geometry, which takes about 0.2 seconds 
 
 The launch keeps the operator's keyboard, which is the fourth measured fact (2026-09-11). `subprocess.Popen`
 with no `STARTUPINFO` makes the window the foreground one, `SW_SHOWNOACTIVATE` leaves it on screen without the
-focus, and `SW_SHOWMINNOACTIVE`, which is what this uses, starts it minimised and unfocused. Radical Pie lays
-out, saves and exports from a minimised window and takes the same time doing it: 0.42 to 0.53 s for a render
-and about 2 s for an export, the same as from a visible one. Minimised is the state kept because the gate runs
+focus, and `SW_SHOWMINNOACTIVE`, which is what this uses, starts it minimized and unfocused. Radical Pie lays
+out, saves and exports from a minimized window and takes the same time doing it: 0.42 to 0.53 s for a render
+and about 2 s for an export, the same as from a visible one. Minimized is the state kept because the gate runs
 the render tests in parallel, and forty visible windows are forty windows over what the operator is reading.
 
 Radical Pie 1.16 puts up one more window, "Font Import", for two things: the progress of a font conversion
@@ -105,7 +105,7 @@ WindowClass = "RadicalPie"
 SaveCommand = 260
 
 # The document Radical Pie reads back: its own SVG shape with the `.pie` text in the comment and a
-# placeholder geometry it replaces. The text goes in as given; Radical Pie normalises it on the way out.
+# placeholder geometry it replaces. The text goes in as given; Radical Pie normalizes it on the way out.
 StubTemplate = (
     '<svg width="6pt" height="9pt" viewBox="0 -9 6 9" version="1.1" xmlns="http://www.w3.org/2000/svg">'
     "<desc>Radical Pie Equation</desc><!--\n{0}\n--></svg>"
@@ -150,7 +150,7 @@ class SvgInfo:
         """Points to move the image down so it sits on the surrounding text baseline.
 
         The Clipboard documentation defines the shift as the viewBox minimum y plus the viewBox height,
-        because Radical Pie puts the equation baseline at y = 0 and grows the box upwards from there.
+        because Radical Pie puts the equation baseline at y = 0 and grows the box upward from there.
         """
 
         return self.viewBox[1] + self.viewBox[3]
@@ -217,7 +217,7 @@ def RenderSvg(pieText: str, outputPath: Path, timeoutSeconds: float = 30, attemp
 
 @contextmanager
 def WorkDirectory(prefix: str):
-    """A fresh temporary directory, removed afterwards as far as it can be.
+    """A fresh temporary directory, removed afterward as far as it can be.
 
     A virus scanner that still holds a file in it makes the removal raise PermissionError, which turned a
     finished render into exit 1 and dropped its output, so nothing the removal raises reaches the caller and a
@@ -342,7 +342,7 @@ def Attempts(failures: list) -> str:
 
 
 def Launch(filePath: Path) -> subprocess.Popen:
-    """Start Radical Pie on `filePath` minimised and unfocused, and register the process.
+    """Start Radical Pie on `filePath` minimized and unfocused, and register the process.
 
     `SW_SHOWMINNOACTIVE` is what keeps the window off the operator's screen and keyboard; the equation lays
     out in it all the same, and the window the operator was typing in stays the foreground one.

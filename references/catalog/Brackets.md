@@ -1,14 +1,14 @@
 # Brackets
 
-## Br — bracket
+## Br: bracket
 
 A bracket pair around one or more groups, stretched to the height of what it holds. Parentheses,
 square brackets, braces, angle brackets, absolute value bars and norm bars are all `Br`.
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |
-| `as` | bool | false | Asymmetric vertical extent: centre on the content, not on the math axis. |
-| `ca` | bool | false | With `as`, shift the assembly so the bracket's own centre sits on the math axis. |
+| `as` | bool | false | Asymmetric vertical extent: center on the content, not on the math axis. |
+| `ca` | bool | false | With `as`, shift the assembly so the bracket's own center sits on the math axis. |
 
 | Subgroup | Count | Holds |
 | --- | --- | --- |
@@ -36,8 +36,8 @@ rather than fetched from a font, because the Radical font holds neither code poi
 `ca` acts only together with `as`. Measured 2026-09-13 on a bracket round `x²`: `Br` and `Br (ca)`
 rendered the same paths at 17 pt tall, `Br (as)` 13 pt and `Br (as,ca)` 14 pt. Write `ca` on a
 bracket that already carries `as`, where it moves the whole assembly down until the bracket's own
-centre lands on the math axis: measured 2026-09-14 round `x²`, the bracket's centre matched the axis
-to five decimals and the content's centre stood 0.57 pt below it.
+center lands on the math axis: measured 2026-09-14 round `x²`, the bracket's center matched the axis
+to five decimals and the content's center stood 0.57 pt below it.
 
 ```pie
 // Radical Pie Equation
@@ -75,7 +75,7 @@ Gr
 }
 ```
 
-## Bx — box
+## Bx: box
 
 A box drawn around one group, on all four sides or on two. This is `\boxed` and `\fbox`.
 
@@ -85,7 +85,7 @@ A box drawn around one group, on all four sides or on two. This is `\boxed` and 
 
 `'lwlf'` draws the bottom and the left side, `'lwrt'` the bottom and the right, `'uplf'` the top and
 the left, `'uprt'` the top and the right. The two general equation properties apply: `co` and `pi`
-colour the border and leave the boxed material in its own colour.
+color the border and leave the boxed material in its own color.
 
 | Subgroup | Count | Holds |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Gr
 }
 ```
 
-## En — enclose
+## En: enclose
 
 An enclosure around a single symbol. It is a child of the `Sb` it applies to, not a wrapper around it,
 and it has no substructures: an `En` holding a group raises the invalid-data dialog.
@@ -170,11 +170,11 @@ and it has no substructures: an `En` holding a group raises the invalid-data dia
 | --- | --- | --- | --- |
 | `t` | uint32 | `'circ'` | `'circ'`, `'squa'`, `'rdsq'` |
 | `pi` | int32 | 0 | The palette index, 0 to 15. |
-| `co` | uint32 | 0xFF000000 | The colour as ABGR. |
+| `co` | uint32 | 0xFF000000 | The color as ABGR. |
 
 The three shapes are a circle, a square and a square with rounded corners, three different paths inside
 the same square outline. `pi` and `co` are the general equation properties, which the specification
-offers to the equation category and the executable honours on every modifier: they colour the
+offers to the equation category and the executable honors on every modifier: they color the
 enclosure and leave the symbol black (measured 2026-09-13).
 
 The enclosure is a fixed size and does not grow with what it encloses. Measured on 2026-09-13, it is
@@ -182,7 +182,7 @@ a 9.32 pt square stroked 0.52 pt at the factory 11 pt design, whatever the symbo
 wide, pokes out on both sides, a √ stands well above and below it, and on a symbol holding several
 characters it encloses the first one and the rest run out to the right. It follows the size of its
 surroundings rather than its content, 6.06 pt across in a superscript and 20.34 pt at a 24 pt
-design, and it centres on the first character's ink. Enclose one character; for a whole expression
+design, and it centers on the first character's ink. Enclose one character; for a whole expression
 use a `Bx`.
 
 A symbol takes at most one enclosure. Radical Pie draws two side by side if a file carries two, and it
@@ -204,9 +204,9 @@ Gr
 }
 ```
 
-## Kt — strike
+## Kt: strike
 
-A strike through one group, for cancelling a factor. `\cancel` is `'lwup'`, `\bcancel` is `'uplw'` and
+A strike through one group, for canceling a factor. `\cancel` is `'lwup'`, `\bcancel` is `'uplw'` and
 `\xcancel` is `'exxx'`.
 
 | Property | Type | Default | Values |
@@ -226,8 +226,8 @@ end; the strike costs 1.64 pt of width and no height. `'lwup'` and `'uplw'` run 
 a box that stands 0.66 pt above the digits and 2.64 pt below the baseline, so a diagonal strike
 makes the line taller; `'exxx'` draws both diagonals as one path.
 
-The colour is the general equation property on the `Kt` itself: `co` and `pi` colour the stroke and
-leave the struck expression in its own colour, which is how a cancellation is marked in red without
+The color is the general equation property on the `Kt` itself: `co` and `pi` color the stroke and
+leave the struck expression in its own color, which is how a cancellation is marked in red without
 touching the digits. The thickness is a design value and not a property, `V (d='strk',n='rule')`, in
 math units of 0.611 pt at the factory 11 pt design: 1.0 draws 0.611 pt, 2.0 draws 1.222 pt and 4.0
 draws 2.444 pt against the 0.52 pt default (measured 2026-09-13). `Kt (w=2)` is ignored and

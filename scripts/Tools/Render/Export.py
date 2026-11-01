@@ -31,7 +31,7 @@ The export goes to a fresh name in a temporary directory and is written to `outp
 is known. That keeps the "Confirm Save As" prompt, which no export path answers, out of the run, it keeps the
 characters the tooling has to type inside the temporary directory's ASCII path, and it keeps an export that is
 not to be trusted away from the caller's path while a later launch replaces it. The temporary directory is
-removed afterwards as far as a virus scanner holding a file in it allows, so a finished export is never turned
+removed afterward as far as a virus scanner holding a file in it allows, so a finished export is never turned
 into a failure by its cleanup (`Tools.Render.Svg.WorkDirectory`).
 
 Under the parallel gate, forty workers and an agent rendering beside them, the export failed about once in a
@@ -59,11 +59,11 @@ on a font's first use (`Tools.Render.FontImport`). The sequence and its warnings
 `Tools.Render.Svg.TrustedLaunch` and `LaunchWarnings`.
 
 The dialog takes the foreground for about 0.2 s and nothing here can stop it. The window Radical Pie is
-launched into is minimised and unfocused, but the dialog is created afterwards by Radical Pie itself, which
+launched into is minimized and unfocused, but the dialog is created afterward by Radical Pie itself, which
 has the right to activate it. Two ways of handing the foreground back were measured on 2026-09-11 and neither
 is used: `SetForegroundWindow` on the window that had it, with and without an `AttachThreadInput` to the thread
 that owns the foreground, returned false on every attempt and left the foreground on no window at all, and
-minimising the dialog the moment it appears does not deactivate it. The dialog needs no focus for its work,
+minimizing the dialog the moment it appears does not deactivate it. The dialog needs no focus for its work,
 because the name is typed and the Save pressed with posted messages.
 """
 

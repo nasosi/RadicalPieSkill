@@ -1,14 +1,14 @@
-"""Show the Radical Pie editors a Word or PowerPoint pass starts minimised from their first frame.
+"""Show the Radical Pie editors a Word or PowerPoint pass starts minimized from their first frame.
 
 Word and PowerPoint start the Radical Pie server through DCOM, so the `STARTUPINFO` that keeps a render's
 window off the screen (`Tools.Render.Svg.Launch`) cannot reach it, and the editor used to open visible over
 whatever the operator was doing, in pass one for as long as the document stayed open. The measurements are in
 the module docstring of `Tools.Word.Docx` (2026-10-31): the editor is created hidden, renamed to its editor
 title and shown a few tens of milliseconds later, and a `SW_SHOWMINNOACTIVE` sent while it is still hidden
-shows it minimised, where the server's own show leaves it.
+shows it minimized, where the server's own show leaves it.
 
 So `EditorHook` listens, out of context and on a thread of its own with its own message loop, for the
-creation, the show and the name change of every window on the desktop, and shows the window minimised and
+creation, the show and the name change of every window on the desktop, and shows the window minimized and
 without activation the moment it is the editor of the caller's document: class `RadicalPie`, the whole title
 `Radical Pie - Equation in <file name>` for that file and no other, owned by a `RadicalPie.exe`. That is the
 title rule of `Tools.Word.Docx.AwaitEditor`, so an editor of another document, one of the operator's own
@@ -80,10 +80,10 @@ kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 
 
 class EditorHook:
-    """For the length of a `with`, every editor window titled `title` opens minimised and unfocused.
+    """For the length of a `with`, every editor window titled `title` opens minimized and unfocused.
 
     The hook is installed before `__enter__` returns, so an editor the pass starts after that is seen from its
-    creation. A hook Windows refuses leaves the pass as it was before this existed, with the minimise each
+    creation. A hook Windows refuses leaves the pass as it was before this existed, with the minimize each
     pass sends to the editor it found (`QuietenEditor` in `Tools.Word.Docx` and `Tools.PowerPoint.Pptx`).
     """
 

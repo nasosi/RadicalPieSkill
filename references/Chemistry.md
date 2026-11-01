@@ -15,12 +15,12 @@ writing this page; each one is cited where it is stated.
 - [Chains and branches](#chains-and-branches)
 - [Rings](#rings)
 - [Saturated and heteroatom rings](#saturated-and-heteroatom-rings)
-- [Placing the atom in a neighbour group](#placing-the-atom-in-a-neighbour-group)
+- [Placing the atom in a neighbor group](#placing-the-atom-in-a-neighbor-group)
 - [Panels and callouts on a bond site](#panels-and-callouts-on-a-bond-site)
 - [Reactions](#reactions)
 - [Equilibria](#equilibria)
 - [Orbital diagrams](#orbital-diagrams)
-- [Colour, spacing and the things no fixture shows](#colour-spacing-and-the-things-no-fixture-shows)
+- [Color, spacing and the things no fixture shows](#color-spacing-and-the-things-no-fixture-shows)
 
 ## Chemistry mode is four roles
 
@@ -77,7 +77,7 @@ Gr
 A charge is a `Sc` with a `'sups'` group holding the sign as `ro='oper'`, written after the element:
 the site keeps every plus and minus sign in this role and reserves `'unry'` for `∂` and `∇`.
 
-A mass number is a script attached forwards instead of backwards: `Sc (pr,ns)` before the element.
+A mass number is a script attached forward instead of backward: `Sc (pr,ns)` before the element.
 The site's FDG equation, lines 124 and 144, writes the 18 of fluorine-18 that way. `pr` attaches
 the script to what follows, and `ns` disables the mark slant.
 
@@ -127,7 +127,7 @@ it on a diagonal.
 Two data lists configure it.
 
 The first `u32[2]` list holds one pair per bond drawn, each pair a group type and a bond kind. A
-neighbour group with no pair in the list gets no bond line. A pair whose group is written and left
+neighbor group with no pair in the list gets no bond line. A pair whose group is written and left
 empty draws a stub that ends in nothing, which is how a ring is closed; a pair naming a group that is
 not written at all draws a shorter stub, measured 7.34 pt against the empty group's 7.94 pt, so write
 the group.
@@ -210,7 +210,7 @@ Rendering one rightward bond of each kind gives the picture the specification's 
 | `'dwgi'` | Dashed wedge inward. |
 
 `'prd1'` and `'prd2'` differ only in which side of the shaft carries the dashed line, so a
-delocalised ring picks the variant that puts the dashed line inside the ring, one bond at a time.
+delocalized ring picks the variant that puts the dashed line inside the ring, one bond at a time.
 The side is read along the direction the bond leaves its central atom: measured 2026-09-15 on a
 rightward bond, `'prd1'` drew the dashed line above the shaft and `'prd2'` below it, and on a `'uprt'`
 bond `'prd1'` drew it on the upper left. The direction on its own decides nothing on a ring, because the
@@ -227,15 +227,15 @@ the ring.
 Every double bond kind draws two strokes of equal length. No bond kind draws a shortened inner stroke, so a
 request for one is answered with the equal-stroke bond, and the answer names the shortfall.
 
-Capitalising the first letter of a bond kind makes the bond long, `'Sing'` against `'sing'`. Reach for
+Capitalizing the first letter of a bond kind makes the bond long, `'Sing'` against `'sing'`. Reach for
 it when the drawing needs room: the site's Isopropyl Alcohol equation, line 11, uses three long
 bonds so the two methyl groups clear the hydroxyl, and the site's FDG equation uses long bonds and a
 long heavy bond to make the pyranose ring come out regular.
 
 ## Angles and length
 
-The default diagonal is 45 degrees. `'step'` steepens it towards vertical and `'shal'` flattens it
-towards horizontal; the defaults are 60 and 30 degrees and the design can change both
+The default diagonal is 45 degrees. `'step'` steepens it toward vertical and `'shal'` flattens it
+toward horizontal; the defaults are 60 and 30 degrees and the design can change both
 (the documentation's Bonds page). Rendering the same bond site at all three angles shows a V that
 narrows, stands and spreads.
 
@@ -251,7 +251,7 @@ central carbon's two lower bonds, which are the ones the methyl groups hang from
 outer hydrogens their own `'step'` and `'shal'`.
 
 A skeleton whose branch carbons carry their own substituents takes the long bond kinds, `'Sing'` and
-`'Doub'`, on the central carbon's bonds, or the outer atoms crowd the centre; the site's isopropyl alcohol
+`'Doub'`, on the central carbon's bonds, or the outer atoms crowd the center; the site's isopropyl alcohol
 writes `'Sing'` on all three of the central carbon's bonds.
 
 ## Chains and branches
@@ -261,21 +261,21 @@ The site's Ethyl Acetate equation and its R-134a equation are two of these. A ru
 bonds stop: the site's R-134a equation ends with a plain `Sb (ro='chem') {s{"H"}}`, and the site's
 Ethyl Acetate equation ends with a bond site whose pair list has no `0` in it.
 
-A branch is a bond site nested inside a neighbour group. The site's isopropyl alcohol puts a
+A branch is a bond site nested inside a neighbor group. The site's isopropyl alcohol puts a
 whole methyl bond site inside the central carbon's `'lwlf'` group, and the site's Ethyl Acetate
 equation puts a three-atom chain inside a `'lwrt'` group. Nesting is the only mechanism; there is no
 reference from one bond site to another.
 
 Decide per atom whether to expand it or condense it. The site's Acetic Acid equation spells the
 methyl out as a bond site with two hydrogen groups, and the site's Acetone equation writes the same
-group as the text `H₃C` inside one neighbour group. Expanding shows the geometry; condensing keeps
+group as the text `H₃C` inside one neighbor group. Expanding shows the geometry; condensing keeps
 the drawing narrow. Example 26 in `Examples.md` writes the condensed acetic acid and sets it against Radical
 Pie's expanded one.
 
 ## Rings
 
 A ring is a chain of nested bond sites that walks round the ring, plus one closing bond drawn into an
-empty group. Walk the ring in one direction, nesting each atom inside the previous atom's neighbour
+empty group. Walk the ring in one direction, nesting each atom inside the previous atom's neighbor
 group, until the last two atoms are adjacent on the page; then give one of them a bond whose group is
 present but empty, `Gr (t='uppr') { Bg {} }`. The stub lands on the atom already drawn there.
 The site's Phenol equation, lines 99 to 102, is that empty group, and the site's Orthoxylene
@@ -296,7 +296,7 @@ Benzene, as both those files draw it, is written from the lower-left carbon:
    empty group, which is the sixth ring bond closing onto the upper-right carbon.
 
 Alternate `'doub'` and `'sing'` round the six ring bonds for a Kekulé structure, or use `'prd1'` and
-`'prd2'` throughout for the delocalised one. Substituting the ring is a change to step 3 alone: the
+`'prd2'` throughout for the delocalized one. Substituting the ring is a change to step 3 alone: the
 site's Phenol equation puts `OH` there, `references/examples/Toluene.pie` puts `CH₃`.
 
 ```pie
@@ -341,7 +341,7 @@ builds that one from two bond sites side by side on one line, each drawing half 
 A bond site placed after another on the same line closes a ring. The left site owns the left apex and
 the two atoms diagonally right of it; the right site owns the right apex and the two atoms diagonally
 left of it; the two halves are joined by the `0` bonds of the left site's branches, which run
-rightwards into the atoms the right site holds in its `'uplf'` and `'lwlf'` groups. The hexagon that
+rightward into the atoms the right site holds in its `'uplf'` and `'lwlf'` groups. The hexagon that
 comes out has its apexes left and right and its top and bottom edges horizontal, which leaves
 `'uppr'` and `'lowr'` free on the four atoms that are not apexes. That is the Haworth projection.
 
@@ -350,7 +350,7 @@ The site's FDG equation is the worked case Radical Pie wrote. Its left site (lin
 top-left carbon continues with `{0,'Sing'}` (line 30) into the ring oxygen, which the right site
 holds in its `'uplf'` group, and the bottom-left carbon continues with `{0,'Hevy'}` (line 68) into
 the carbon the right site holds in its `'lwlf'` group. The right site (line 87) closes both with
-`'uplf','Sing'` and `'lwlf','Swgo'`. Capitalising a bond kind makes it long, and the long bonds are
+`'uplf','Sing'` and `'lwlf','Swgo'`. Capitalizing a bond kind makes it long, and the long bonds are
 what give the ring its height; the heavy and wedge bonds are the Haworth convention for the edge
 nearest the reader. The substituents sit in `'uppr'` and `'lowr'` on those four atoms, some of them
 inside the ring outline, and the design values `V (d='bond',n='wgap')`, `n='hlln'` and `n='dlln'`
@@ -427,23 +427,23 @@ Gr
 }
 ```
 
-A ring atom that carries nothing is a plain `Sb (ro='chem')` inside the neighbour group; it becomes a
+A ring atom that carries nothing is a plain `Sb (ro='chem')` inside the neighbor group; it becomes a
 `Bd` of its own as soon as it needs a bond, which is how the two `0` bonds and every substituent are
 written. A heteroatom is the same thing with another letter: the site's FDG equation puts `O` in the
 right bond site's `'uplf'` group and the ring is a pyranose.
 
 A line of text under the drawing is a second line of the main group, `Bg (lg=30.0) {}` and then the
-words as `ro='text'`. `Gr (al='cent',ba='frst')` on the main group centres that line under the
+words as `ro='text'`. `Gr (al='cent',ba='frst')` on the main group centers that line under the
 drawing and keeps the equation's baseline on the first line rather than the last.
 
-## Placing the atom in a neighbour group
+## Placing the atom in a neighbor group
 
-A neighbour group is laid out as a line of its own, and `al` on the group places it inside its box.
+A neighbor group is laid out as a line of its own, and `al` on the group places it inside its box.
 A group on the left of the atom that reads right to left, such as `H₃C`, takes `al='rght'`, as in
 the site's Acetone equation, and a group under the atom takes `al='cent'`, as in the site's R-12
-equation. A one-line group's box fits its content, so on a one-line neighbour group the property
+equation. A one-line group's box fits its content, so on a one-line neighbor group the property
 changes nothing: measured 2026-09-14, the bond already starts 0.797 pt past the right edge of a bare
-`H₃C` and `al='rght'` moved no path of the site. It earns its place on a neighbour group of more
+`H₃C` and `al='rght'` moved no path of the site. It earns its place on a neighbor group of more
 than one line, whose box is as wide as the widest line.
 
 ## Panels and callouts on a bond site
@@ -453,7 +453,7 @@ list and which every chemistry file Radical Pie wrote uses. Each one boxes one p
 
 | Anchor type | The box it gives |
 | --- | --- |
-| `'bond'` | the whole site, the atom and all six neighbour groups |
+| `'bond'` | the whole site, the atom and all six neighbor groups |
 | `'bdup'` | the `'uppr'` group |
 | `'bdur'` | the `'uprt'` group |
 | `'bdul'` | the `'uplf'` group |
@@ -469,10 +469,10 @@ different types spans from one box to the other: `u32{'bond','bdup'} i32{2,1}` r
 top-left corner to the bottom-right corner of the group above the atom, which is a panel as wide as
 the site and as tall as what stands above it.
 
-Index 4, a direction whose neighbour group is absent, and any four-letter name outside the seven all
+Index 4, a direction whose neighbor group is absent, and any four-letter name outside the seven all
 crash Radical Pie with an access violation rather than raising the invalid-data dialog, and the
 validator refuses all three, so take the name from the table above. A bond site nested
-inside a neighbour group keeps all four indexes of every one of these types, which a structure's
+inside a neighbor group keeps all four indexes of every one of these types, which a structure's
 type `0` anchors do not.
 
 The site's Orthoxylene equation, lines 6 to 22, draws a dashed rectangle round each methyl,
@@ -480,14 +480,14 @@ one with `u32{'bond','bdup'}` and one with `u32{'bdur','bdur'}`; its Amino Acid 
 42, puts a rounded panel behind each of the three groups of an amino acid. A panel is a drawing object, so it is
 written before the main group and its fill sits behind the letters. Its caption needs no arrow: an
 annotation group hung on the panel's own `'anno'` anchor sits against it, index 1 above, index 0
-below, 2 left, 3 right and 4 over the centre.
+below, 2 left, 3 right and 4 over the center.
 
 Two panels share one caption when the two arrows converge on it. Each arrow runs to the same rail and
 carries the `f{}` offset that brings its rail end to the meeting point, `f{0.0,11.42}` on one and
 `f{0.0,-17.97}` on the other in the site's ortho-xylene drawing, and the caption hangs on one of the
 two arrows. An arrow that points into a drawing starts from open space, the caption group's own type
-`0` anchor or a rail, never from a neighbouring atom, or the line crosses the bonds between the two.
-The connector section of `references/catalogue/Annotations.md` has the fence for both.
+`0` anchor or a rail, never from a neighboring atom, or the line crosses the bonds between the two.
+The connector section of `references/catalog/Annotations.md` has the fence for both.
 
 ```pie
 // Radical Pie Equation
@@ -568,7 +568,7 @@ The charm list is read left to right with an alignment cursor that starts at rig
 `'cent'` and `'rght'` in the list move the cursor, and every other value drops a charm at the cursor.
 Every charm draws wherever the cursor is, so the cursor and nothing else decides which end a charm
 lands on: `u32{'rarw'}` alone puts the head at the right end, and a charm meant for the left end needs
-the cursor moved first. `references/catalogue/Arrows.md` under `Ar` lists all forty charms and the
+the cursor moved first. `references/catalog/Arrows.md` under `Ar` lists all forty charms and the
 lengths the labels give the shaft.
 
 ## Equilibria
@@ -654,7 +654,7 @@ Gr
 }
 ```
 
-## Colour, spacing and the things no fixture shows
+## Color, spacing and the things no fixture shows
 
 `pi` on a `Bd` sets the palette index of its bond lines while the atom letters stay black. The
 site's FDG equation puts `pi=4` on every bond site and renders with red bonds.
@@ -670,12 +670,12 @@ executable accepts. What belongs in the string is one of the twelve bond charact
 in the private use area, U+EE30 single, U+EE31 double, U+EE32 triple, U+EE33 quadruple, U+EE34 to U+EE39
 the partial forms, U+EE3A long single and U+EE3B long double. They are cut for the job: measured 2026-09-13
 at 11 pt, the bar of U+EE30 in `HOH` sits 3.6416 pt above the baseline, half the capital height of the
-`H`, while an em dash in the same place sits at 2.7560 pt, the math axis, so `Sb (ro='bond') {s{"—"}}`
+`H`, while an em dash in the same place sits at 2.7560 pt, the math axis, so an `Sb (ro='bond')` holding U+2014
 draws its bond 0.886 pt low. Write the character itself in the UTF-8 string; the `Sb` entry of
-`references/catalogue/Symbols.md` has the list and a fence. An em dash still renders and still breaks no
+`references/catalog/Symbols.md` has the list and a fence. An em dash still renders and still breaks no
 rule, and a quadruple or a partial bond has no other spelling at all.
 
 None of the site's chemistry equations draws a lone pair. A mark on the element does it: `Sb (ro='chem')
 {s{"N"} Mk {u32{0x308}}}` renders as `N̈`, two dots over the letter. `un` on the mark puts it under the
-character instead (`references/catalogue/Symbols.md`, `Mk`). Dots at the sides of a letter need a different
+character instead (`references/catalog/Symbols.md`, `Mk`). Dots at the sides of a letter need a different
 structure and no fixture shows one.

@@ -1,6 +1,6 @@
 # Design
 
-## D — design
+## D: design
 
 The design block. It holds design parameters, the fonts, the mapping from each symbol style to those
 fonts, and the palette. A design merges into Radical Pie's factory design one structure at a time: each
@@ -51,7 +51,7 @@ Gr
 ```
 
 The operator's design fixture is a full design as Radical Pie saves one: eight `F` structures naming
-installed fonts at indexes 8 to 15, an `M` for each of the 21 styles it uses, a `P` of sixteen colours, and
+installed fonts at indexes 8 to 15, an `M` for each of the 21 styles it uses, a `P` of sixteen colors, and
 `V (n='fsiz') {f{12.0}}`. Copy a design of that shape whole from the file that holds it rather than
 assembling one from parts, because its maps mix the font indexes the design names with low indexes no `F`
 in the file names, and which font such a slot resolves to is not readable from the file.
@@ -114,7 +114,7 @@ Gr
 }
 ```
 
-## F — font
+## F: font
 
 One font of a design, in the slot the style maps refer to by its index. Radical Pie 1.16 reads one data
 list inside it: a string naming the font, an `int16` naming a font it knows by number, or the `uint8`
@@ -203,7 +203,7 @@ radius symbols at U+EE00, mirrored and inverted geometric shapes at U+EE08 and U
 relations at U+EE10, the operators U+EE28 and U+EE29, an and and an or with a circle inside, and U+EE2A,
 the complete shuffle product beside Unicode's shuffle product U+29E2, the relation U+EE2B, a double
 nested greater-than with an underbar, the twelve chemical bonds at U+EE30 that the `Sb` entry of
-`references/catalogue/Symbols.md` teaches, arrows at U+EE40 and U+EE56, two spaces, U+EE50 a double em of
+`references/catalog/Symbols.md` teaches, arrows at U+EE40 and U+EE56, two spaces, U+EE50 a double em of
 exactly 36 math units and U+EE51 a thick space of 5 math units, which rendered 22 and 3.0556 pt wide at
 11 pt with no path at all, and the combining marks U+EE70 to U+EE77, which belong in an `Mk`. The four
 characters U+EE28 to U+EE2B and the marks are new in 1.16, and each drew under the factory design and
@@ -241,17 +241,17 @@ Gr
 }
 ```
 
-## M — map
+## M: map
 
 Maps one symbol style to the fonts that draw it. A design carries at most one `M` per style, and Radical
-Pie 1.16 has 26 styles: the 22 listed under `Sb` in `references/catalogue/Symbols.md` and four text
+Pie 1.16 has 26 styles: the 22 listed under `Sb` in `references/catalog/Symbols.md` and four text
 styles that no `Sb` names, `'uprx'` text upright, `'itax'` text italic, `'bolx'` text bold and `'bitx'`
 text bold italic. A design carrying all 26 comes back from a save with all 26, and the Greek upright map
 takes effect like the others (measured 2026-10-08).
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |
-| `t` | uint32 | required | The style, one of the style values listed under `Sb` in `references/catalogue/Symbols.md` or one of the four text styles. |
+| `t` | uint32 | required | The style, one of the style values listed under `Sb` in `references/catalog/Symbols.md` or one of the four text styles. |
 
 One `uint8` data list of one to four font indexes. The first is the primary font of the style and the rest
 are its fallbacks, tried in order for a character the primary does not hold. An index of 255 means no font
@@ -301,19 +301,19 @@ Gr
 }
 ```
 
-## P — palette
+## P: palette
 
-The sixteen palette colours of a design, referred to by the `pi` property of an equation structure and
+The sixteen palette colors of a design, referred to by the `pi` property of an equation structure and
 by `fpi` and `spi` of a drawing structure. The specification gives `P` no substructures;
-One of the operator's fixtures writes the colours as a `uint32` data list inside it, and the
+One of the operator's fixtures writes the colors as a `uint32` data list inside it, and the
 validator accepts one data list of any type. All sixteen are written, in index order, as ABGR with
 `0xFF` in front, and a `P` replaces the whole factory palette rather than part of it.
 
 The factory palette, index 0 to 15, read off one render of sixteen symbols on 2026-09-13: black,
 `#505050`, `#808080`, `#C0C0C0`, `#BA5858`, `#339966`, `#0066CC`, `#905BE5`, `#FF8570`, `#9ED8A0`,
-`#97D7E8`, `#C2A6DD`, `#FFC000`, `#FCFC00`, `#E0D0A0`, `#B39F80`. An equation that carries no `P` colours
+`#97D7E8`, `#C2A6DD`, `#FFC000`, `#FCFC00`, `#E0D0A0`, `#B39F80`. An equation that carries no `P` colors
 `pi=5` that green and `pi=6` that blue, which is what the site's own arrows and captions rely on. Write a
-`P` when the document's palette is its own, and give every index a colour, because the one it replaces is
+`P` when the document's palette is its own, and give every index a color, because the one it replaces is
 gone.
 
 No properties.
@@ -332,7 +332,7 @@ Gr
 }
 ```
 
-## V — value
+## V: value
 
 One design parameter, named in a domain. The domains are `0` for common settings, then `'symb'`,
 `'mark'`, `'brck'`, `'scpt'`, `'frac'`, `'rdcl'`, `'divs'`, `'wide'`, `'stck'`, `'boxx'`, `'strk'`,
@@ -346,7 +346,7 @@ so the file wins.
 | `n` | uint32 | required | The parameter name, a four-character literal. |
 
 The value is one data list holding one value inside the `V`: a float, `f{12.0}`, for every parameter,
-and a bool for the switch `'seps'`. An integer or double data list is dropped like a misspelt name:
+and a bool for the switch `'seps'`. An integer or double data list is dropped like a misspelled name:
 `V (n='fsiz') {i32{24}}` rendered at the factory 11 pt (measured 2026-10-16). The validator refuses an
 empty list and a value of the wrong type.
 
@@ -444,7 +444,7 @@ Gr
 
 ### The design values of a picture grid
 
-A matrix whose cells hold coloured blocks, arrows or labels rather than numbers is spaced by the design
+A matrix whose cells hold colored blocks, arrows or labels rather than numbers is spaced by the design
 and not by spacers inside the cells: a `Sp` moves the content of the one cell it stands in, where these
 values move every row and column at once. The site's own diagram of an exomorphism, an eight by eight
 grid of blocks inside square brackets, carries all four of them, `V (d='mtrx',n='rwgp') {f{18.0}}` for

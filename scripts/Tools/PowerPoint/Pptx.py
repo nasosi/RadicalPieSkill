@@ -21,11 +21,11 @@ is not the frame's first. An equation that comes within `Inline.Clearance` of th
 the line below opens the paragraph, with an exact line spacing in whole points where that line belongs to the
 paragraph itself and space after the earlier of the two paragraphs where it does not; one that reaches past
 the top or the bottom of the text frame opens nothing, because there is no line there to collide with and no
-text box clips the object. The ink of a neighbouring line is the font's own until an inline equation of the
+text box clips the object. The ink of a neighboring line is the font's own until an inline equation of the
 same run stands on it, and then it is the further of the two. A second gap on a second line of one paragraph
 cannot take a stop,
 because the tab there takes the first stop to its right, so its gap is filled with spaces instead and the
-object is centred in what the fill came to. When every object of a text shape stands where it belongs the
+object is centered in what the fill came to. When every object of a text shape stands where it belongs the
 shape and its objects are grouped, which is what keeps the sentence and its equations together; a shape that
 is one of the layout's own placeholders is left ungrouped, because PowerPoint refuses to group one.
 
@@ -54,7 +54,7 @@ inline equation is rendered once through `Tools.Render.Svg` and PowerPoint draws
 nearest eighth of a point.
 
 An object keeps the corner pass one computed for it through pass three, which takes two calls of its own.
-PowerPoint grows the object about its centre when the drawing arrives, so an object inserted at that corner
+PowerPoint grows the object about its center when the drawing arrives, so an object inserted at that corner
 as the 5 by 7 point blank ends up half its drawn width to the left and half its drawn height above it: a
 656.875 by 241 point equation inserted at 36, 90 stood at -289.875, -27, and of fifteen equations on a
 13-slide deck twelve came out with a negative left (measured 2026-09-17). So pass one hands the corner of
@@ -62,7 +62,7 @@ each placeholder to pass three, which sets `Shape.Left` and `Shape.Top` back to 
 drawing has arrived, and `Presentation.Save` writes that position.
 
 The corner travels through Python rather than being read off the blank, because `Shapes.AddOLEObject` puts an
-object on the nearest eighth of a point where setting `Shape.Left` afterwards keeps the value it is given: a
+object on the nearest eighth of a point where setting `Shape.Left` afterward keeps the value it is given: a
 placeholder at 43.2, 104.4 takes a blank at 43.25, 104.375, and 10.03 becomes 10.0 while 10.0625 becomes
 10.125 (measured 2026-09-17). `CheckOffsets` reads the saved package and compares each `a:off` with the
 corner pass one computed, a grouped object's child coordinates converted to the slide's. `CheckDeck` makes
@@ -80,7 +80,7 @@ The route is ADR-0009's, which is ADR-0004's three passes with four differences 
   object's design takes the base font size of the body text of the layout of the slide the window shows,
   28.0 under a 28 pt layout, and the user default 12.0 when the deck has no window at all.
 - `Application.Visible = False` is refused ("Hiding the application window is not allowed"), so the
-  application window is minimised with `WindowState` instead. The editor window is shown minimised from its
+  application window is minimized with `WindowState` instead. The editor window is shown minimized from its
   first frame by a `Tools.Word.EditorHook` around each session, as the Word pipeline's is (2026-10-31).
 
 Every pass works on a file of the pipeline's own beside the output, and the output path is written by one
@@ -189,7 +189,7 @@ ServerImage = "RadicalPie.exe"
 
 PlaceholderPattern = re.compile(r"\{\{pie:([^{}]+)\}\}")
 
-# The three forms a placeholder is honoured in, which the run prints beside each equation. `shape` is the
+# The three forms a placeholder is honored in, which the run prints beside each equation. `shape` is the
 # whole-shape form, `tab` an inline gap held open by a tab stop, `spaces` one held open by a run of spaces.
 ShapeForm = "shape"
 TabForm = "tab"
@@ -310,7 +310,7 @@ ChildExtentTag = f"{{{DrawingNamespace}}}chExt"
 BlipTag = f"{{{DrawingNamespace}}}blip"
 
 # The paragraph alignments an inline gap cannot be placed in, as the package spells them, and the text
-# direction a shape must have. A centred or a right-aligned paragraph never settles under a tab stop, and
+# direction a shape must have. A centered or a right-aligned paragraph never settles under a tab stop, and
 # vertical text has no baseline for an object to stand on.
 RefusedAlignments = frozenset({"ctr", "r", "just", "justLow", "dist", "thaiDist"})
 HorizontalText = "horz"
@@ -800,8 +800,8 @@ def CheckShapeIsPlaceable(shape, name: str, slideNumber: int, wholeShape: bool) 
 def CheckParagraphIsPlaceable(shape, index: int, name: str, slideNumber: int) -> None:
     """The paragraph an inline gap stands in: left-aligned, and one font size across its runs.
 
-    A centred or right-aligned paragraph is refused because the tab stop that holds the gap open means
-    nothing there: the second probe's centred case moved the text after the gap 57 pt as the stop went in and
+    A centered or right-aligned paragraph is refused because the tab stop that holds the gap open means
+    nothing there: the second probe's centered case moved the text after the gap 57 pt as the stop went in and
     never settled, and the right-aligned one ignored the stop altogether and left 55.38 pt beside the object
     instead of the 2.88 asked for (measured 2026-09-17). An alignment the paragraph inherits from its layout
     rather than carrying itself is caught by the same non-settling measurement during the run.
@@ -1127,7 +1127,7 @@ def PlaceholderCharacter(shape, placeholder: Placeholder):
     """The first character of one placeholder, whose font is the font the equation is drawn in.
 
     The size it reports is the size on the slide even where an autofit has shrunk the text, 11 for runs of
-    `sz="1800"` under a `fontScale` of 62.5 per cent (measured 2026-09-17), so it is read before the autofit
+    `sz="1800"` under a `fontScale` of 62.5 percent (measured 2026-09-17), so it is read before the autofit
     goes and again after, and each read is the size the text stands at then.
     """
 
@@ -1336,7 +1336,7 @@ def LayOutShape(slide, shapeName: str, items: list, geometry: dict) -> dict:
     layout = ReplaceWithTabs(shape, items)
     origin = shape.Left + frame.MarginLeft
     # The width a tab stop has to stand inside, and nothing when the frame does not wrap: there the text runs
-    # past the shape's own right edge and the stop is honoured wherever it is asked for (measured 2026-09-17).
+    # past the shape's own right edge and the stop is honored wherever it is asked for (measured 2026-09-17).
     limit = shape.Width - frame.MarginLeft - frame.MarginRight if frame.WordWrap == MsoTrue else None
     forms = {}
     paddings = {}
@@ -1577,13 +1577,13 @@ def SetGapStop(
     The stop stands at the end of the text before the gap plus the object's width plus twice the padding,
     measured from the shape's left plus the frame's left margin, which is the origin a left tab stop is taken
     from: over the second probe's 40 gaps the text after the gap landed at that origin plus the stop within
-    0.025 pt in every case but the centred and the right-aligned one, and an indent moves the origin nothing.
+    0.025 pt in every case but the centered and the right-aligned one, and an indent moves the origin nothing.
     A body placeholder has a left margin of 7.2 pt, and a stop computed from the shape's left alone left
     10.08 pt beside the object instead of the 2.88 asked for.
 
     Setting the stop changes the width of the tab, which can move the line break and with it the text before
     the gap, so the measurement is taken again and the stop set again. Four passes is the whole budget: seven
-    of the first probe's eight wrapped cases settled on the first, and a centred or right-aligned paragraph
+    of the first probe's eight wrapped cases settled on the first, and a centered or right-aligned paragraph
     never settles, which is how one that inherits its alignment from its layout is refused here. The stops the
     author put in the paragraph go back with the gap's own: with a stop already at 200 pt and a tab using it,
     adding the gap's stop at 451.77 left the author's tab where it was.
@@ -1625,7 +1625,7 @@ def SetGapStop(
         raise PowerPointError(
             f"the text before {{{{pie:{placeholder.key}}}}} in the shape {placeholder.shapeName!r} on slide"
             f" {placeholder.slideNumber} keeps moving as the gap's tab stop is set, through"
-            f" {Inline.StopAttempts} passes; a centred or right-aligned paragraph does that, and so does a"
+            f" {Inline.StopAttempts} passes; a centered or right-aligned paragraph does that, and so does a"
             " line with no room left for the equation"
         )
 
@@ -1635,7 +1635,7 @@ def FillGap(layout: ShapeText, index: int, placeholder: Placeholder, gapWidth: f
 
     Ordinary spaces up to the last one that fits in the width, then thin spaces, because a thin space is about
     a fifth of an em where an ordinary space is about a quarter and the gap has to reach the width rather than
-    land on it. The object is centred in what the fill came to, which `Placements` reads off the text either
+    land on it. The object is centered in what the fill came to, which `Placements` reads off the text either
     side of it.
 
     Text that leaves the gap's line as the fill grows is the gap reaching the end of that line, which is what
@@ -1696,7 +1696,7 @@ def MeasureGap(layout: ShapeText, index: int, placeholder: Placeholder, equation
     of a text frame (measured 2026-09-17). The space after moves no baseline at all.
 
     The baseline of the line above and of the line below come from the pitch inside the paragraph, which is
-    its own line box, or from the neighbouring paragraph when the gap stands on the first or the last line.
+    its own line box, or from the neighboring paragraph when the gap stands on the first or the last line.
     Either is `None` where the frame has no line on that side: above the first line of the first paragraph
     and below the last line of the last, the equation reaches out of the text frame, where there is nothing
     to collide with and nothing to open.
@@ -1720,12 +1720,12 @@ def MeasureGap(layout: ShapeText, index: int, placeholder: Placeholder, equation
     if not firstLine:
         aboveBaseline = baseline - box
     else:
-        aboveBaseline = NeighbourBaseline(layout, spans, placeholder.paragraph - 1, True, equation)
+        aboveBaseline = NeighborBaseline(layout, spans, placeholder.paragraph - 1, True, equation)
 
     if not lastLine:
         belowBaseline = baseline + box
     elif placeholder.paragraph < len(spans):
-        belowBaseline = NeighbourBaseline(layout, spans, placeholder.paragraph + 1, False, equation)
+        belowBaseline = NeighborBaseline(layout, spans, placeholder.paragraph + 1, False, equation)
     else:
         belowBaseline = None
 
@@ -1748,7 +1748,7 @@ def MeasureGap(layout: ShapeText, index: int, placeholder: Placeholder, equation
 
 
 def MeasureGaps(layout: ShapeText, items: list, geometry: dict) -> dict:
-    """Every gap of one shape as PowerPoint lays it out now, with the ink of each neighbouring line in it.
+    """Every gap of one shape as PowerPoint lays it out now, with the ink of each neighboring line in it.
 
     Taken in one sweep rather than one gap at a time, because a line's ink is not the font's alone: an
     inline equation of this run standing on the line above or below inks as far as it stands from its own
@@ -1757,11 +1757,11 @@ def MeasureGaps(layout: ShapeText, items: list, geometry: dict) -> dict:
 
     gaps = {index: MeasureGap(layout, index, placeholder, geometry[index]) for index, placeholder in items}
 
-    return {index: WithNeighbouringEquations(gaps, geometry, index) for index in gaps}
+    return {index: WithNeighboringEquations(gaps, geometry, index) for index in gaps}
 
 
-def WithNeighbouringEquations(gaps: dict, geometry: dict, index: int) -> GapGeometry:
-    """One gap with the ink of its neighbouring lines raised by the equations of this run standing on them.
+def WithNeighboringEquations(gaps: dict, geometry: dict, index: int) -> GapGeometry:
+    """One gap with the ink of its neighboring lines raised by the equations of this run standing on them.
 
     The cold start of 2026-09-18 found the hole: the rule read the text ink of the line above and below, so
     two stacked fractions on consecutive bullets each cleared the other's text and ran into the other's
@@ -1773,28 +1773,28 @@ def WithNeighbouringEquations(gaps: dict, geometry: dict, index: int) -> GapGeom
     aboveInk = gap.aboveInk
     belowInk = gap.belowInk
 
-    for other, neighbour in gaps.items():
+    for other, neighbor in gaps.items():
         if other == index:
             continue
 
         equation = geometry[other]
 
-        if gap.aboveBaseline is not None and abs(neighbour.baseline - gap.aboveBaseline) <= Inline.SameLineTolerance:
+        if gap.aboveBaseline is not None and abs(neighbor.baseline - gap.aboveBaseline) <= Inline.SameLineTolerance:
             aboveInk = max(aboveInk, equation.depth)
 
-        if gap.belowBaseline is not None and abs(neighbour.baseline - gap.belowBaseline) <= Inline.SameLineTolerance:
+        if gap.belowBaseline is not None and abs(neighbor.baseline - gap.belowBaseline) <= Inline.SameLineTolerance:
             belowInk = max(belowInk, equation.height - equation.depth)
 
     return replace(gap, aboveInk=aboveInk, belowInk=belowInk)
 
 
-def NeighbourBaseline(layout: ShapeText, spans: list, paragraph: int, last: bool, equation: InlineEquation):
-    """The baseline of the last or the first line of a neighbouring paragraph, or `None` when it has no text.
+def NeighborBaseline(layout: ShapeText, spans: list, paragraph: int, last: bool, equation: InlineEquation):
+    """The baseline of the last or the first line of a neighboring paragraph, or `None` when it has no text.
 
-    The neighbour's own line box and space before are read from the neighbour; the font size and the ascent
-    share are the gap's own, because a neighbour of another size moves this by a fraction of a point where the
+    The neighbor's own line box and space before are read from the neighbor; the font size and the ascent
+    share are the gap's own, because a neighbor of another size moves this by a fraction of a point where the
     opening it feeds is asked for in whole points. An empty paragraph carries no character to measure and no
-    ink to collide with, so it counts as no neighbour at all.
+    ink to collide with, so it counts as no neighbor at all.
     """
 
     if paragraph < 1 or paragraph > len(spans):
@@ -1823,15 +1823,15 @@ def Deficits(gap: GapGeometry, equation: InlineEquation) -> tuple:
     """How far the equation reaches into the clearance around the ink above and below it, in points.
 
     Measured baseline to baseline and not against the line box, because an inline object leaves its own box
-    long before it touches a neighbour: at 80 pt spacing the box gives 60 pt above the baseline and 20 below
+    long before it touches a neighbor: at 80 pt spacing the box gives 60 pt above the baseline and 20 below
     where the second probe's tall equation needs 41 and 36, and it still cleared the line above by 38.94 pt
     and the line below by 31.72 (measured 2026-09-17). What has to hold is that the equation reaches no
     further up than the ink of the line above, its baseline plus that line's ink depth, and no further down
     than the ink of the line below, its baseline less that line's ink height, with `Inline.Clearance` left
     between the two inks either way.
 
-    The ink of a neighbouring line is the font's own until an inline equation of this run stands on it, and
-    then it is the further of the two, which `WithNeighbouringEquations` puts into the gap. The room that
+    The ink of a neighboring line is the font's own until an inline equation of this run stands on it, and
+    then it is the further of the two, which `WithNeighboringEquations` puts into the gap. The room that
     leaves, the line's own box less the ink in it and less the clearance, is what an equation may intrude by
     before a paragraph is opened for it. A line with no line on that side of it is no constraint at all:
     above the first line of a text frame and below its last there is nothing to collide with, and the
@@ -1854,7 +1854,7 @@ def Deficits(gap: GapGeometry, equation: InlineEquation) -> tuple:
 def OpenParagraphs(layout: ShapeText, items: list, geometry: dict) -> dict:
     """The paragraphs a tall equation has no room in opened, with a line each saying what was set.
 
-    A paragraph is opened by what the equation reaches into the neighbouring line's ink and clearance by,
+    A paragraph is opened by what the equation reaches into the neighboring line's ink and clearance by,
     rounded up to a whole point, and nothing is opened for an equation that clears that ink or stands at the
     edge of the text frame, which is what `Deficits` measures.
 
@@ -2120,7 +2120,7 @@ def RenderObjects(deckPath: Path, placeholders: list, plans: list, deadline: flo
     """Pass three: activate each object so Radical Pie draws it, put it on its corner, and report both.
 
     An object is put on its corner as soon as its own drawing has arrived, because that is when PowerPoint has
-    moved it: the drawing grows the object about its centre and leaves the corner it was inserted on.
+    moved it: the drawing grows the object about its center and leaves the corner it was inserted on.
 
     An inline object's gap was opened for the width pass one predicted from the render, so the width it comes
     out at is checked against that prediction: a wider object would stand over the text after the gap.
@@ -2423,12 +2423,12 @@ def AwaitPresentation(slide, placeholder: Placeholder, pid: int, window: int, de
 
 
 def QuietenEditor(window: int) -> None:
-    """Minimise the editor window `AwaitEditor` found, for an editor the pass's `EditorHook` did not reach.
+    """Minimize the editor window `AwaitEditor` found, for an editor the pass's `EditorHook` did not reach.
 
     PowerPoint starts the server, so this window is not one the tooling launched and `STARTUPINFO` cannot
-    reach it. The hook has shown it minimised before its first frame and minimising it again changes nothing;
+    reach it. The hook has shown it minimized before its first frame and minimizing it again changes nothing;
     this is what keeps it off the screen when Windows refused the hook. Radical Pie draws the equation and
-    saves it minimised.
+    saves it minimized.
     """
 
     try:
@@ -2519,7 +2519,7 @@ def ReadFontWarnings(deckPath: Path, placeholders: list, plans: list, drawn: lis
 def CheckOffsets(deckPath: Path, placeholders: list, plans: list) -> None:
     """The saved package stands every object on the corner pass one computed, within `OffsetTolerance`.
 
-    PowerPoint grows an object about its centre as the drawing arrives, which is what pass three undoes. This
+    PowerPoint grows an object about its center as the drawing arrives, which is what pass three undoes. This
     reads the offset back out of the package, because what the deck carries is what a reader of it sees. The
     corner comes from the plan and not from the package's own text, which no longer holds a placeholder to
     compare against; a grouped object's offset is converted out of its group's coordinates first.
@@ -2642,7 +2642,7 @@ class PowerPointSession:
     """A PowerPoint instance of this pipeline's own, watched by one thread and ended on every path.
 
     PowerPoint refuses `Application.Visible = False` ("Hiding the application window is not allowed"), so the
-    window is minimised instead. The thread does two jobs that both have to happen while a COM call is in
+    window is minimized instead. The thread does two jobs that both have to happen while a COM call is in
     flight: it closes the modal dialogs that would block that call for ever, recording their text for the step
     to fail with, and at the deadline it ends the PowerPoint processes, which is what turns a blocked COM call
     into an error.
@@ -2657,7 +2657,7 @@ class PowerPointSession:
         self.stop = threading.Event()
 
     def __enter__(self):
-        # COM is initialised on this thread and never uninitialised: a probe session that uninitialised its
+        # COM is initialized on this thread and never uninitialized: a probe session that uninitialized its
         # apartment on the way out left the next session's dispatch reading stale type information, and the
         # interpreter died with an access violation inside `dynamic._LazyAddAttr_` on the first `Shapes.Count`
         # of the step after it (measured on 2026-09-13, three runs out of three).

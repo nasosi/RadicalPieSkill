@@ -1,6 +1,6 @@
 # Arrows
 
-## Ar — arrow
+## Ar: arrow
 
 One, two or three stretching arrows drawn as a unit, with charms on them and optional labels above and
 below. This is `\xrightarrow` and every reaction arrow. Everything below the subgroup table was
@@ -22,7 +22,7 @@ list follows per arrow, holding that arrow's charms.
 | `'long'` | The full length of the structure. |
 | `'left'` | Short, flush with the left end. |
 | `'rght'` | Short, flush with the right end. |
-| `'cent'` | Short, centred, short at both ends. |
+| `'cent'` | Short, centered, short at both ends. |
 
 ### How long the arrow comes out
 
@@ -47,7 +47,7 @@ A charm list is read in order with a cursor that starts at the right end. `'left
 `'rght'` in the list move the cursor, and every other value drops a charm at the cursor. A `'rght'`
 written first changes nothing, an alignment with no charm after it draws nothing, and the cursor may
 go back to a position it has already filled and add to it. Charms at one end stack away from that end
-and leave the shaft the same length; charms at the centre widen the whole structure once they no
+and leave the shaft the same length; charms at the center widen the whole structure once they no
 longer fit.
 
 The specification's charm table marks each type legal at the left end, at the right end or in the
@@ -77,12 +77,12 @@ One group of each type. A second group of the same type is the one shape of an a
 refuses outright, with the invalid data dialog. A group of any other type is accepted by the program
 and drawn on top of the arrow, and the validator refuses it.
 
-A label with no `al` is centred over the shaft, which is what a catalyst or a condition wants, so
+A label with no `al` is centered over the shaft, which is what a catalyst or a condition wants, so
 the `al='cent'` the chemistry examples write changes nothing: measured 2026-09-14, a label written
 both ways renders at the same x to four decimals. `al='left'` and `al='rght'` push the label to the
 ends of the stretched width, which is how two labels on one arrow are read apart.
 
-### A labelled reaction arrow
+### A labeled reaction arrow
 
 ```pie
 // Radical Pie Equation
@@ -160,7 +160,7 @@ Gr
 
 ### A charm on the shaft
 
-An arrowhead at the right end and a cross at the centre, the reaction that does not happen.
+An arrowhead at the right end and a cross at the center, the reaction that does not happen.
 
 ```pie
 // Radical Pie Equation
@@ -179,7 +179,7 @@ Gr
 }
 ```
 
-## Wm — widemark
+## Wm: widemark
 
 A mark that stretches over or under a whole group: a bar, a hat, an arrow, a brace. Unlike `Mk` it
 applies to an expression rather than to one character, and it can carry a label outside it, which is

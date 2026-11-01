@@ -1,6 +1,6 @@
 # Operators
 
-## In — integral
+## In: integral
 
 An integral. The character is a data list, not a symbol, and it defaults to U+222B.
 
@@ -8,7 +8,7 @@ An integral. The character is a data list, not a symbol, and it defaults to U+22
 | --- | --- | --- | --- |
 | `sm` | bool | false | Small layout, for inline equations. |
 | `il` | bool | false | Inline limits: place them to the right instead of above and below. |
-| `kg` | bool | false | Keep the font's glyph instead of the shape Radical Pie synthesises. |
+| `kg` | bool | false | Keep the font's glyph instead of the shape Radical Pie synthesizes. |
 | `gr` | bool | false | Grow the sign past the highest and lowest points of the integrand. |
 
 | Subgroup | Count | Holds |
@@ -49,7 +49,7 @@ Gr
 }
 ```
 
-## It — iteration
+## It: iteration
 
 A sum, product, or any other operator applied over an index set. The character is a data list and
 defaults to U+2211. `It` is full size, with `lowr` and `uppr` stacked above and below the sign, unless
@@ -59,7 +59,7 @@ the caller asks for an inline-sized operator, which is what `sm` is for.
 vee, the union and the intersection. It draws whatever character it is given at that size, so an
 ordinary binary operator with a limit tucked under it, `⩓` with a `k` beneath it, comes out as a
 summation-sized glyph. That form is a stack; see the operator-with-a-limit part of the `St` section
-of `references/catalogue/Groups.md`.
+of `references/catalog/Groups.md`.
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |

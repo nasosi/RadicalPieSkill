@@ -1,6 +1,6 @@
 # Matrices
 
-## Mx — matrix
+## Mx: matrix
 
 A matrix of entry groups, up to 32 by 32. Entries are listed in row-major order: for a two by two
 matrix the order is top left, top right, bottom left, bottom right. The specification says
@@ -138,17 +138,17 @@ Gr
 }
 ```
 
-A picture grid, a matrix of coloured blocks and labels, is spaced by the design values and not by spacers
+A picture grid, a matrix of colored blocks and labels, is spaced by the design values and not by spacers
 in its cells: `'rwgp'`, `'aspx'` and `'aspy'` in the `'mtrx'` domain, and `'vtgp'` in the `'brck'` domain
-for the brackets around it. The `V` section of `references/catalogue/Design.md` has the values the site's
+for the brackets around it. The `V` section of `references/catalog/Design.md` has the values the site's
 own grids use and a fence with all four.
 
 A matrix owns four anchor types of its own beyond `'cell'`, the grid corners the `X` section's table
-(`references/catalogue/Annotations.md`) lists: `'orow'` and `'ocol'` sit past the grid's outer edge, clear
+(`references/catalog/Annotations.md`) lists: `'orow'` and `'ocol'` sit past the grid's outer edge, clear
 of a bracket wrapped round it, one pair per row or per column; `'mrow'` and `'mcol'` sit on the same row
 and column midlines measured inside the grid instead, so the arrowhead lands on the bracket rather than
-clearing it. `references/AnchorAtlas.md` measures every index of all four. Point a row-labelling or a
-column-labelling arrow at a bracketed matrix from `'orow'` or `'ocol'`, never from `'mrow'` or `'mcol'`,
+clearing it. `references/AnchorAtlas.md` measures every index of all four. Point a row-labeling or a
+column-labeling arrow at a bracketed matrix from `'orow'` or `'ocol'`, never from `'mrow'` or `'mcol'`,
 which would drive the head into the bracket. The site's Exomorphism equation labels the rows and columns of
 its picture grid this way, running each arrow from the matrix's `'orow'` or `'ocol'` anchor to rail 5 of
 the equation and hanging the caption on the arrow's far end, index 1, so the labels read outward from the

@@ -1,6 +1,6 @@
 # Fractions
 
-## Dv — division
+## Dv: division
 
 A long division: the dividend under the vinculum, with an optional quotient above it. The divisor is
 not part of the structure; it is the symbol written before it, and Radical Pie puts no space between
@@ -61,7 +61,7 @@ Gr
 }
 ```
 
-## Fr — fraction
+## Fr: fraction
 
 A fraction. The vertical kind stacks numerator over denominator; the horizontal kind puts them on one
 baseline either side of a slash; the diagonal kind raises the numerator and drops the denominator
@@ -85,7 +85,7 @@ diagonal kind reads well at text size, for a small ratio inside a sentence.
 | `Gr (t='numr')` | 1 | The numerator. |
 | `Gr (t='dnom')` | 1 | The denominator. |
 
-Both subgroups take the group alignment `al`, and a fraction's default is centre whichever part is
+Both subgroups take the group alignment `al`, and a fraction's default is center whichever part is
 wider. Write `al='left'` or `al='rght'` on the shorter of the two to line a column of terms up, as the
 second fraction below does; leaving `al` out is the same as writing `al='cent'`, measured on the same
 fraction.
@@ -143,7 +143,7 @@ Gr
 }
 ```
 
-## Rd — radical
+## Rd: radical
 
 A radical: a surd over the radicand, with an optional degree above the hook.
 

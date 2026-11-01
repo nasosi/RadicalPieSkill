@@ -4,7 +4,7 @@ A skill for an LLM harness that writes, validates and emits [Radical Pie](https:
 covers the format's OpenDDL structure and roles, the SVG comment carrier Radical Pie passes equations through, and the recipes that
 turn a LaTeX construct into the Radical Pie structure it becomes.
 
-Version 1.3.2. Checked against Radical Pie 1.16 on Windows. This version of the skill needs Radical Pie 1.16: the designs and
+Version 1.3.3. Checked against Radical Pie 1.16 on Windows. This version of the skill needs Radical Pie 1.16: the designs and
 symbols it writes use the font names, the text styles and the characters 1.16 added.
 
 ## What you need
@@ -68,12 +68,12 @@ prints before it exits 1, the module and `requirements.txt` included.
 
 ## Layout
 
-- `SKILL.md` — what the agent reads first: the format's mental model, the roles and styles table, and a map of every reference below.
-- `references/` — every file `SKILL.md`'s own map names, plus `examples/*.pie`, ready-made files to copy from.
-- `scripts/` — `Validate.py`, the validator, `WrapSvg.py`, the SVG carrier in both directions, and `Render.py`, `Word.py`, `PowerPoint.py` and
+- `SKILL.md`: what the agent reads first: the format's mental model, the roles and styles table, and a map of every reference below.
+- `references/`: every file `SKILL.md`'s own map names, plus `examples/*.pie`, ready-made files to copy from.
+- `scripts/`: `Validate.py`, the validator, `WrapSvg.py`, the SVG carrier in both directions, and `Render.py`, `Word.py`, `PowerPoint.py` and
   `Latex.py`, the four pipelines; `ToolsPath.py` sits beside these six and tells each which of the two layouts it is running in, not a command of its
   own. `scripts/Tools/` is the Python behind all six, vendored here so the folder runs without the repository it is built in.
-- `requirements.txt` — the third-party packages the pipelines import; the validator needs none of them.
+- `requirements.txt`: the third-party packages the pipelines import; the validator needs none of them.
 
 ## Feedback
 
@@ -83,10 +83,10 @@ create`. An empty file named `radicalpieskill.off` stops the feedback line, in a
 everywhere. `CHANGELOG.md` lists every version. From 1.0.0 the script command lines, the feedback line's five fields, the name `radicalpieskill.off`
 and the folder layout are stable, and a change to any of them is a new major version.
 
-## Licence
+## License
 
 MIT. See `LICENSE` in this folder. Radical Pie itself, its file format, and its documentation are the property of Radical Pie's author and are not
-covered by this licence; this skill only describes how to write files the editor reads. `references/TexSymbols.md` is the one file that reproduces
-that documentation, regenerated from Radical Pie's own TeX command tables, and it stands outside this licence with them.
+covered by this license; this skill only describes how to write files the editor reads. `references/TexSymbols.md` is the one file that reproduces
+that documentation, regenerated from Radical Pie's own TeX command tables, and it stands outside this license with them.
 
 Radical Pie: https://radicalpie.com

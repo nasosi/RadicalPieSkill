@@ -1,9 +1,9 @@
 # Bonds
 
 A bond drawn as a character inside running chemistry rather than as a bond site is the `'bond'` role of
-`Sb`, in `references/catalogue/Symbols.md`.
+`Sb`, in `references/catalog/Symbols.md`.
 
-## Bd — bond
+## Bd: bond
 
 One atom with bonds radiating from it. Molecules are built left to right along the baseline, and any
 group of a bond site may hold a further bond site.
@@ -23,7 +23,7 @@ No properties beyond the two every equation structure has.
 One or two `uint32[2]` data lists of pairs. The first pair list gives (group type, bond type) for each
 bond, where a group type of `0` means the rightward bond, which has no group of its own. The bond
 types are `'sing'`, `'doub'`, `'trip'`, `'hevy'`, `'wavy'`, `'part'`, `'prd1'`, `'prd2'`, `'prt1'`,
-`'prt2'`, `'prt3'`, `'swgo'`, `'swgi'`, `'dwgo'` and `'dwgi'`; capitalising the first letter makes the
+`'prt2'`, `'prt3'`, `'swgo'`, `'swgi'`, `'dwgo'` and `'dwgi'`; capitalizing the first letter makes the
 bond long, so `'Sing'` is a long single bond. The optional second pair list gives (group type, angle
 type) with `'step'` for a steep angle and `'shal'` for a shallow one, and applies only to the four
 diagonal directions.

@@ -1,11 +1,11 @@
 """Replace `{{pie:<key>}}` placeholders in a Word document with Radical Pie equations as true OLE objects.
 
 A placeholder carries an optional kind. `{{pie:<key>}}` is inline and sits on the text baseline;
-`{{pie:<key>|display}}` is the equation alone on its own centred line in the paragraph style `Equation`;
+`{{pie:<key>|display}}` is the equation alone on its own centered line in the paragraph style `Equation`;
 `{{pie:<key>|numbered}}` is a display equation with `(n)` at the right margin, the number coming from a
 `SEQ equation` field and carrying a bookmark named `eq_<key>` over its digits. `{{ref:<key>}}` anywhere in
 the body text becomes a `REF eq_<key>` field, so the author writes "see equation ({{ref:momentum}})". The
-style with its centre and right tab stops, the `SEQ` field, the bookmark over the number and the `REF`
+style with its center and right tab stops, the `SEQ` field, the bookmark over the number and the `REF`
 field are the recipe the Radical Pie Word page gives under "Displayed Equations and Numbering" and
 "Referencing Equations"; lowering an inline equation by its baseline shift is what the same page describes
 under "Baseline Alignment".
@@ -13,7 +13,7 @@ under "Baseline Alignment".
 `{{chapter}}` marks where a chapter starts, and the same page's `(x.y)` recipe is what it turns on. The
 marker becomes a `SEQ chapter` field, which advances the chapter counter and shows its number where the
 author put it, in a heading; from there each numbered equation reads `(x.y)`, a `SEQ chapter \\c` field that
-reads the chapter without advancing it, a full stop, and the equation field, whose count starts again in each
+reads the chapter without advancing it, a period, and the equation field, whose count starts again in each
 chapter through `\\r 1` on the first equation of it. The bookmark covers the whole of such a number, so a
 reference to it reads `1.2`. A draft with no marker in it is numbered `(1)`, `(2)` as it always was, and an
 equation standing before the first marker is numbered that way too, because the chapter counter answers zero
@@ -23,7 +23,7 @@ The route is the one ADR-0004 settles, in four passes over one document, because
 Word inserts an object of a class, not of a file: `RadicalPie.Document.1` registers no CLSID, so
 `AddOLEObject(FileName=<a .pie>)` raises a modal dialog and fails, while
 `AddOLEObject(ClassType='RadicalPie.Application.1')` yields the embedding the Radical Pie add-in makes,
-stream for stream, holding Radical Pie's own empty equation. The equation goes in afterwards, by replacing
+stream for stream, holding Radical Pie's own empty equation. The equation goes in afterward, by replacing
 the `RP` stream of each `word/embeddings/oleObjectN.bin` inside the package; Word passes a replaced `RP`
 through an open and save unchanged. The picture Word shows comes from neither step: until an object is
 activated once it displays as a 5.25 by 6.75 point blank, so the third pass activates each object, posts
@@ -73,7 +73,7 @@ Measured on 2026-09-11 against the same two programs, and the reason for each st
   listing in exactly the same way, and taking the lowest new pid reported an equation the pipeline had drawn a
   minute earlier as one Radical Pie could not read.
 - The editor window opens visible, about 1080 by 720 pixels, and does not take the foreground: the window that
-  had it kept it through a whole pass. Radical Pie draws and saves the equation minimised.
+  had it kept it through a whole pass. Radical Pie draws and saves the equation minimized.
 
 Measured on 2026-09-12, with forty test workers and an agent rendering beside this pass: the activation step
 fails about once in a hundred objects and succeeds on the rerun, the server closing the editor without drawing
@@ -87,15 +87,15 @@ run inside a `Tools.Word.EditorHook`:
 
 - Pass one opens an editor for every object `AddOLEObject` inserts and leaves it on screen until the document
   closes, all of them at one position: the first of ten was on screen 4.6 s and the last 1.2 s.
-- Pass three's editor was on screen 0.35 to 0.38 s each, from its show to the minimise the pass sent once
+- Pass three's editor was on screen 0.35 to 0.38 s each, from its show to the minimize the pass sent once
   `AwaitEditor` had found it, which polls the process listing.
 - The editor is created hidden with the title `Radical Pie`, renamed `Radical Pie - Equation in <file name>`
   and shown 31 to 94 ms after its creation, at the position it was created at.
 - `ShowWindowAsync` with `SW_SHOWMINNOACTIVE` sent on the name change, while the editor is still hidden,
-  shows it minimised, and the server's own show leaves it so: the show and the minimise carry the same event
+  shows it minimized, and the server's own show leaves it so: the show and the minimize carry the same event
   time, the sampler found no editor on screen in either pass, and the equations came out at the sizes they
   had before, 23 by 23 and 16.5 by 9 points. Moving the hidden editor off the screen kept it off as well;
-  the pipeline minimises instead, the state Radical Pie has drawn in since 2026-09-11.
+  the pipeline minimizes instead, the state Radical Pie has drawn in since 2026-09-11.
 - `OLEFormat.DoVerb` with `OLEIVERB_HIDE` (-3) or `OLEIVERB_INPLACEACTIVATE` (-5) is answered with E_FAIL and
   starts the server with its editor hidden, and a Save posted to the hidden editor delivers the 632-byte
   zero-frame metafile Radical Pie answers with before its layout has run. Word sizes that object 1 by 1 point
@@ -107,7 +107,7 @@ Ending a session costs one handled COM failure, which pytest's faulthandler prin
 `Quit`, so the release of the reference that called it reaches a process that has gone; releasing without
 `Quit` leaves Word running with the document open, so there is no order that avoids it. The exception is
 handled and nothing leaks.
-COM stays initialised on the main thread between sessions: one `pythoncom.CoUninitialize` tore the
+COM stays initialized on the main thread between sessions: one `pythoncom.CoUninitialize` tore the
 apartment down under the session's COM objects (measured 2026-10-09, `WordSession.__enter__`).
 
 Every process this module starts it ends, and holds it in the registry of `Tools.Processes` until its exit has
@@ -728,9 +728,9 @@ def InsertObjects(documentPath: Path, placeholders: list, references: list, dead
 def EnsureEquationStyle(document) -> None:
     """The paragraph style the Word page prescribes for a displayed equation, when the document has none.
 
-    The tab stops are the two the page names, a centre stop at half the usable width of the first section and
+    The tab stops are the two the page names, a center stop at half the usable width of the first section and
     a right stop at the whole of it. The style is left alone when it is already there, because it is then the
-    author's own. Left alignment is set because a centre tab moves nothing in a centred or justified
+    author's own. Left alignment is set because a center tab moves nothing in a centered or justified
     paragraph.
 
     Every piece of the style is set here rather than left to what `Styles.Add` produced, because what it
@@ -756,7 +756,7 @@ def EnsureEquationStyle(document) -> None:
     # does not displace it: created with the selection in the Title of a document, the style carried the
     # Title's 26 pt blue and every equation number came out in it. Assigning Normal's own font leaves the
     # style with no character formatting of its own at all, measured on 2026-09-11 against Word 16; setting
-    # the name, the size and the colour one at a time leaves the Title's character spacing, its kerning and
+    # the name, the size and the color one at a time leaves the Title's character spacing, its kerning and
     # its complex-script size behind.
     style.Font = normal.Font
 
@@ -793,7 +793,7 @@ def InsertChapter(application, document) -> None:
 
 
 def InsertObject(application, document, placeholder: Placeholder, form: Optional[NumberForm]) -> None:
-    """One placeholder becomes an object, centred and numbered when its kind asks for it."""
+    """One placeholder becomes an object, centered and numbered when its kind asks for it."""
 
     SelectPlaceholder(application, placeholder.text)
     selection = application.Selection
@@ -836,7 +836,7 @@ def AddNumberField(document, shape, form: NumberForm) -> None:
     """The right tab, the parentheses and the `SEQ` fields that count the displayed equations.
 
     A flat number is one `SEQ equation` field between the parentheses. A chaptered one is `SEQ chapter \\c`,
-    a full stop and the equation field, which is the `(x.y)` recipe of the Word page, and the first equation
+    a period and the equation field, which is the `(x.y)` recipe of the Word page, and the first equation
     of a chapter carries `\\r 1` so that the count starts again there.
 
     The number carries the paragraph style and nothing else, and nothing here resets it: applying the
@@ -853,7 +853,7 @@ def AddNumberField(document, shape, form: NumberForm) -> None:
     tail.InsertAfter("\t(.)" if form.chaptered else "\t()")
     end = tail.End
 
-    # The equation field goes in first: inserting it moves nothing before it, so the full stop is still the
+    # The equation field goes in first: inserting it moves nothing before it, so the period is still the
     # character the chapter field goes in front of.
     document.Fields.Add(
         Range=document.Range(end - 1, end - 1),
@@ -893,7 +893,7 @@ def NumberEquations(document, placeholders: list, forms: dict, references: list,
     put over a number that exists, and a `REF` field resolves only once its bookmark is there. A bookmark
     over a field result survives the second update, measured on 2026-09-11.
 
-    A chaptered number is two fields and the full stop between them, and the bookmark covers all three, which
+    A chaptered number is two fields and the period between them, and the bookmark covers all three, which
     is what the Word page asks for: a reference to such an equation reads `1.2` and not `2`.
     """
 
@@ -1270,7 +1270,7 @@ def CloseFontImport(pid: int) -> None:
     """Let the editor's `slugfont.exe` finish its slug, then close a Font Import report the editor still shows.
 
     The report keeps the editor window disabled, and closing it enables that window again (measured 2026-10-08,
-    `Tools.Render.FontImport`), so the close posted to the editor afterwards reaches a window that takes it.
+    `Tools.Render.FontImport`), so the close posted to the editor afterward reaches a window that takes it.
     """
 
     AwaitSlugFont(pid)
@@ -1280,9 +1280,9 @@ def CloseFontImport(pid: int) -> None:
 
 
 def QuietenEditor(window: int) -> None:
-    """Minimise the editor window `AwaitEditor` found, for an editor the pass's `EditorHook` did not reach.
+    """Minimize the editor window `AwaitEditor` found, for an editor the pass's `EditorHook` did not reach.
 
-    The hook has shown the editor minimised before its first frame, and minimising a minimised window changes
+    The hook has shown the editor minimized before its first frame, and minimizing a minimized window changes
     nothing; this is what keeps the window off the screen when Windows refused the hook, which is how the pass
     kept it off before the hook existed, 0.35 to 0.38 s after its show (measured 2026-10-31, module docstring).
     The editor does not take the foreground, which stayed on the window that had it for the whole pass
@@ -1320,7 +1320,7 @@ def AwaitEditor(documentPath: Path, running: set, key: str, deadline: float) -> 
     to say it: `Radical Pie - Equation in <the document file name>` for this document and no other, which is
     the rule `Tools/PowerPoint/Pptx.py` states for its own deck. A title merely starting with the prefix is
     an editor of somebody else's document, opened by a double-click in a Word of the operator's own, and
-    this pass would have minimised it, saved it back into that document, closed it and terminated it.
+    this pass would have minimized it, saved it back into that document, closed it and terminated it.
 
     A server that leaves instead of showing a window has failed the same way one that leaves after showing
     it has, so both say so in the same words. Which of the two happens with an unreadable equation varies
@@ -1534,14 +1534,14 @@ class WordSession:
         self.stop = threading.Event()
 
     def __enter__(self):
-        # COM is initialised on this thread and never uninitialised, as `PowerPointSession` does. Importing
-        # `pythoncom` initialises the main thread's apartment, `pythoncom.CoInitialize` does not add to that
+        # COM is initialized on this thread and never uninitialized, as `PowerPointSession` does. Importing
+        # `pythoncom` initializes the main thread's apartment, `pythoncom.CoInitialize` does not add to that
         # count, and one `pythoncom.CoUninitialize` tears the apartment down: measured 2026-10-09, "import + 2
-        # init + 1 uninit -> 0", a fresh initialisation. The session's COM objects outlived the teardown, and
+        # init + 1 uninit -> 0", a fresh initialization. The session's COM objects outlived the teardown, and
         # the gate's serial half on Radical Pie 1.16 failed in `TestChapterMarkersNumberTheEquationsInTheChapter
         # Form`, with `0x800706b5` after the third insertion or with an access violation inside
         # `dynamic._LazyAddAttr_` in `EnsureEquationStyle`, depending on the tests before it; with the two
-        # uninitialisations removed it passed, 70 of 70 (2026-10-09).
+        # uninitializations removed it passed, 70 of 70 (2026-10-09).
         pythoncom.CoInitialize()
         running = Pids(WordImage)
 
@@ -1654,7 +1654,7 @@ class WordSession:
         which is the rule `Tools/PowerPoint/Pptx.py` states, and `AttemptActivation` gives it up as soon as
         it has ended it. What is left here is the editor of an activation the guard thread cut short.
 
-        `TerminateProcess` only posts the termination; the process is still listed for a moment afterwards,
+        `TerminateProcess` only posts the termination; the process is still listed for a moment afterward,
         so a kill is followed by another wait rather than trusted to have finished by the time this returns.
         """
 

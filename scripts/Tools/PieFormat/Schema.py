@@ -1,4 +1,4 @@
-"""The Radical Pie structure catalogue as data, taken from References/Docs/Text/FileFormat.md.
+"""The Radical Pie structure catalog as data, taken from References/Docs/Text/FileFormat.md.
 
 Every rule carries the section title of that document it comes from, so a validation error can name
 the section its reader must open. Each rule that the specification does not state, and that a fixture
@@ -10,7 +10,7 @@ them: the endpoint and offset properties of Cn, Zg and Qe, the 'line' anchor typ
 structures, and the 'pi' and 'co' properties on the four modifier structures, which the specification
 offers to the equation category alone.
 
-Where the specification enumerates nothing, this catalogue enumerates nothing: `Gr`'s `al` is
+Where the specification enumerates nothing, this catalog enumerates nothing: `Gr`'s `al` is
 unconstrained here. Every data-list value is held to the range of its primitive type (`IntegerRanges`),
 a Unicode character value to the last code point (`UnicodeValueStructures`), and the values the
 specification does enumerate to its tables: `Ar`'s arrow and charm types and `Bd`'s bond types, bond
@@ -134,7 +134,7 @@ class SubstructureRule:
 
 
 class StructureRule:
-    """Everything the catalogue knows about one structure identifier."""
+    """Everything the catalog knows about one structure identifier."""
 
     def __init__(self, identifier, category, section, properties, substructures, groupTypes, firstChild):
         self.identifier = identifier
@@ -186,7 +186,7 @@ CharmAlignments = ("left", "rght", "cent")
 
 # The forty charm types of the charm table in the same section, in the order the table lists them.
 # Radical Pie 1.15 drops a value that is not one of these and not an alignment, leaving the shaft bare,
-# so this list too is narrower than the executable (ADR-0007). What the catalogue does not encode is the
+# so this list too is narrower than the executable (ADR-0007). What the catalog does not encode is the
 # table's Left, Right and Interior columns: every one of the forty draws at every one of the three
 # positions, so those columns describe the Insert Arrow dialog's palettes and not the format
 # (Docs/ARCHITECTURE.md, format facts, measured 2026-09-13).
@@ -332,7 +332,7 @@ UnicodeValueStructures = ("Mk", "Br", "Pr", "In", "It")
 MaximumCodePoint = 0x10FFFF
 
 # The fifteen bond types of the "Bd — Bond Structure" section, each of which can be written with its
-# first letter capitalised for a long bond. Radical Pie 1.15 draws a value outside the table as a single
+# first letter capitalized for a long bond. Radical Pie 1.15 draws a value outside the table as a single
 # bond and writes it back unchanged, so this enumeration is narrower than the executable the way Ar's two
 # are: `u32[2]{{0,'zzzz'}}` and `u32[2]{{0,'sing'}}` both rendered 15.6075 by 9 pt (measured 2026-09-14).
 BondTypes = (
@@ -357,7 +357,7 @@ BondTypeValues = BondTypes + tuple(bondType.capitalize() for bondType in BondTyp
 
 # The group type in a bond pair names the direction the bond points. 0 is the rightward bond, which has
 # no group of its own (Corpus/Site/Chemistry/FDG.pie line 30 writes `{0,'Sing'}`); each of the six others
-# names the neighbour group the bond ends at, and a pair whose group the site does not hold draws neither
+# names the neighbor group the bond ends at, and a pair whose group the site does not hold draws neither
 # the bond nor the atom and reports nothing (measured 2026-09-14, 7.33691 by 9 pt against the control's
 # 7.94385 by 28 pt).
 BondGroupTypes = (0, "uppr", "uplf", "uprt", "lowr", "lwlf", "lwrt")
@@ -474,7 +474,7 @@ BondAnchorTypes = ("bond", "bdup", "bdur", "bdul", "bdlw", "bdll", "bdlr")
 
 MatrixAnchorTypes = ("mtrx", "cell", "mrow", "mcol", "orow", "ocol", "lrow", "lcol")
 
-# Six of the seven bond types box one neighbour group each, and a direction whose group the bond site
+# Six of the seven bond types box one neighbor group each, and a direction whose group the bond site
 # does not hold crashes Radical Pie (Docs/ARCHITECTURE.md, format facts, measured 2026-09-12). 'bond'
 # boxes the whole site and needs no group.
 BondAnchorGroupTypes = {
@@ -575,7 +575,7 @@ LineStructures = ("Ln", "Cn", "Zg", "Qe", "Jo")
 # "Line objects have a stroke color only and do not use the fill color" (Drawing Tools). Measured
 # 2026-09-13 through the render pipeline: `f`, `fpi` and `fco` on an Ln, a Cn, a Zg, a Qe and a Jo each
 # rendered the same paths as the plain structure, `fco=0xFFFF0000` leaving the path black, while `sco`
-# coloured it. The specification gives all eight general drawing properties to every drawing structure,
+# colored it. The specification gives all eight general drawing properties to every drawing structure,
 # so the file is legal and its fill is silently dropped, which is what the validator reports.
 LineFillProperties = ("f", "fpi", "fco")
 
@@ -594,14 +594,14 @@ ShapeStructures = ("Rt", "Rr", "El")
 
 
 def Rule(identifier, category, title, properties=(), substructures=(), groupTypes=None, firstChild=None):
-    """Assemble one catalogue entry, adding the general properties that the category brings with it."""
+    """Assemble one catalog entry, adding the general properties that the category brings with it."""
 
     allProperties = list(properties)
 
     # The specification offers 'pi' and 'co' to the equation category alone. The four modifiers take
-    # them too and colour their own ink and not the symbol's: 'co' on an En, a Ng, a Sl and a Mk each
-    # coloured the enclosure, the negation stroke, the slash and the accent red while the symbol stayed
-    # black, and pi=5 on an En drew the enclosure in palette colour 5 (rendered 2026-09-13).
+    # them too and color their own ink and not the symbol's: 'co' on an En, a Ng, a Sl and a Mk each
+    # colored the enclosure, the negation stroke, the slash and the accent red while the symbol stayed
+    # black, and pi=5 on an En drew the enclosure in palette color 5 (rendered 2026-09-13).
     if category in ("equation", "modifier"):
         allProperties += EquationProperties()
     elif category == "drawing":

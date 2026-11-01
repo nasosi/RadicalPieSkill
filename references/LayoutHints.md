@@ -19,7 +19,7 @@ shows as a hole inside the bracket and a pair 3.298 by 10.872 pt against its par
 
 Every bracket is a `Br`, a single letter or digit inside included, and never a pair of `Sb (ro='pnct')`
 parentheses: the punctuation role spaces its symbol as punctuation, so a `(1)` written that way renders
-`( 1 )` and leaves a gap before the full stop after it. The punctuation role is for commas and full
-stops. Where the bracketed content carries a superscript, reach for `Br (as)`, the asymmetric extent,
-which centres the bracket on its content instead of on the math axis; the site's own brackets round a
+`( 1 )` and leaves a gap before the period after it. The punctuation role is for commas and
+periods. Where the bracketed content carries a superscript, reach for `Br (as)`, the asymmetric extent,
+which centers the bracket on its content instead of on the math axis; the site's own brackets round a
 raised power are written that way.
